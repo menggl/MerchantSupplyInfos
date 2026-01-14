@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品搜索</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 667px;
+            background-color: #f7f8fa;
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 12px solid #333;
+        }
+
+        /* 顶部导航栏 */
+        .nav-bar {
+            background-color: #1890FF;
+            padding: 44px 15px 10px; /* Status bar height included */
+            display: flex;
+            align-items: center;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .search-input-mock {
+            flex: 1;
+            background-color: rgba(255,255,255,0.2);
+            height: 32px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+        }
+
+        /* 主体布局 */
+        .content-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            background-color: #fff;
+        }
+
+        /* 左侧品牌栏 */
+        .sidebar {
+            width: 90px;
+            background-color: #f7f8fa;
+            overflow-y: auto;
+            border-right: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .brand-item {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #333;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .brand-item.active {
+            background-color: #fff;
+            color: #4facfe;
+            font-weight: bold;
+        }
+
+        .brand-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 15px;
+            bottom: 15px;
+            width: 4px;
+            background-color: #4facfe;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* 右侧内容区 */
+        .main-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 搜索表单视图 */
+        .search-form-view {
+            padding: 15px;
+            display: block; /* 默认显示 */
+        }
+        
+        /* 列表选择视图 */
+        .list-selection-view {
+            display: none; /* 默认隐藏 */
+            width: 100%;
+        }
+
+        /* 选择器组 */
+        .selector-group {
+            background-color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .selector-item {
+            background-color: #f5f5f5;
+            height: 44px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            font-size: 12px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .selector-item span {
+            color: #666;
+        }
+        .type-toggle { display: flex; gap: 4px; margin-bottom: 10px; background: #eef2f7; border-radius: 12px; padding: 2px 3px; }
+        .type-btn { flex: 1; height: 30px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: #666; }
+        .type-btn.active { background: #ffffff; color: #c94f4f; border: 1px solid #d9dfe7; }
+
+        /* 搜索按钮 */
+        .action-btn {
+            background: #4facfe;
+            color: white;
+            height: 44px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 10px 0 20px;
+            box-shadow: 0 4px 10px rgba(79, 172, 254, 0.3);
+            cursor: pointer;
+        }
+
+        /* 城市网格 */
+        .city-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .city-item {
+            background-color: #f5f5f5;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #333;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .city-item.active {
+            background-color: #e6f7ff;
+            color: #4facfe;
+            border-color: #4facfe;
+        }
+
+        /* 列表样式 */
+        .list-item {
+            height: 50px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 12px;
+            color: #333;
+            cursor: pointer;
+            justify-content: space-between;
+        }
+        
+        .list-item:active {
+            background-color: #f9f9f9;
+        }
+
+        .list-item-info {
+            font-size: 11px;
+            color: #999;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .stock-tag {
+            color: #4facfe;
+        }
+
+        /* 底部导航栏 */
+        .tab-bar {
+            height: 83px;
+            background-color: #fff;
+            border-top: 1px solid #e5e5e5;
+            display: flex;
+            padding-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #999;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .tab-item.active {
+            color: #4facfe;
+        }
+
+        .tab-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            background-color: currentColor;
+            mask-size: contain;
+            -webkit-mask-size: contain;
+            mask-repeat: no-repeat;
+            -webkit-mask-repeat: no-repeat;
+            mask-position: center;
+            -webkit-mask-position: center;
+        }
+
+        .icon-request {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E");
+        }
+
+        .icon-home {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E");
+        }
+
+        .icon-search {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+        }
+
+        .icon-me {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <!-- 顶部搜索栏 -->
+        <div class="nav-bar">
+            <div class="search-input-mock">🔍 搜索商品</div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="content-container">
+            <!-- 左侧品牌 -->
+            <div class="sidebar">
+                <div class="brand-item active">苹果</div>
+                <div class="brand-item">华为</div>
+                <div class="brand-item">华为智选</div>
+                <div class="brand-item">荣耀</div>
+                <div class="brand-item">小米</div>
+                <div class="brand-item">红米</div>
+                <div class="brand-item">OPPO</div>
+                <div class="brand-item">VIVO</div>
+                <div class="brand-item">三星</div>
+                <div class="brand-item">一加</div>
+                <div class="brand-item">小度</div>
+                <div class="brand-item">智能音箱</div>
+            </div>
+
+            <!-- 右侧筛选 -->
+            <div class="main-area">
+                
+                <!-- 视图1: 搜索表单 -->
+                <div id="searchForm" class="search-form-view">
+                    <!-- 上方选择 -->
+                    <div class="type-toggle">
+                        <div id="btnUsed" class="type-btn used active" onclick="setType('used')">二手机</div>
+                        <div id="btnNew" class="type-btn new" onclick="setType('new')">新机</div>
+                    </div>
+                    <div class="selector-group">
+                        <div class="selector-item" onclick="showSeriesList()">
+                            <span id="selectedSeries">iPhone 17</span>
+                            <span>&gt;</span>
+                        </div>
+                        <div class="selector-item" onclick="showModelList()">
+                            <span id="selectedModel">17 6.3寸 国行</span>
+                            <span>&gt;</span>
+                        </div>
+                        <div class="selector-item" onclick="showConfigList()">
+                            <span id="selectedConfig">黑色 256G</span>
+                            <span>&gt;</span>
+                        </div>
+                    </div>
+
+                    <!-- 搜索按钮 -->
+                    <div class="action-btn" onclick="goSearch()">搜索</div>
+
+                    <!-- 城市选择 -->
+                    <div class="city-grid">
+                        <div class="city-item">全国</div>
+                        <div class="city-item">郑州市</div>
+                        <div class="city-item">深圳市</div>
+                        <div class="city-item active">济南市</div>
+                        <div class="city-item">成都市</div>
+                        <div class="city-item">北京市</div>
+                        <div class="city-item">西安市</div>
+                        <div class="city-item">天津市</div>
+                        <div class="city-item">兰州市</div>
+                        <div class="city-item">武汉市</div>
+                        <div class="city-item">杭州市</div>
+                        <div class="city-item">石家庄市</div>
+                        <div class="city-item">长沙市</div>
+                        <div class="city-item">南京市</div>
+                        <div class="city-item">上海市</div>
+                        <div class="city-item">太原市</div>
+                        <div class="city-item">昆明市</div>
+                        <div class="city-item">银川市</div>
+                    </div>
+                </div>
+
+                <!-- 视图2: 列表选择 -->
+                <div id="listSelection" class="list-selection-view">
+                    <!-- 列表内容将通过 JS 动态生成 -->
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 底部导航栏 -->
+        <div class="tab-bar">
+            <div class="tab-item" onclick="location.href='home_mockup.html'">
+                <div class="tab-icon icon-home"></div>
+                <span>首页</span>
+            </div>
+            <div class="tab-item active">
+                <div class="tab-icon icon-search"></div>
+                <span>查询</span>
+            </div>
+            <div class="tab-item" onclick="location.href='listings_mockup.html'">
+                <div class="tab-icon icon-request"></div>
+                <span>求购</span>
+            </div>
+            <div class="tab-item" onclick="location.href='me_mockup.html'">
+                <div class="tab-icon icon-me"></div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据
+        const seriesData = [
+            "iPhone 17", "iPhone Air", "iPhone 16", "iPhone 15", "iPhone 14", "iPhone 13",
+            "Apple iPad", "Apple Watch", "Apple 耳机", "Apple Mac", "Apple 显示器", "Apple 配件"
+        ];
+
+        const modelData = [
+            "17 6.3寸 国行", "17 Pro 6.3寸 国行", "17 Pro Max 6.9寸 国行"
+        ];
+
+        const configData = [
+            { name: "黑色 256G", price: "均价: 有货" },
+            { name: "白色 256G", price: "均价: 有货" },
+            { name: "青雾蓝色 256G", price: "均价: 有货" },
+            { name: "鼠尾草绿色 256G", price: "均价: 有货" },
+            { name: "薰衣草紫色 256G", price: "均价: 有货" },
+            { name: "黑色 512G", price: "均价: 有货" },
+            { name: "白色 512G", price: "均价: 有货" },
+            { name: "青雾蓝色 512G", price: "均价: 有货" },
+            { name: "鼠尾草绿色 512G", price: "均价: 有货" },
+            { name: "薰衣草紫色 512G", price: "均价: 有货" }
+        ];
+
+        const searchForm = document.getElementById('searchForm');
+        const listSelection = document.getElementById('listSelection');
+        let condType = 'used';
+        
+        function showView(viewName) {
+            if (viewName === 'form') {
+                searchForm.style.display = 'block';
+                listSelection.style.display = 'none';
+            } else {
+                searchForm.style.display = 'none';
+                listSelection.style.display = 'block';
+            }
+        }
+
+        function showSeriesList() {
+            renderList(seriesData.map(item => ({ text: item })), (item) => {
+                document.getElementById('selectedSeries').innerText = item.text;
+                // 重置后续选项
+                document.getElementById('selectedModel').innerText = "请选择型号";
+                document.getElementById('selectedConfig').innerText = "请选择配置";
+                showView('form');
+            });
+            showView('list');
+        }
+
+        function showModelList() {
+            renderList(modelData.map(item => ({ text: item })), (item) => {
+                document.getElementById('selectedModel').innerText = item.text;
+                document.getElementById('selectedConfig').innerText = "请选择配置";
+                showView('form');
+            });
+            showView('list');
+        }
+
+        function showConfigList() {
+            renderList(configData.map(item => ({ text: item.name, extra: item.price })), (item) => {
+                document.getElementById('selectedConfig').innerText = item.text;
+                showView('form');
+            });
+            showView('list');
+        }
+
+        function renderList(items, callback) {
+            listSelection.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                
+                if (item.extra) {
+                    div.innerHTML = `
+                        <span>${item.text}</span>
+                        <div class="list-item-info">
+                            <span>均价:</span>
+                            <span class="stock-tag">有货</span>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `<span>${item.text}</span>`;
+                }
+                
+                div.onclick = () => callback(item);
+                listSelection.appendChild(div);
+            });
+        }
+        function setType(t) {
+            condType = t;
+            document.getElementById('btnNew').classList.toggle('active', t === 'new');
+            document.getElementById('btnUsed').classList.toggle('active', t === 'used');
+        }
+        function goSearch() {
+            const series = document.getElementById('selectedSeries').innerText;
+            const model = document.getElementById('selectedModel').innerText;
+            const config = document.getElementById('selectedConfig').innerText;
+            const q = new URLSearchParams({
+                type: condType,
+                series,
+                model,
+                config
+            }).toString();
+            if (condType === 'used') {
+                location.href = 'search_results_mockup.html?' + q;
+            } else {
+                location.href = 'search_results_new_mockup.html?' + q;
+            }
+        }
+    </script>
+</body>
+</html>

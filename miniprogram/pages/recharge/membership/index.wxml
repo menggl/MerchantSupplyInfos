@@ -1,0 +1,34 @@
+<view class="container">
+  <view class="content">
+    <view class="section-title">选择会员类型</view>
+    <view class="card">
+      <view class="plan-list">
+        <view 
+          class="plan-item {{item.id === selectedId ? 'active' : ''}}" 
+          wx:for="{{plans}}" 
+          wx:key="id" 
+          bindtap="onSelectPlan" 
+          data-id="{{item.id}}"
+        >
+          <view>
+            <view class="plan-name">{{item.name}}</view>
+            <view class="plan-desc">{{item.desc}}</view>
+          </view>
+          <view class="plan-price">¥{{item.price}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card summary-card">
+      <view class="summary-row">
+        <view class="summary-label">已选择</view>
+        <view class="summary-value">{{selectedPlan ? selectedPlan.name + '（' + selectedPlan.desc + '）' : '未选择'}}</view>
+      </view>
+      <view class="summary-row">
+        <view class="summary-label">需支付金额</view>
+        <view class="summary-value">¥{{payAmount}}</view>
+      </view>
+      <button class="btn-pay" bindtap="onPay">立即充值</button>
+    </view>
+  </view>
+</view>

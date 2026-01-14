@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
+        .phone-frame { width: 375px; height: 667px; background-color: #f7f8fa; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; position: relative; border: 12px solid #333; }
+        
+        /* Nav Bar - Hidden or blended in new design */
+        .nav-bar { display: none; }
+
+        /* Custom Header Area */
+        .header-area {
+            background: linear-gradient(135deg, #4facfe 0%, #764ba2 100%);
+            padding: 20px 20px 24px;
+            color: white;
+            position: relative;
+        }
+        .header-top {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 5px;
+        }
+        .header-icon {
+            font-size: 20px;
+            margin-left: 15px;
+            opacity: 0.9;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+        .avatar {
+            width: 64px;
+            height: 64px;
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255,255,255,0.5);
+            overflow: hidden;
+        }
+        .avatar svg { fill: white; width: 40px; height: 40px; }
+        .user-info { flex: 1; }
+        .user-phone { font-size: 20px; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .user-validity { font-size: 12px; opacity: 0.8; background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 10px; display: inline-block; }
+        .check-in-btn {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+        .check-in-btn.checked {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -20px) scale(1.5); }
+        }
+        .plus-five {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffeb3b;
+            font-weight: bold;
+            font-size: 16px;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            white-space: nowrap;
+        }
+
+        .content { flex: 1; overflow-y: auto; padding: 12px 12px; margin-top: 0; z-index: 10; }
+
+        /* Card Sections */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .card-title::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 14px;
+            background: #4facfe;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        .card-more {
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* Grid Layout for Icons */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px 8px;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .grid-item:active { opacity: 0.7; }
+        
+        .grid-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            color: white;
+            font-size: 22px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .grid-text {
+            font-size: 12px;
+            color: #333;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Icon Colors */
+        .bg-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .bg-purple { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+        .bg-orange { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); }
+        .bg-yellow { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+        .bg-green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+        /* Tab Bar */
+        .tab-bar { height: 83px; background-color: #fff; border-top: 1px solid #e5e5e5; display: flex; padding-bottom: 20px; flex-shrink: 0; }
+        .tab-item { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #999; cursor: pointer; font-size: 10px; }
+        .tab-item.active { color: #4facfe; }
+        .tab-icon { width: 24px; height: 24px; margin-bottom: 4px; background-color: currentColor; mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center; }
+        
+        /* Icons */
+        .icon-request {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E");
+        }
+        .icon-home { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E"); }
+        .icon-search { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E"); }
+        .icon-me { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"); }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="header-area">
+            <div class="user-profile">
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                <div class="user-info">
+                    <div class="user-phone">135****1403</div>
+                    <div class="user-validity">有效期：2026-03-01</div>
+                </div>
+                <div class="check-in-btn" onclick="handleCheckIn(this)">签到</div>
+            </div>
+        </div>
+
+        <div class="content">
+
+
+            <!-- 我的工具 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">我的工具</div>
+                </div>
+                <div class="icon-grid">
+                    <div class="grid-item" onclick="location.href='my_listings_mockup.html?v=' + new Date().getTime()">
+                        <div class="grid-icon bg-blue">📦</div>
+                        <div class="grid-text">我的上架</div>
+                    </div>
+                    <div class="grid-item" onclick="location.href='my_requests_mockup.html?v=' + new Date().getTime()">
+                        <div class="grid-icon bg-purple">📋</div>
+                        <div class="grid-text">我的求购</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 其他功能 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">其他功能</div>
+                </div>
+                <div class="icon-grid">
+                    <div class="grid-item" onclick="location.href='membership_mockup.html'">
+                        <div class="grid-icon bg-yellow">👑</div>
+                        <div class="grid-text">会员管理</div>
+                    </div>
+                    <div class="grid-item" onclick="location.href='edit_profile_mockup.html'">
+                        <div class="grid-icon bg-blue">📝</div>
+                        <div class="grid-text">修改资料</div>
+                    </div>
+                    <div class="grid-item">
+                        <div class="grid-icon bg-orange">💰</div>
+                        <div class="grid-text">会员充值</div>
+                    </div>
+                    <div class="grid-item" onclick="location.href='points_recharge_mockup.html'">
+                        <div class="grid-icon bg-green">🎁</div>
+                        <div class="grid-text">积分充值</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-bar">
+            <div class="tab-item" onclick="location.href='home_mockup.html'">
+                <div class="tab-icon icon-home"></div>
+                <span>首页</span>
+            </div>
+            <div class="tab-item" onclick="location.href='search_mockup.html'">
+                <div class="tab-icon icon-search"></div>
+                <span>查询</span>
+            </div>
+            <div class="tab-item" onclick="location.href='listings_mockup.html'">
+                <div class="tab-icon icon-request"></div>
+                <span>求购</span>
+            </div>
+            <div class="tab-item active">
+                <div class="tab-icon icon-me"></div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        function handleCheckIn(btn) {
+            if (btn.classList.contains('checked')) return;
+
+            const randomPoints = Math.floor(Math.random() * 2) + 2;
+            const plusFive = document.createElement('div');
+            plusFive.className = 'plus-five';
+            plusFive.textContent = `+${randomPoints}`;
+            
+            btn.appendChild(plusFive);
+            
+            setTimeout(() => {
+                btn.classList.add('checked');
+                btn.textContent = '已签到';
+                btn.removeAttribute('onclick');
+                btn.onclick = null;
+            }, 300);
+
+            setTimeout(() => {
+                plusFive.remove();
+            }, 800);
+        }
+    </script>
+</body>
+</html>

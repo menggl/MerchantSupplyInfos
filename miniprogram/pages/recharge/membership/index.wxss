@@ -1,0 +1,101 @@
+page {
+  background-color: #f2f3f5;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+
+.container {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+.content {
+  padding: 20rpx 28rpx;
+}
+
+.section-title {
+  font-size: 22rpx;
+  color: #858c96;
+  margin: 16rpx 0 12rpx 8rpx;
+  font-weight: 500;
+  letter-spacing: 0.2rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx 28rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.02);
+  overflow: hidden;
+}
+
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.plan-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2rpx solid #eef2f7;
+  border-radius: 20rpx;
+  padding: 24rpx;
+}
+
+.plan-item.active {
+  border-color: #4facfe;
+  background: #f6fbff;
+}
+
+.plan-name {
+  font-size: 26rpx;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.plan-desc {
+  font-size: 22rpx;
+  color: #6b7280;
+  margin-top: 4rpx;
+}
+
+.plan-price {
+  font-size: 26rpx;
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.summary-card {
+  margin-top: 20rpx;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 72rpx;
+}
+
+.summary-label {
+  font-size: 24rpx;
+  color: #374151;
+}
+
+.summary-value {
+  font-size: 26rpx;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.btn-pay {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-top: 24rpx;
+}

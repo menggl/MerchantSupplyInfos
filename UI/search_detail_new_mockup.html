@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新机详情</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .phone-frame { width: 375px; height: 667px; background-color: #fff; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden; display: flex; flex-direction: column; position: relative; border: 12px solid #333; }
+        .nav-bar { background-color: #1890FF; color: #fff; padding: 44px 15px 10px; display: flex; align-items: center; justify-content: space-between; position: relative; }
+        .nav-left { display: flex; align-items: center; flex: 1; }
+        .nav-back { font-size: 24px; cursor: pointer; margin-right: 15px; font-weight: bold; }
+        .nav-title { font-size: 16px; font-weight: 700; text-align: center; position: absolute; left: 50%; transform: translateX(-50%); }
+        .nav-sep { color: rgba(255,255,255,0.75); margin: 0 4px; font-weight: 700; }
+        .nav-seg { color: #fff; }
+        .content { flex: 1; overflow-y: auto; background: #f7f8fa; padding: 10px; }
+        .section { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 10px; margin-bottom: 10px; position: relative; }
+        .title { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .photo-area { position: relative; }
+        .main-photo { width: 100%; height: 220px; border-radius: 10px; background:#f0f0f0; overflow: hidden; }
+        .main-photo img { width:100%; height:100%; object-fit: cover; display:block; -webkit-user-drag: none; user-select: none; pointer-events: none; }
+        .stats-strip { display:flex; align-items:center; background:#fff; border:1px solid #e5e5e5; border-radius:8px; }
+        .stat-item { flex:1; min-width:0; padding:10px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        .stat-label { color:#666; font-size:11px; margin-bottom:4px; }
+        .stat-value { font-size:14px; font-weight:600; color:#333; }
+        .stat-value.price { color:#ff3b30; font-weight:700; }
+        .v-sep { width:1px; height:28px; background:#eee; }
+        .stat-item.time { flex:1.35; }
+        #detailPublishTime { white-space: nowrap; }
+        .line { display:flex; gap:6px; align-items:baseline; margin-bottom:6px; font-size:12px; }
+        .merchant { color:#faad14; font-weight:600; }
+        .doorplate { color:#4facfe; }
+        .label { color:#666; }
+        .pill { display:inline-block; font-size:12px; line-height:1; padding:2px 6px; border-radius:12px; border:1px solid #1677ff; color:#1677ff; background:#f0f5ff; white-space:nowrap; }
+        .pill.gray { border-color:#999; color:#555; background:#f5f5f5; }
+        .kv { display:flex; justify-content:flex-start; align-items:center; gap:6px; font-size:12px; margin-bottom:6px; }
+        .kv-grid { display:grid; grid-template-columns: 72px 1fr; column-gap: 6px; row-gap: 6px; }
+        .kv-label { color:#666; text-align:left; white-space:nowrap; font-size:11px; }
+        .kv-value { color:#333; text-align:left; font-size:11px; }
+        .kv-value.price { color:#ff3b30; font-weight:700; font-size:12px; }
+        .type-badge { display: inline-block; margin-left: 8px; padding: 0 8px; height: 20px; line-height: 20px; border-radius: 10px; font-size: 11px; font-weight: 700; color: #fff; vertical-align: middle; box-shadow: 0 2px 6px rgba(0,0,0,0.12); letter-spacing: 0.5px; }
+        .type-badge.type-new { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .type-badge.type-used { background: linear-gradient(135deg, #ff9a9e 0%, #fda085 100%); }
+        .tab-bar { height: 83px; background-color: #fff; border-top: 1px solid #e5e5e5; display: flex; padding-bottom: 20px; flex-shrink: 0; }
+        .tab-item { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #999; cursor: pointer; font-size: 10px; }
+        .tab-icon { width: 24px; height: 24px; margin-bottom: 4px; background-color: currentColor;
+            mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center; }
+        .call-btn { width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .call-float { position:absolute; right:10px; top:10px; }
+        .icon-phone { width:12px; height:12px; background-color:#4caf50;
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V21a1 1 0 01-1 1C10.29 22 2 13.71 2 3a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V21a1 1 0 01-1 1C10.29 22 2 13.71 2 3a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z'/%3E%3C/svg%3E"); }
+        .icon-request { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E"); }
+        .icon-home { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E"); }
+        .icon-search { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E"); }
+        .icon-me { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"); }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="nav-bar">
+            <div class="nav-left">
+                <div class="nav-back" onclick="history.back()">←</div>
+            </div>
+            <div class="nav-title" id="navTitle"></div>
+            <div style="width: 32px;"></div>
+        </div>
+        <div class="content">
+            <div class="section">
+                <div class="title">产品信息</div>
+                <div class="kv-grid">
+                    <div class="kv-label">品牌</div><div class="kv-value" id="detailBrand">苹果</div>
+                    <div class="kv-label">系列</div><div class="kv-value" id="detailSeries">iPhone 17 系列</div>
+                    <div class="kv-label">型号</div><div class="kv-value" id="detailModel">iPhone 17</div>
+                    <div class="kv-label">配置</div><div class="kv-value" id="detailConfig">黑色 256G</div>
+                    <div class="kv-label">售价</div><div class="kv-value price" id="detailMinPrice">¥5465</div>
+                    <div class="kv-label">数量</div><div class="kv-value" id="detailQuantity">5台</div>
+                    <div class="kv-label">时间</div><div class="kv-value" id="detailPublishTime">01/06 12:05</div>
+                    <div class="kv-label">备注</div><div class="kv-value" id="detailRemark">保证全国纯原</div>
+                    <div class="kv-label">其他</div><div class="kv-value" id="detailOther">当天激活发出</div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="title">商家信息</div>
+                <div class="call-btn call-float" id="callBtn"><div class="icon-phone"></div></div>
+                <div class="line"><span class="merchant" id="detailShop">济南海龙(济南市)</span></div>
+                <div class="line"><span class="doorplate" id="detailDoorplate">木樨园A4 2单元97</span></div>
+            </div>
+            
+        </div>
+        <div class="tab-bar">
+            <div class="tab-item" onclick="location.href='home_mockup.html'">
+                <div class="tab-icon icon-home"></div>
+                <span>首页</span>
+            </div>
+            <div class="tab-item" onclick="location.href='search_mockup.html'">
+                <div class="tab-icon icon-search"></div>
+                <span>查询</span>
+            </div>
+            <div class="tab-item" onclick="location.href='listings_mockup.html'">
+                <div class="tab-icon icon-request"></div>
+                <span>求购</span>
+            </div>
+            <div class="tab-item" onclick="location.href='me_mockup.html'">
+                <div class="tab-icon icon-me"></div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        const p = new URLSearchParams(location.search);
+        const brand = p.get('brand') || '苹果';
+        const series = p.get('series') || 'iPhone 17 系列';
+        const model = p.get('model') || 'iPhone 17';
+        const config = p.get('config') || '黑色 256G';
+        document.getElementById('navTitle').innerText = '产品详情';
+        const remark = p.get('remark');
+        const other = p.get('other');
+        const minPriceParam = p.get('minPrice');
+        const publishTime = p.get('time');
+        const shop = p.get('shop');
+        const city = p.get('city');
+        const doorplate = p.get('doorplate');
+        const phone = p.get('phone');
+        const qty = p.get('qty');
+        if (minPriceParam) document.getElementById('detailMinPrice').textContent = minPriceParam.startsWith('¥') ? minPriceParam : `¥${minPriceParam}`;
+        (function() {
+            const el = document.getElementById('detailMinPrice');
+            const badge = document.createElement('span');
+            badge.className = 'type-badge type-new';
+            badge.textContent = '新';
+            el.appendChild(badge);
+        })();
+        if (publishTime) document.getElementById('detailPublishTime').textContent = publishTime;
+        if (shop || city) document.getElementById('detailShop').textContent = `${shop || ''}${city ? '(' + city + ')' : ''}`;
+        if (doorplate) document.getElementById('detailDoorplate').textContent = doorplate;
+        if (remark && remark !== 'undefined' && remark !== 'null') document.getElementById('detailRemark').textContent = remark;
+        if (other && other !== 'undefined' && other !== 'null') document.getElementById('detailOther').textContent = other;
+        if (qty) document.getElementById('detailQuantity').textContent = qty + '台';
+        document.getElementById('detailBrand').textContent = brand;
+        document.getElementById('detailSeries').textContent = series;
+        document.getElementById('detailModel').textContent = model;
+        document.getElementById('detailConfig').textContent = config;
+        document.getElementById('callBtn').onclick = async () => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText && phone) {
+                    await navigator.clipboard.writeText(phone);
+                }
+            } catch {}
+            if (phone) location.href = 'tel:' + phone;
+        };
+    </script>
+</body>
+</html>

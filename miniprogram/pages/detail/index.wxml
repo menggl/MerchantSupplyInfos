@@ -1,0 +1,50 @@
+<view class="container">
+  <view class="section photo">
+    <swiper class="photo-swiper" indicator-dots="{{true}}" autoplay="{{false}}" circular="{{true}}">
+      <block wx:for="{{photos}}" wx:key="*this">
+        <swiper-item>
+          <image src="{{item}}" class="slide-image" mode="aspectFill"></image>
+        </swiper-item>
+      </block>
+    </swiper>
+  </view>
+
+  <view class="section">
+    <view class="title">产品信息</view>
+    <view class="stats-strip">
+      <view class="stat-item">
+        <text class="stat-label">数量</text>
+        <text class="stat-value">{{qty}}</text>
+      </view>
+      <view class="v-sep"></view>
+      <view class="stat-item">
+        <text class="stat-label">最低售价</text>
+        <text class="stat-value price">{{minPrice}}</text>
+      </view>
+      <view class="v-sep"></view>
+      <view class="stat-item time">
+        <text class="stat-label">上架时间</text>
+        <text class="stat-value">{{time}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="title">商家信息</view>
+    <view class="merchant-info">
+      <view class="info-left">
+        <view class="line">
+          <text class="merchant">济南慧慧通讯(济南市)</text>
+        </view>
+        <view class="line">
+          <text class="doorplate">JN-淳和数码广场 1楼K1</text>
+        </view>
+      </view>
+      <view class="call-btn" bindtap="onCallPhone" data-phone="15500000001">
+        <image class="icon-phone" src="/assets/icons/phone.svg" wx:if="{{false}}"></image>
+        <!-- Using a simple view for icon if svg not available, or text -->
+        <view class="phone-icon-placeholder">📞</view>
+      </view>
+    </view>
+  </view>
+</view>

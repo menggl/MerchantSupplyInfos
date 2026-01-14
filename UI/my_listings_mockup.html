@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的上架</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .phone-frame { width: 375px; height: 667px; background-color: #f7f8fa; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; position: relative; border: 12px solid #333; }
+        
+        .nav-bar { background-color: #1890FF; padding: 44px 15px 10px; display: flex; align-items: center; justify-content: space-between; color: #fff; flex-shrink: 0; }
+        .nav-left { display: flex; align-items: center; flex: 1; }
+        .nav-back { font-size: 24px; cursor: pointer; margin-right: 15px; font-weight: bold; }
+        .nav-title { font-size: 18px; font-weight: 600; }
+        .nav-btn { background: #fff; color: #2fb46f; border: none; height: 30px; padding: 0 12px; border-radius: 15px; font-weight: 600; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: pointer; }
+        
+        .content { flex: 1; overflow-y: auto; padding: 10px 12px; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .req-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f5f5f5; gap: 8px; }
+        .req-title-group { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+        .req-title-single { font-size: 14px; font-weight: 700; color: #333; line-height: 1.3; white-space: normal; word-break: break-word; }
+        .req-status-group { flex-shrink: 0; }
+        .req-status-group { text-align: right; }
+        .req-time { font-size: 12px; color: #999; display: block; margin-bottom: 2px; }
+        .status-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        .status-active { background: #e6f7ff; color: #1890ff; }
+        .status-sold { background: #f5f5f5; color: #999; }
+        .status-on { color: #07c160; }
+        .status-off { color: #999; }
+        
+        .req-body { margin-bottom: 12px; }
+        .req-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; align-items: flex-start; }
+        .req-label { color: #666; white-space: nowrap; width: 70px; }
+        .req-value { color: #333; font-weight: 500; text-align: right; flex: 1; margin-left: 10px; word-break: break-all; }
+        .req-price { color: #ff4d4f; font-weight: bold; font-size: 16px; }
+        .type-badge { display: inline-block; margin-left: 8px; padding: 0 8px; height: 20px; line-height: 20px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #fff; vertical-align: middle; box-shadow: 0 2px 6px rgba(0,0,0,0.12); letter-spacing: 0.5px; }
+        .type-badge.type-new { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .type-badge.type-used { background: linear-gradient(135deg, #ff9a9e 0%, #fda085 100%); }
+        
+        .photo-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .photo-box { flex: 1; height: 70px; border-radius: 8px; background: #f0f0f0; overflow: hidden; }
+        .photo-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
+        .req-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; }
+        .btn-action { padding: 6px 16px; border-radius: 15px; font-size: 12px; border: 1px solid #ddd; color: #666; cursor: pointer; background: white; font-weight: 500; }
+        .btn-primary { border-color: #4facfe; color: #4facfe; }
+        .btn-danger { border-color: #ff4d4f; color: #ff4d4f; }
+
+        .tab-bar { height: 83px; background-color: #fff; border-top: 1px solid #e5e5e5; display: flex; padding-bottom: 20px; flex-shrink: 0; }
+        .tab-item { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #999; cursor: pointer; font-size: 10px; }
+        .tab-item.active { color: #07c160; }
+        .tab-icon { width: 24px; height: 24px; margin-bottom: 4px; background-color: currentColor; mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center; }
+        .icon-request {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E");
+        }
+        .icon-home { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E"); }
+        .icon-search { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E"); }
+        .icon-me { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"); }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="nav-bar">
+            <div class="nav-left">
+                <div class="nav-back" onclick="history.back()">←</div>
+                <div class="nav-title">我的上架</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="nav-btn" onclick="location.href='product_selector_mockup.html?mode=listing&type=used'">上二手</button>
+                <button class="nav-btn" onclick="location.href='product_selector_mockup.html?mode=listing&type=new'">上新机</button>
+            </div>
+        </div>
+        <div class="content" id="listingsList">
+            <!-- Content will be populated by JS -->
+        </div>
+        
+        <div class="tab-bar">
+            <div class="tab-item" onclick="location.href='home_mockup.html'">
+                <div class="tab-icon icon-home"></div>
+                <span>首页</span>
+            </div>
+            <div class="tab-item" onclick="location.href='search_mockup.html'">
+                <div class="tab-icon icon-search"></div>
+                <span>查询</span>
+            </div>
+            <div class="tab-item" onclick="location.href='listings_mockup.html'">
+                <div class="tab-icon icon-request"></div>
+                <span>求购</span>
+            </div>
+            <div class="tab-item active" onclick="location.href='me_mockup.html'">
+                <div class="tab-icon icon-me"></div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const myData = [
+            { 
+                id: 1, 
+                type: 'used',
+                title: "iPhone 15 Pro Max", 
+                brand: "苹果 · iPhone 15",
+                config: "蓝色 256G 国行",
+                condition: "99新",
+                stock: "10台",
+                price: "¥8200",
+                publishTime: "2026-01-05 10:30",
+                status: "active",
+                statusText: "出售中",
+                photos: [
+                    "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='100%25' height='100%25' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%23999'%3E图片1%3C/text%3E%3C/svg%3E",
+                    "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='100%25' height='100%25' fill='%23ededed'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%23999'%3E图片2%3C/text%3E%3C/svg%3E",
+                    "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='100%25' height='100%25' fill='%23d9d9d9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%23999'%3E图片3%3C/text%3E%3C/svg%3E"
+                ]
+            },
+            { 
+                id: 2, 
+                type: 'new',
+                title: "Mate 60 Pro", 
+                brand: "华为 · Mate 60",
+                config: "雅川青 12+512",
+                remark: "省内纯原",
+                other: "带AC+",
+                stock: "5台",
+                price: "¥5500",
+                publishTime: "2026-01-04 15:20",
+                status: "active",
+                statusText: "出售中",
+                photos: []
+            },
+            { 
+                id: 3, 
+                type: 'used',
+                title: "iPhone 13", 
+                brand: "苹果 · iPhone 13",
+                config: "白色 128G",
+                condition: "95新",
+                stock: "0台",
+                price: "¥3500",
+                publishTime: "2025-12-28 09:15",
+                status: "sold",
+                statusText: "已售出",
+                photos: [
+                    "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='100%25' height='100%25' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%23999'%3E图片1%3C/text%3E%3C/svg%3E",
+                    "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='100%25' height='100%25' fill='%23ededed'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%23999'%3E图片2%3C/text%3E%3C/svg%3E",
+                    "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='100%25' height='100%25' fill='%23d9d9d9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%23999'%3E图片3%3C/text%3E%3C/svg%3E"
+                ]
+            }
+        ];
+
+        const listContainer = document.getElementById('listingsList');
+        const versionOptions = ['大陆国行', '海外无锁', '海外有锁', '其他版本', '香港行货', '国行官换/官修机'];
+        const conditionOptions = ['全新未拆封', '几乎全新', '细微磕碰划痕', '少量磕碰划痕', '轻度磕碰划痕', '严重磕碰划痕', '屏幕破损或外壳破碎', '屏幕深度划伤或色差', '屏幕发黄/透色/色斑'];
+        const repairOptions = ['无任何维修', '屏幕有维修', '更换电池', '外壳/摄像头有维修', '功能明显异常', '零件有维修', '主板有维修', '功能有轻度异常'];
+        function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+        function pickN(arr, n) { const a = arr.slice(); const r = []; while (a.length && r.length < n) { r.push(a.splice(Math.floor(Math.random()*a.length),1)[0]); } return r; }
+        function mapConditionToStandard(s) {
+            s = String(s || '').trim();
+            if (!s) return '';
+            if (s.includes('未拆封')) return '全新未拆封';
+            if (/(99|九九|近新)/.test(s)) return '几乎全新';
+            if (/98/.test(s)) return '细微磕碰划痕';
+            if (/(95|九五)/.test(s)) return '少量磕碰划痕';
+            if (/(90|9成|九成)/.test(s)) return '轻度磕碰划痕';
+            if (/(7成|70)/.test(s)) return '严重磕碰划痕';
+            if (/屏幕.*(破损|外壳|破碎)/.test(s)) return '屏幕破损或外壳破碎';
+            if (/屏幕.*(深度|划伤|色差)/.test(s)) return '屏幕深度划伤或色差';
+            if (/屏幕.*(发黄|透色|色斑)/.test(s)) return '屏幕发黄/透色/色斑';
+            return s;
+        }
+        
+        myData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'listing-card card'; // Combined classes
+            const statusClass = item.status === 'active' ? 'status-on' : 'status-off';
+            const statusLabel = item.status === 'active' ? '已上架' : '未上架';
+            
+            // Photos (only for used)
+            let photosHtml = '';
+            if (item.type === 'used' && item.photos && item.photos.length > 0) {
+                photosHtml = `<div class="photo-row">${item.photos.map(src => `<div class="photo-box"><img class="photo-img" src="${src}" alt="照片"></div>`).join('')}</div>`;
+            }
+
+            // Extra rows based on type
+            let extraRows = '';
+            if (item.type === 'used') {
+                const displayVersion = item.version || pick(versionOptions);
+                const displayCondition = mapConditionToStandard(item.condition) || pick(conditionOptions);
+                const displayRepairs = (item.repairs && (Array.isArray(item.repairs) ? item.repairs.join('、') : String(item.repairs))) || pickN(repairOptions, 3).join('、');
+                extraRows = `
+                    <div class="req-row">
+                        <span class="req-label">版本</span>
+                        <span class="req-value">${displayVersion}</span>
+                    </div>
+                    <div class="req-row">
+                        <span class="req-label">成色</span>
+                        <span class="req-value">${displayCondition}</span>
+                    </div>
+                    <div class="req-row">
+                        <span class="req-label">拆修和功能</span>
+                        <span class="req-value">${displayRepairs}</span>
+                    </div>
+                `;
+            } else if (item.type === 'new') {
+                extraRows = `
+                    <div class="req-row">
+                        <span class="req-label">备注</span>
+                        <span class="req-value">${item.remark || '-'}</span>
+                    </div>
+                    <div class="req-row">
+                        <span class="req-label">其它</span>
+                        <span class="req-value">${item.other || '-'}</span>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div class="req-header">
+                    <div class="req-title-group">
+                        <div class="req-title-single">${item.brand} · ${item.title} · ${item.config}</div>
+                    </div>
+                    <div class="req-status-group">
+                        <span class="status-tag ${statusClass}">${statusLabel}</span>
+                    </div>
+                </div>
+                ${photosHtml}
+                <div class="req-body">
+                    <div class="req-row">
+                        <span class="req-label">我的库存</span>
+                        <span class="req-value">${item.stock}</span>
+                    </div>
+                    <div class="req-row">
+                        <span class="req-label">我的报价</span>
+                        <span class="req-value req-price">
+                            ${item.price}
+                            <span class="type-badge ${item.type === 'new' ? 'type-new' : 'type-used'}">${item.type === 'new' ? '新' : '二手'}</span>
+                        </span>
+                    </div>
+                    ${extraRows}
+                    <div class="req-row">
+                        <span class="req-label">上架时间</span>
+                        <span class="req-value">${item.publishTime}</span>
+                    </div>
+                </div>
+                <div class="req-actions">
+                    <button class="btn-action btn-edit">编辑</button>
+                    <button class="btn-action btn-danger btn-off">下架</button>
+                    <button class="btn-action btn-danger btn-delete">删除</button>
+                </div>
+            `;
+            listContainer.appendChild(card);
+            
+            function parseBrandSeries(bs) {
+                const parts = bs.split('·').map(s => s.trim());
+                return { brand: parts[0] || '', series: parts[1] || '' };
+            }
+            const { brand: brandName, series } = parseBrandSeries(item.brand);
+            const btnEdit = card.querySelector('.btn-edit');
+            const btnDelete = card.querySelector('.btn-delete');
+            
+            btnEdit.onclick = () => {
+                const params = new URLSearchParams({
+                    mode: 'listing',
+                    action: 'edit',
+                    type: item.type,
+                    brand: brandName,
+                    series,
+                    model: item.title,
+                    config: item.config,
+                    initStock: String(item.stock).replace(/[^0-9]/g, ''),
+                    initMinPrice: String(item.price).replace(/[^0-9]/g, '')
+                });
+                location.href = 'publish_request_mockup.html?' + params.toString();
+            };
+            btnDelete.onclick = () => {
+                if (!confirm('确定删除该上架吗？')) return;
+                listContainer.removeChild(card);
+            };
+        });
+    </script>
+</body>
+</html>

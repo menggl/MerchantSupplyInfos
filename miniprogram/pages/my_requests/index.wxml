@@ -1,0 +1,67 @@
+<view class="container">
+  <!-- Nav Bar is native in Wechat Mini Program, but if we want custom button on right -->
+  <!-- We can't customize native nav bar easily to add a button on the right without custom navigation style. -->
+  <!-- For now, we use a fixed bottom button or similar, OR just rely on the 'Add' floating action button or similar. -->
+  <!-- The mockup has a custom nav bar. We can stick to native for simplicity, or use a view if navigationStyle is custom. -->
+  <!-- But since other pages use native, let's stick to native. -->
+  <!-- Wait, the mockup has "发布求购" button in nav bar. -->
+  <!-- We can simulate this with a fixed button at bottom or top. -->
+  <!-- Or just put a big button at the top of the content. -->
+  
+  <view class="req-list">
+    <view class="card" wx:for="{{requests}}" wx:key="id">
+      <view class="req-header">
+        <view class="req-title-group">
+          <view class="req-title">{{item.title}}</view>
+          <view class="req-brand">{{item.brand}}</view>
+        </view>
+        <view class="req-time">{{item.publishTime}}</view>
+      </view>
+      
+      <view class="req-body">
+        <view class="req-row">
+          <text class="req-label">配置要求</text>
+          <text class="req-value">{{item.config}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">求购数量</text>
+          <text class="req-value">{{item.qty}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">价格范围</text>
+          <text class="req-value req-price">{{item.priceRange}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">截止时间</text>
+          <text class="req-value">{{item.deadline}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">联系电话</text>
+          <text class="req-value">{{item.phone}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">联系地址</text>
+          <text class="req-value">{{item.address}}</text>
+        </view>
+      </view>
+      
+      <view class="req-actions">
+        <button class="btn-action" bindtap="onTapEdit" data-item="{{item}}">编辑</button>
+        <button 
+          class="btn-action {{item.status === 'active' ? 'btn-danger' : 'btn-primary'}}" 
+          bindtap="onTapToggleStatus" 
+          data-item="{{item}}"
+        >
+          {{item.status === 'active' ? '停止求购' : '重新发布'}}
+        </button>
+        <button class="btn-action btn-danger" bindtap="onTapDelete" data-item="{{item}}">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- Floating Action Button for Adding New Request -->
+  <view class="fab-add" bindtap="onTapAdd">
+    <text class="fab-icon">+</text>
+    <text class="fab-text">发布求购</text>
+  </view>
+</view>

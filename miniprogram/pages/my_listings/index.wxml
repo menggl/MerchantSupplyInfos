@@ -1,0 +1,49 @@
+<view class="container">
+  <view class="header-actions">
+    <button class="btn-new" bindtap="onTapNew">发布新品</button>
+  </view>
+
+  <view class="listings-list">
+    <view class="card listing-card" wx:for="{{listings}}" wx:key="id">
+      <view class="req-header">
+        <view class="req-title-group">
+          <text class="req-title-single">{{item.brand}} · {{item.title}} · {{item.config}}</text>
+        </view>
+        <view class="req-status-group">
+          <text class="status-tag {{item.status === 'active' ? 'status-on' : 'status-off'}}">{{item.statusText}}</text>
+        </view>
+      </view>
+
+      <view class="photo-row" wx:if="{{item.photos && item.photos.length}}">
+        <view class="photo-box" wx:for="{{item.photos}}" wx:for-item="photo" wx:key="*this">
+          <image class="photo-img" src="{{photo}}" mode="aspectFill"></image>
+        </view>
+      </view>
+
+      <view class="req-body">
+        <view class="req-row">
+          <text class="req-label">库存</text>
+          <text class="req-value">{{item.stock}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">最低售价</text>
+          <text class="req-value req-price">{{item.price}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">发布时间</text>
+          <text class="req-value">{{item.publishTime}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">浏览量</text>
+          <text class="req-value">{{item.views}}次</text>
+        </view>
+      </view>
+
+      <view class="req-actions">
+        <button class="btn-action btn-edit" bindtap="onTapEdit" data-item="{{item}}">编辑</button>
+        <button class="btn-action btn-danger btn-off" bindtap="onTapToggleStatus" data-item="{{item}}">{{item.status === 'active' ? '下架' : '上架'}}</button>
+        <button class="btn-action btn-danger btn-delete" bindtap="onTapDelete" data-id="{{item.id}}">删除</button>
+      </view>
+    </view>
+  </view>
+</view>

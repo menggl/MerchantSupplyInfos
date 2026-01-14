@@ -1,0 +1,25 @@
+<view class="container">
+  <view class="content">
+    <view class="section-title">积分信息</view>
+    <view class="card">
+      <view class="summary">
+        <view class="summary-item">当前积分</view>
+        <view class="summary-value">{{currentPoints}}</view>
+      </view>
+      <view class="summary">
+        <view class="summary-item">兑换比例</view>
+        <view class="summary-value">1 积分 = ¥{{rate}}</view>
+      </view>
+      <view class="form-row">
+        <view class="form-label">充值积分</view>
+        <input class="form-input" type="number" placeholder="输入积分数量" value="{{rechargeInput}}" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <view class="form-label">需支付金额</view>
+        <view class="summary-value">¥{{needPay}}</view>
+      </view>
+      <view class="hint">充值后积分：{{newTotal}}</view>
+      <button class="btn-pay {{btnDisabled ? 'btn-disabled' : ''}}" disabled="{{btnDisabled}}" bindtap="onRecharge">立即充值</button>
+    </view>
+  </view>
+</view>

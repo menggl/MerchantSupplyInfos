@@ -1,0 +1,44 @@
+<view class="container">
+  <view class="content">
+    <view class="section-title">会员信息</view>
+    <view class="card">
+      <view class="summary">
+        <view class="summary-left">
+          <view class="vip-badge">{{membership.type}}</view>
+          <view class="merchant-name">{{membership.merchantName}}</view>
+        </view>
+        <view class="status {{remainDays > 0 ? 'status-active' : 'status-expired'}}">{{remainDays > 0 ? "有效" : "已过期"}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">会员类型</view>
+        <view class="info-value">{{membership.type}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">开始时间</view>
+        <view class="info-value">{{membership.startTime}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">结束时间</view>
+        <view class="info-value">{{membership.endTime}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">剩余天数</view>
+        <view class="info-value">{{remainDays}}天</view>
+      </view>
+      <view class="btn-group">
+        <button class="btn btn-primary" bindtap="onRenew">续费</button>
+        <button class="btn btn-secondary" bindtap="onShowRights">权益说明</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal-mask" wx:if="{{rightsVisible}}" bindtap="onCloseRights"></view>
+  <view class="modal-panel" wx:if="{{rightsVisible}}">
+    <view class="modal-title">会员权益说明</view>
+    <view class="modal-content">
+      <view style="margin-bottom:12rpx;color:#6b7280;font-size:22rpx">当前会员：{{membership.type}}</view>
+      <view wx:for="{{rightsList}}" wx:key="index" class="right-item">• {{item}}</view>
+    </view>
+    <button class="modal-close" bindtap="onCloseRights">关闭</button>
+  </view>
+</view>

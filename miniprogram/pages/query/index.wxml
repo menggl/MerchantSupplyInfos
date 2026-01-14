@@ -1,0 +1,64 @@
+<!--pages/query/index.wxml-->
+<view class="container">
+  <!-- Top Search Bar Area (Extension of Nav Bar) -->
+  <view class="nav-bar-extension">
+    <view class="search-input-mock" bindtap="onTapSearchInput">
+      <icon type="search" size="14" color="#ffffff"/>
+      <text style="margin-left: 10rpx;">搜索品牌、机型...</text>
+    </view>
+  </view>
+
+  <view class="content-container">
+    <!-- Left Sidebar -->
+    <scroll-view scroll-y class="sidebar">
+      <view class="brand-item {{selectedBrandId === item.id ? 'active' : ''}}" 
+            wx:for="{{brands}}" wx:key="id" 
+            bindtap="onSelectBrand" data-id="{{item.id}}">
+        {{item.name}}
+      </view>
+    </scroll-view>
+
+    <!-- Right Main Area -->
+    <scroll-view scroll-y class="main-area">
+      <!-- Search Form -->
+      <view class="search-form-view" wx:if="{{!isSelecting}}">
+         <view class="type-toggle">
+            <view class="type-btn {{queryType === 'secondhand' ? 'active' : ''}}" bindtap="setQueryType" data-type="secondhand">二手机</view>
+            <view class="type-btn {{queryType === 'new' ? 'active' : ''}}" bindtap="setQueryType" data-type="new">新机</view>
+         </view>
+
+         <view class="selector-group">
+            <view class="selector-item" bindtap="openSelector" data-type="series">
+               <text>选择系列</text>
+               <text class="selector-value">{{selectedSeries || '请选择'}} ></text>
+            </view>
+             <view class="selector-item" bindtap="openSelector" data-type="model">
+               <text>选择机型</text>
+               <text class="selector-value">{{selectedModel || '请选择'}} ></text>
+            </view>
+            <view class="selector-item" bindtap="openSelector" data-type="memory">
+               <text>内存容量</text>
+               <text class="selector-value">{{selectedMemory || '请选择'}} ></text>
+            </view>
+            <view class="selector-item" bindtap="openSelector" data-type="color">
+               <text>机身颜色</text>
+               <text class="selector-value">{{selectedColor || '请选择'}} ></text>
+            </view>
+         </view>
+         
+         <button class="action-btn" bindtap="onSearch">开始查询</button>
+      </view>
+
+      <!-- Selection List View -->
+      <view class="list-selection-view" wx:else>
+         <view class="list-header" bindtap="closeSelector">
+            <text class="back-icon"> &lt; </text>
+            <text>选择{{selectingTypeLabel}}</text>
+         </view>
+         <view class="list-item" wx:for="{{selectionOptions}}" wx:key="*this" bindtap="onSelectOption" data-value="{{item}}">
+            {{item}}
+         </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

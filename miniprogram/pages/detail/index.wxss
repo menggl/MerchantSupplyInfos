@@ -1,0 +1,106 @@
+page {
+  background-color: #f0f2f5;
+  height: 100%;
+}
+.container {
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+.section {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  position: relative;
+}
+.section.photo {
+  padding: 0;
+  overflow: hidden;
+}
+.photo-swiper {
+  width: 100%;
+  height: 440rpx;
+  background-color: #f0f0f0;
+}
+.slide-image {
+  width: 100%;
+  height: 100%;
+}
+.title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+.stats-strip {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 16rpx;
+}
+.stat-item {
+  flex: 1;
+  min-width: 0;
+  padding: 20rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.stat-item.time {
+  flex: 1.35;
+}
+.stat-label {
+  color: #666;
+  font-size: 22rpx;
+  margin-bottom: 8rpx;
+}
+.stat-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+.stat-value.price {
+  color: #ff3b30;
+  font-weight: 700;
+}
+.v-sep {
+  width: 1px;
+  height: 56rpx;
+  background: #eee;
+}
+.merchant-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.info-left {
+  flex: 1;
+}
+.line {
+  display: flex;
+  margin-bottom: 12rpx;
+  font-size: 24rpx;
+}
+.merchant {
+  color: #faad14;
+  font-weight: 600;
+}
+.doorplate {
+  color: #4facfe;
+}
+.call-btn {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f9eb;
+  border-radius: 50%;
+  margin-left: 20rpx;
+}
+.phone-icon-placeholder {
+  font-size: 40rpx;
+}

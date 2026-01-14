@@ -1,0 +1,47 @@
+<view class="container">
+  <view class="content-container">
+    <!-- Left Sidebar -->
+    <scroll-view scroll-y class="sidebar">
+      <view class="brand-item {{selectedBrandId === item.id ? 'active' : ''}}" 
+            wx:for="{{brands}}" wx:key="id" 
+            bindtap="onSelectBrand" data-id="{{item.id}}">
+        {{item.name}}
+      </view>
+    </scroll-view>
+
+    <!-- Right Main Area -->
+    <scroll-view scroll-y class="main-area">
+      <!-- Search Form -->
+      <view class="search-form-view" wx:if="{{!isSelecting}}">
+         
+         <view class="selector-group">
+            <view class="selector-item" bindtap="openSelector" data-type="series">
+               <text>选择系列</text>
+               <text class="selector-value">{{selectedSeries || '请选择'}} ></text>
+            </view>
+             <view class="selector-item" bindtap="openSelector" data-type="model">
+               <text>选择机型</text>
+               <text class="selector-value">{{selectedModel || '请选择'}} ></text>
+            </view>
+            <view class="selector-item" bindtap="openSelector" data-type="config">
+               <text>选择配置</text>
+               <text class="selector-value">{{selectedConfig || '请选择'}} ></text>
+            </view>
+         </view>
+         
+         <button class="action-btn" bindtap="onNext">下一步</button>
+      </view>
+
+      <!-- Selection List View -->
+      <view class="list-selection-view" wx:else>
+         <view class="list-header" bindtap="closeSelector">
+            <text class="back-icon"> &lt; </text>
+            <text>选择{{selectingTypeLabel}}</text>
+         </view>
+         <view class="list-item" wx:for="{{selectionOptions}}" wx:key="*this" bindtap="onSelectOption" data-value="{{item}}">
+            {{item}}
+         </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

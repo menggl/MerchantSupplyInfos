@@ -1,0 +1,146 @@
+page {
+  background-color: #f0f2f5;
+  height: 100%;
+}
+.container {
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20rpx;
+}
+.btn-new {
+  background: #fff;
+  color: #2fb46f;
+  border: none;
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0 24rpx;
+  border-radius: 30rpx;
+  font-weight: 600;
+  font-size: 26rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+}
+
+.card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
+}
+.req-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1px solid #f5f5f5;
+  gap: 16rpx;
+}
+.req-title-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.req-title-single {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.3;
+  word-break: break-word;
+}
+.req-status-group {
+  flex-shrink: 0;
+  text-align: right;
+}
+.status-tag {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  display: inline-block;
+}
+.status-on {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+.status-off {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.photo-row {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+.photo-box {
+  flex: 1;
+  height: 140rpx;
+  border-radius: 16rpx;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+.photo-img {
+  width: 100%;
+  height: 100%;
+}
+
+.req-body {
+  margin-bottom: 24rpx;
+}
+.req-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  font-size: 26rpx;
+  align-items: flex-start;
+}
+.req-label {
+  color: #666;
+  width: 140rpx;
+}
+.req-value {
+  color: #333;
+  font-weight: 500;
+  text-align: right;
+  flex: 1;
+  margin-left: 20rpx;
+  word-break: break-all;
+}
+.req-price {
+  color: #ff3b30;
+  font-weight: 700;
+}
+
+.req-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20rpx;
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1px dashed #eee;
+}
+.btn-action {
+  margin: 0;
+  padding: 0 32rpx;
+  height: 56rpx;
+  line-height: 54rpx;
+  border-radius: 28rpx;
+  font-size: 24rpx;
+  border: 1px solid #ddd;
+  color: #666;
+  background: white;
+  font-weight: 500;
+}
+.btn-primary {
+  border-color: #4facfe;
+  color: #4facfe;
+}
+.btn-danger {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}

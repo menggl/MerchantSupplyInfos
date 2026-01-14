@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: msi-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=mysql
+    ports:
+      - "8083:8080"
+  admin-backend:
+    build:
+      context: ./admin-backend
+      dockerfile: Dockerfile
+    container_name: msi-admin-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=mysql
+    ports:
+      - "8080:8080"
+  admin-frontend:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: msi-admin-frontend
+    depends_on:
+      - admin-backend
+    ports:
+      - "8081:80"

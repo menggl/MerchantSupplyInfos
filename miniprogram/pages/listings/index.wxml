@@ -1,0 +1,51 @@
+<!--pages/listings/index.wxml-->
+<view class="container">
+  <!-- Top Action Bar (Extension of Nav Bar) -->
+  <view class="top-bar">
+     <button class="publish-btn" bindtap="onTapPublish">发布求购</button>
+  </view>
+
+  <scroll-view scroll-y class="content">
+    <view class="card" wx:for="{{requests}}" wx:key="id">
+      <view class="req-header">
+        <view class="req-title-group">
+          <view class="req-title">{{item.title}}</view>
+          <view class="req-brand">{{item.brand}}</view>
+        </view>
+        <view class="req-time">{{item.time}}</view>
+      </view>
+      
+      <view class="req-body">
+        <view class="req-row">
+          <text class="req-label">配置要求</text>
+          <text class="req-value">{{item.config}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">求购数量</text>
+          <text class="req-value">{{item.quantity}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">价格范围</text>
+          <text class="req-value req-price">{{item.priceRange}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">截止时间</text>
+          <text class="req-value">{{item.deadline}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">联系电话</text>
+          <text class="req-value">{{item.phone}}</text>
+        </view>
+        <view class="req-row">
+          <text class="req-label">联系地址</text>
+          <text class="req-value">{{item.address}}</text>
+        </view>
+      </view>
+      
+      <view class="btn-quote" bindtap="onTapQuote" data-phone="{{item.phone}}">
+        <view class="icon-phone-css"></view>
+        <text>去报价</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

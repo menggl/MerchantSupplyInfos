@@ -1,0 +1,64 @@
+<!--pages/mine/index.wxml-->
+<view class="container">
+  <!-- Custom Header Area -->
+  <view class="header-area">
+    <view class="header-top">
+      <view class="header-icon">⚙️</view>
+    </view>
+    <view class="user-profile">
+      <view class="avatar">
+        <!-- Placeholder for avatar -->
+        <view class="avatar-icon"></view>
+      </view>
+      <view class="user-info">
+        <view class="user-phone">135****1403</view>
+        <view class="user-validity">有效期：2026-03-01</view>
+      </view>
+      <view class="check-in-btn" bindtap="onTapCheckIn">签到</view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="content">
+    <!-- My Tools -->
+    <view class="card">
+      <view class="card-header">
+        <view class="card-title">我的工具</view>
+      </view>
+      <view class="icon-grid">
+        <view class="grid-item" bindtap="navTo" data-url="/pages/my_listings/index">
+          <view class="grid-icon bg-blue">📦</view>
+          <view class="grid-text">我的上架</view>
+        </view>
+        <view class="grid-item" bindtap="navTo" data-url="/pages/my_requests/index">
+          <view class="grid-icon bg-purple">📋</view>
+          <view class="grid-text">我的求购</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Other Functions -->
+    <view class="card">
+      <view class="card-header">
+        <view class="card-title">其他功能</view>
+      </view>
+      <view class="icon-grid">
+        <view class="grid-item" bindtap="navTo" data-url="/pages/membership/index">
+          <view class="grid-icon bg-yellow">👑</view>
+          <view class="grid-text">会员管理</view>
+        </view>
+        <view class="grid-item" bindtap="navTo" data-url="/pages/profile/edit">
+          <view class="grid-icon bg-blue">📝</view>
+          <view class="grid-text">修改资料</view>
+        </view>
+        <view class="grid-item" bindtap="navTo" data-url="/pages/recharge/membership">
+          <view class="grid-icon bg-orange">💰</view>
+          <view class="grid-text">会员充值</view>
+        </view>
+        <view class="grid-item" bindtap="navTo" data-url="/pages/recharge/points">
+          <view class="grid-icon bg-green">🎁</view>
+          <view class="grid-text">积分充值</view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,58 @@
+<view class="container">
+  <view class="section-title">已选机型</view>
+  <view class="card selected-product">
+    <view class="sp-model">{{displayModel}}</view>
+    <view class="sp-detail" wx:if="{{false}}">Details</view>
+  </view>
+
+  <block wx:if="{{mode === 'listing'}}">
+    <view class="section-title">商品图片</view>
+    <view class="card photo-card">
+      <view class="photo-grid">
+        <view class="photo-item" wx:for="{{photos}}" wx:key="*this">
+          <image class="photo-img" src="{{item}}" mode="aspectFill"></image>
+          <view class="photo-remove" bindtap="onRemovePhoto" data-index="{{index}}">×</view>
+        </view>
+        <view class="photo-item photo-add" bindtap="onAddPhoto" wx:if="{{photos.length < 9}}">＋</view>
+      </view>
+    </view>
+  </block>
+
+  <view class="section-title">{{mode === 'listing' ? '上架详情' : '求购详情'}}</view>
+  <view class="card">
+    <view class="form-row">
+      <text class="form-label">{{mode === 'listing' ? '库存' : '求购数量'}}</text>
+      <input type="number" class="form-input" placeholder="请输入台数" value="{{quantity}}" bindinput="onInputQuantity" />
+    </view>
+
+    <block wx:if="{{mode === 'request'}}">
+      <view class="form-row">
+        <text class="form-label">价格范围</text>
+        <view class="price-group">
+          <input type="number" class="price-input" placeholder="最低价" value="{{minPrice}}" bindinput="onInputMinPrice" />
+          <text class="price-sep">-</text>
+          <input type="number" class="price-input" placeholder="最高价" value="{{maxPrice}}" bindinput="onInputMaxPrice" />
+        </view>
+      </view>
+      <view class="form-row">
+        <text class="form-label">截止时间</text>
+        <!-- Use picker for simplicity, or input for now -->
+        <picker mode="date" value="{{deadlineDate}}" bindchange="onDateChange">
+           <view class="picker-val">{{deadlineDate || '选择日期'}}</view>
+        </picker>
+        <picker mode="time" value="{{deadlineTime}}" bindchange="onTimeChange" style="margin-left:10rpx;">
+           <view class="picker-val">{{deadlineTime || '选择时间'}}</view>
+        </picker>
+      </view>
+    </block>
+
+    <block wx:if="{{mode === 'listing'}}">
+      <view class="form-row">
+        <text class="form-label">最低售价</text>
+        <input type="number" class="form-input" placeholder="请输入最低售价" value="{{sellPrice}}" bindinput="onInputSellPrice" />
+      </view>
+    </block>
+  </view>
+
+  <button class="btn-publish" bindtap="onPublish">{{action === 'edit' ? '保存' : (mode === 'listing' ? '确认上架' : '确认发布')}}</button>
+</view>

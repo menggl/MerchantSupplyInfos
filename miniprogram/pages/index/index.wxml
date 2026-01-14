@@ -1,0 +1,30 @@
+<!--index.wxml-->
+<view class="container">
+  <!-- Welcome Section -->
+  <view class="welcome-section">
+    <view class="date-text">{{currentDate}}</view>
+    <view class="welcome-title">欢迎来到手机易市</view>
+    <view class="welcome-subtitle">专业二手手机交易平台</view>
+  </view>
+
+  <!-- Main Content -->
+  <view class="main-content">
+    <!-- Buy Action -->
+    <view class="action-item" bindtap="onTapBuy">
+      <view class="circle-btn btn-buy">
+        <!-- Simple CSS Icon for Buy (Search) -->
+        <view class="icon-search-css"></view>
+      </view>
+      <view class="action-label">我要买</view>
+    </view>
+
+    <!-- Sell Action -->
+    <view class="action-item" bindtap="onTapSell">
+      <view class="circle-btn btn-sell">
+        <!-- Simple CSS Icon for Sell (List) -->
+        <view class="icon-list-css"></view>
+      </view>
+      <view class="action-label">我要卖</view>
+    </view>
+  </view>
+</view>

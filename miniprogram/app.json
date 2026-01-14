@@ -1,0 +1,57 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/query/index",
+    "pages/listings/index",
+    "pages/mine/index",
+    "pages/results/index",
+    "pages/detail/index",
+    "pages/my_listings/index",
+    "pages/my_requests/index",
+    "pages/selector/index",
+    "pages/publish/index",
+    "pages/profile/edit/index",
+    "pages/membership/index",
+    "pages/recharge/membership/index",
+    "pages/recharge/points/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "手机易市",
+    "navigationBarBackgroundColor": "#1890FF",
+    "navigationBarTextStyle": "white",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#4facfe",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "",
+        "selectedIconPath": ""
+      },
+      {
+        "pagePath": "pages/query/index",
+        "text": "查询",
+        "iconPath": "",
+        "selectedIconPath": ""
+      },
+      {
+        "pagePath": "pages/listings/index",
+        "text": "求购",
+        "iconPath": "",
+        "selectedIconPath": ""
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "",
+        "selectedIconPath": ""
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

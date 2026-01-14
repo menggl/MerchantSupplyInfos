@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="content">
+    <view class="section-title">商家信息</view>
+    <view class="card">
+      <view class="form-row">
+        <text class="form-label">商家名称<text class="req-star">*</text></text>
+        <input class="form-input" placeholder="请输入商家名称" value="{{merchantName}}" bindinput="onInputName" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">联系方式<text class="req-star">*</text></text>
+        <input class="form-input" type="number" maxlength="11" placeholder="请输入手机号" value="{{phone}}" bindinput="onInputPhone" />
+      </view>
+      <view class="form-row captcha-row">
+        <text class="form-label">验证码验证<text class="req-star">*</text></text>
+        <view class="right">
+          <view class="captcha-code" bindtap="genCaptcha">{{captchaCode}}</view>
+          <input class="captcha-input" placeholder="输入验证码" value="{{captchaInput}}" bindinput="onInputCaptcha" />
+        </view>
+      </view>
+      <view class="form-row sms-row">
+        <text class="form-label">短信验证码<text class="req-star">*</text></text>
+        <view class="right">
+          <input class="sms-input" type="number" maxlength="6" placeholder="6位数字" value="{{smsInput}}" bindinput="onInputSms" />
+          <button class="btn-mini {{smsBtnDisabled ? 'btn-disabled' : 'btn-primary'}}" disabled="{{smsBtnDisabled}}" bindtap="onSendSms">{{smsBtnText}}</button>
+        </view>
+      </view>
+      <view class="form-row">
+        <text class="form-label">所在城市<text class="req-star">*</text></text>
+        <picker mode="selector" range="{{cities}}" bindchange="onCityChange">
+          <view class="form-input {{city ? '' : 'placeholder'}}">
+            {{city || '请选择城市'}}
+          </view>
+        </picker>
+      </view>
+      <view class="form-row">
+        <text class="form-label">联系地址<text class="req-star">*</text></text>
+        <textarea class="form-input textarea" placeholder="请输入详细地址" value="{{address}}" bindinput="onInputAddress" auto-height></textarea>
+      </view>
+    </view>
+
+    <view class="section-title">商家营业执照</view>
+    <view class="card upload-card">
+      <view class="upload-area">
+        <view class="upload-info">{{licenseImg ? '已选择图片' : '未上传'}}</view>
+        <view class="btn-upload" bindtap="onChooseLicense">上传营业执照</view>
+      </view>
+      <image wx:if="{{licenseImg}}" src="{{licenseImg}}" class="license-img" mode="widthFix" bindtap="onPreviewLicense"></image>
+    </view>
+
+    <button class="btn-save" bindtap="onSave">保存</button>
+  </view>
+</view>

@@ -1,0 +1,316 @@
+<template>
+  <div style="height: 100%; display: flex; flex-direction: column;">
+    <el-card
+      class="box-card"
+      style="flex: 1; overflow: hidden;"
+      :body-style="{ height: '100%', padding: '0', display: 'flex', flexDirection: 'column', minHeight: 0 }"
+    >
+      <div style="padding: 20px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
+        <!-- Search Bar -->
+        <div style="padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <el-input v-model="searchForm.id" placeholder="ID" style="width: 100px;" clearable @keyup.enter="handleSearch" />
+            <el-input v-model="searchForm.merchantName" placeholder="商家名称" style="width: 150px;" clearable @keyup.enter="handleSearch" />
+            <el-select v-model="searchForm.productType" placeholder="产品类型" style="width: 120px;" clearable>
+              <el-option label="新机" :value="0" />
+              <el-option label="二手机" :value="1" />
+            </el-select>
+             <el-select v-model="searchForm.cityCode" placeholder="选择城市" style="width: 150px;" clearable filterable>
+              <el-option
+                v-for="item in cityOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+            <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+            <el-button :icon="Refresh" @click="resetSearch">重置</el-button>
+          </div>
+        </div>
+        
+        <!-- Table -->
+        <div style="flex: 1; overflow: hidden;">
+          <el-table
+            v-loading="loading"
+            :data="products"
+            style="width: 100%; height: 100%;"
+            border
+            stripe
+          >
+            <el-table-column prop="id" label="ID" width="80" align="center" />
+            
+            <el-table-column label="产品信息" min-width="200">
+               <template #default="{ row }">
+                 <div style="cursor: pointer; color: #409eff;" @click="showDetail(row)">
+                   <div style="font-weight: bold;">{{ row.brandName }} {{ row.seriesName }}</div>
+                   <div>{{ row.modelName }} {{ row.specName }}</div>
+                 </div>
+               </template>
+            </el-table-column>
+            
+            <el-table-column label="商家信息" min-width="150">
+               <template #default="{ row }">
+                 <div>{{ row.merchantName }}</div>
+                 <div style="font-size: 12px; color: #666;">{{ row.merchantPhone }}</div>
+               </template>
+            </el-table-column>
+            
+            <el-table-column label="城市" width="100" align="center">
+              <template #default="{ row }">
+                {{ row.cityName || row.cityCode || '-' }}
+              </template>
+            </el-table-column>
+            
+            <el-table-column label="类型" width="80" align="center">
+              <template #default="{ row }">
+                <el-tag :type="row.productType === 0 ? 'success' : 'warning'">
+                  {{ row.productType === 0 ? '新机' : '二手机' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            
+            <el-table-column label="价格/库存" width="120" align="center">
+               <template #default="{ row }">
+                 <div style="color: #f56c6c; font-weight: bold;">¥{{ row.price }}</div>
+                 <div style="font-size: 12px;">库存: {{ row.stock }}</div>
+               </template>
+            </el-table-column>
+            
+            <el-table-column label="详细属性" min-width="200">
+               <template #default="{ row }">
+                 <div v-if="row.productType === 0">
+                    <div v-if="row.remark">备注: {{ row.remark }}</div>
+                    <div v-if="row.otherRemark">其他: {{ row.otherRemark }}</div>
+                 </div>
+                 <div v-else>
+                    <div v-if="row.secondHandVersion">版本: {{ row.secondHandVersion }}</div>
+                    <div v-if="row.secondHandCondition">成色: {{ row.secondHandCondition }}</div>
+                    <div v-if="row.secondHandFunction">功能: {{ row.secondHandFunction }}</div>
+                    <div v-if="row.batteryStatus">电池: {{ row.batteryStatus }}%</div>
+                 </div>
+               </template>
+            </el-table-column>
+            
+            <el-table-column label="发布时间" width="160" align="center">
+              <template #default="{ row }">
+                {{ formatTime(row.createTime) }}
+              </template>
+            </el-table-column>
+            
+             <el-table-column label="状态" width="80" align="center">
+             <template #default="{ row }">
+                <el-tag 
+                  :type="row.isValid === 1 ? 'success' : 'danger'"
+                  style="cursor: pointer;"
+                  @click="handleStatusChange(row)"
+                >
+                 {{ row.isValid === 1 ? '有效' : '无效' }}
+               </el-tag>
+             </template>
+           </el-table-column>
+
+          </el-table>
+        </div>
+        
+        <!-- Pagination -->
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="fetchProducts"
+          @current-change="fetchProducts"
+          style="margin-top: 10px; justify-content: flex-end;"
+        />
+      </div>
+    </el-card>
+    <!-- Detail Drawer -->
+    <el-drawer
+      v-model="drawerVisible"
+      title="产品详情"
+      size="600px"
+      destroy-on-close
+    >
+      <div v-if="currentProduct" style="padding: 0 20px;">
+        <!-- Images -->
+        <div v-if="currentProduct.imageUrls && currentProduct.imageUrls.length > 0" style="margin-bottom: 20px;">
+          <div style="font-weight: bold; margin-bottom: 10px;">产品图片</div>
+          <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+            <el-image
+              v-for="(url, index) in currentProduct.imageUrls"
+              :key="index"
+              :src="url"
+              :preview-src-list="currentProduct.imageUrls"
+              :initial-index="index"
+              fit="cover"
+              style="width: 100px; height: 100px; border-radius: 4px; flex-shrink: 0;"
+              preview-teleported
+            />
+          </div>
+        </div>
+
+        <!-- Basic Info -->
+        <el-descriptions title="基本信息" :column="1" border>
+          <el-descriptions-item label="产品ID">{{ currentProduct.id }}</el-descriptions-item>
+          <el-descriptions-item label="产品名称">
+            {{ currentProduct.brandName }} {{ currentProduct.seriesName }} {{ currentProduct.modelName }} {{ currentProduct.specName }}
+          </el-descriptions-item>
+          <el-descriptions-item label="产品类型">
+            <el-tag :type="currentProduct.productType === 0 ? 'success' : 'warning'">
+              {{ currentProduct.productType === 0 ? '新机' : '二手机' }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="价格">
+            <span style="color: #f56c6c; font-weight: bold;">¥{{ currentProduct.price }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="库存">{{ currentProduct.stock }}</el-descriptions-item>
+          <el-descriptions-item label="所在城市">{{ currentProduct.cityName || currentProduct.cityCode || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="发布时间">{{ formatTime(currentProduct.createTime) }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="currentProduct.isValid === 1 ? 'success' : 'danger'">
+              {{ currentProduct.isValid === 1 ? '有效' : '无效' }}
+            </el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <el-divider />
+
+        <!-- Specific Attributes -->
+        <el-descriptions title="详细属性" :column="1" border>
+          <template v-if="currentProduct.productType === 0">
+            <el-descriptions-item label="备注">{{ currentProduct.remark || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="其他说明">{{ currentProduct.otherRemark || '-' }}</el-descriptions-item>
+          </template>
+          <template v-else>
+            <el-descriptions-item label="版本">{{ currentProduct.secondHandVersion || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="成色">{{ currentProduct.secondHandCondition || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="功能">{{ currentProduct.secondHandFunction || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="电池健康">{{ currentProduct.batteryStatus ? currentProduct.batteryStatus + '%' : '-' }}</el-descriptions-item>
+          </template>
+           <el-descriptions-item label="详细描述">{{ currentProduct.description || '-' }}</el-descriptions-item>
+        </el-descriptions>
+
+        <el-divider />
+
+        <!-- Merchant Info -->
+        <el-descriptions title="商家信息" :column="1" border>
+          <el-descriptions-item label="商家名称">{{ currentProduct.merchantName }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{ currentProduct.merchantPhone }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+    </el-drawer>
+  </div>
+</template>
+
+<script setup>
+import { onMounted, ref, nextTick } from 'vue'
+import axios from 'axios'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Refresh, Search } from '@element-plus/icons-vue'
+import dayjs from 'dayjs'
+
+const products = ref([])
+const loading = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const cityOptions = ref([])
+const drawerVisible = ref(false)
+const currentProduct = ref(null)
+
+const searchForm = ref({
+  id: '',
+  merchantName: '',
+  productType: '',
+  cityCode: ''
+})
+
+const formatTime = (time) => {
+  if (!time) return '-'
+  return dayjs(time).format('YYYY-MM-DD HH:mm')
+}
+
+const showDetail = (row) => {
+  currentProduct.value = row
+  drawerVisible.value = true
+}
+
+const handleStatusChange = (row) => {
+  const newStatus = row.isValid === 1 ? 0 : 1
+  const actionText = newStatus === 1 ? '上架' : '下架'
+  
+  ElMessageBox.confirm(
+    `确认将该产品${actionText}吗？`,
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: newStatus === 1 ? 'success' : 'warning',
+    }
+  ).then(async () => {
+    try {
+      await axios.put(`/admin/products/${row.id}/status`, { status: newStatus })
+      ElMessage.success('操作成功')
+      fetchProducts()
+    } catch (e) {
+      console.error(e)
+      ElMessage.error('操作失败')
+    }
+  }).catch(() => {})
+}
+
+const fetchProducts = async () => {
+  loading.value = true
+  try {
+    const params = {
+      page: currentPage.value,
+      size: pageSize.value,
+      id: searchForm.value.id || undefined,
+      productType: searchForm.value.productType === '' ? undefined : searchForm.value.productType,
+      merchantName: searchForm.value.merchantName || undefined,
+      cityCode: searchForm.value.cityCode || undefined
+    }
+    
+    const response = await axios.get('/admin/products', { params })
+    products.value = response.data.list
+    total.value = response.data.total
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('获取列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchProducts()
+}
+
+const resetSearch = () => {
+  searchForm.value = {
+    merchantName: '',
+    productType: '',
+    cityCode: ''
+  }
+  handleSearch()
+}
+
+const loadCities = async () => {
+  try {
+    const response = await axios.get('/admin/cities')
+    cityOptions.value = response.data.map(city => ({
+      label: city.cityName,
+      value: city.cityCode
+    }))
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+onMounted(() => {
+  fetchProducts()
+  loadCities()
+})
+</script>
