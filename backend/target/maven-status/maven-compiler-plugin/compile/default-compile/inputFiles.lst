@@ -1,5 +1,6 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/MerchantSupplyInfosApplication.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/config/WebConfig.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/constants/IntegralConstants.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/DictController.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/ImageController.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/LoginController.java
@@ -12,6 +13,8 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/Merchant.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/MerchantCallRecord.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/MerchantMemberInfo.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/MerchantMemberIntegral.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/MerchantMemberIntegralSpend.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/PhoneModel.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/PhoneRemarkDict.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/PhoneSeries.java
@@ -29,6 +32,7 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/SpecDto.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/SupplyProductDetailDto.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/SupplyProductDto.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/enums/IntegralChangeReason.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/exception/WechatNotRegisteredException.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/interceptor/AuthenticationInterceptor.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/BrandRepository.java
@@ -36,6 +40,8 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/CityDictRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantCallRecordRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantMemberInfoRepository.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantMemberIntegralRepository.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantMemberIntegralSpendRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/PhoneModelRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/PhoneRemarkDictRepository.java

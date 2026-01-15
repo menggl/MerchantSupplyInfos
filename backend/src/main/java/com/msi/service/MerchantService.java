@@ -4,15 +4,21 @@ import com.msi.domain.Merchant;
 import com.msi.domain.Product;
 import com.msi.domain.BuyRequest;
 import com.msi.domain.ProductImage;
+import com.msi.domain.MerchantMemberInfo;
+import com.msi.domain.MerchantMemberIntegral;
+import com.msi.domain.MerchantMemberIntegralSpend;
+import com.msi.enums.IntegralChangeReason;
 import com.msi.repository.MerchantRepository;
 import com.msi.repository.MerchantMemberInfoRepository;
-import com.msi.domain.MerchantMemberInfo;
+import com.msi.repository.MerchantMemberIntegralRepository;
+import com.msi.repository.MerchantMemberIntegralSpendRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,19 +45,25 @@ public class MerchantService {
     private final WechatService wechatService;
     private final SmsService smsService;
     private final ProductService productService;
+    private final MerchantMemberIntegralRepository merchantMemberIntegralRepository;
+    private final MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository;
 
     public MerchantService(MerchantRepository merchantRepository,
                            StringRedisTemplate redisTemplate,
                            MerchantMemberInfoRepository memberInfoRepository,
                            WechatService wechatService,
                            SmsService smsService,
-                           ProductService productService) {
+                           ProductService productService,
+                           MerchantMemberIntegralRepository merchantMemberIntegralRepository,
+                           MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository) {
         this.merchantRepository = merchantRepository;
         this.redisTemplate = redisTemplate;
         this.memberInfoRepository = memberInfoRepository;
         this.wechatService = wechatService;
         this.smsService = smsService;
         this.productService = productService;
+        this.merchantMemberIntegralRepository = merchantMemberIntegralRepository;
+        this.merchantMemberIntegralSpendRepository = merchantMemberIntegralSpendRepository;
     }
 
     public static class WechatLoginInfo {
@@ -303,6 +315,7 @@ public class MerchantService {
         return productService.findBuyRequestByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId);
     }
 
+    @Transactional
     public BuyRequest addBuyRequest(Long merchantId, BuyRequest buyRequest) {
         if (merchantId == null) {
             throw new IllegalArgumentException("商户ID不能为空");
@@ -340,11 +353,37 @@ public class MerchantService {
         if (buyRequest.getDeadline() == null) {
             throw new IllegalArgumentException("求购截止时间不能为空");
         }
-        if (buyRequest.getCostIntegral() == null || buyRequest.getCostIntegral() < 0) {
-            throw new IllegalArgumentException("求购花费积分不合法");
+        int costIntegral = com.msi.constants.IntegralConstants.BUY_REQUEST_COST;
+        MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchantId).orElse(null);
+        int currentIntegral = 0;
+        if (integral != null && integral.getIntegral() != null) {
+            currentIntegral = integral.getIntegral();
         }
+        if (costIntegral > 0 && currentIntegral < costIntegral) {
+            throw new IllegalArgumentException("积分不足");
+        }
+        buyRequest.setCostIntegral(costIntegral);
         buyRequest.setMerchantId(merchantId);
-        return productService.publishBuyRequest(buyRequest);
+        BuyRequest saved = productService.publishBuyRequest(buyRequest);
+        if (costIntegral > 0) {
+            int afterIntegral = currentIntegral - costIntegral;
+            if (integral == null) {
+                integral = new MerchantMemberIntegral();
+                integral.setMerchantId(merchantId);
+            }
+            integral.setIntegral(afterIntegral);
+            merchantMemberIntegralRepository.save(integral);
+            MerchantMemberIntegralSpend record = new MerchantMemberIntegralSpend();
+            record.setMerchantId(merchantId);
+            record.setIntegralBeforeSpend(currentIntegral);
+            record.setIntegralAfterSpend(afterIntegral);
+            record.setChangeAmount(-costIntegral);
+            record.setChangeReason(IntegralChangeReason.SPEND_BUY_REQUEST.getDescription());
+            record.setOrderId(saved.getId());
+            record.setChangeTime(LocalDateTime.now());
+            merchantMemberIntegralSpendRepository.save(record);
+        }
+        return saved;
     }
     
     

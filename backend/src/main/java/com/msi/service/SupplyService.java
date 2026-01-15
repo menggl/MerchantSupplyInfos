@@ -78,12 +78,14 @@ public class SupplyService {
 		return p.getContent();
 	}
 
-	public List<Product> searchAvailableProducts(String cityCode,
+	public Page<Product> searchAvailableProducts(String cityCode,
 			Integer productType,
 			Long brandId,
 			Long seriesId,
 			Long modelId,
-			Long specId) {
+			Long specId,
+			int page,
+			int size) {
 		if (productType == null || (productType != 0 && productType != 1)) {
 			throw new IllegalArgumentException("产品类型不合法");
 		}
@@ -98,6 +100,12 @@ public class SupplyService {
 		}
 		if (specId == null) {
 			throw new IllegalArgumentException("配置ID不能为空");
+		}
+		if (page < 0) {
+			throw new IllegalArgumentException("页码不能小于0");
+		}
+		if (size <= 0) {
+			throw new IllegalArgumentException("每页数量必须大于0");
 		}
 
 		Specification<Product> spec = Specification.where(null);
@@ -114,7 +122,7 @@ public class SupplyService {
 		spec = spec.and((root, q, cb) -> cb.equal(root.get("modelId"), modelId));
 		spec = spec.and((root, q, cb) -> cb.equal(root.get("specId"), specId));
 
-		return productRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "updateTime"));
+		return productRepository.findAll(spec, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updateTime")));
 	}
 
 	public Product getAvailableProductById(Long productId) {

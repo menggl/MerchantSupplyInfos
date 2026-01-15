@@ -278,8 +278,6 @@ public class ProductService {
 		if (product.getMerchantId() == null) {
 			throw new IllegalArgumentException("商户信息缺失");
 		}
-		Merchant merchant = merchantRepository.findById(product.getMerchantId())
-				.orElseThrow(() -> new IllegalArgumentException("商户信息缺失"));
 		if (product.getIsValid() != null && product.getIsValid() == 0) {
 			return;
 		}
@@ -306,9 +304,6 @@ public class ProductService {
 		if (product.getMerchantId() == null) {
 			throw new IllegalArgumentException("商户信息缺失");
 		}
-		Merchant merchant = merchantRepository.findById(product.getMerchantId())
-				.orElseThrow(() -> new IllegalArgumentException("商户信息缺失"));
-
 		product.setState(state);
 		productRepository.save(product);
 	}

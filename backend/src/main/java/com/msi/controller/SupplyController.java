@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import java.time.format.DateTimeFormatter;
 
 @RestController
@@ -52,23 +50,23 @@ public class SupplyController {
 	 * 新机返回字段：产品Id，商家名称、商家所在城市、商家地址、产品价格、新机备注信息、新机其它备注信息、新机上架更新时间
 	 */
 	@GetMapping("/supply/products")
-	public ResponseEntity<List<SupplyProductDto>> searchAvailableProducts(
+	public ResponseEntity<Page<SupplyProductDto>> searchAvailableProducts(
 			@RequestAttribute("merchant") Merchant currentMerchant,
 			@RequestParam String cityCode,
 			@RequestParam Integer productType,
 			@RequestParam Long brandId,
 			@RequestParam Long seriesId,
 			@RequestParam Long modelId,
-			@RequestParam Long specId) {
+			@RequestParam Long specId,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size) {
 		try {
 			if (currentMerchant == null || currentMerchant.getId() == null) {
 				return ResponseEntity.status(401).body(null);
 			}
-			List<Product> products = supplyService.searchAvailableProducts(
-					cityCode, productType, brandId, seriesId, modelId, specId);
-			List<SupplyProductDto> result = products.stream()
-					.map(this::convertToDto)
-					.collect(Collectors.toList());
+			Page<Product> products = supplyService.searchAvailableProducts(
+					cityCode, productType, brandId, seriesId, modelId, specId, page, size);
+			Page<SupplyProductDto> result = products.map(this::convertToDto);
 			return ResponseEntity.ok(result);
 		} catch (IllegalArgumentException e) {
 			logger.error("查询上架产品列表失败: merchantId={}, {}",
