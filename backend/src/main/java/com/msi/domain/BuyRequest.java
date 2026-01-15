@@ -48,6 +48,9 @@ public class BuyRequest {
 
   @Column(name = "is_valid")
   private Integer isValid;
+  
+  @Column(name = "state")
+  private Integer state;
 
   @Column(name = "create_time", updatable = false)
   private LocalDateTime createTime;
@@ -180,6 +183,14 @@ public class BuyRequest {
   public void setIsValid(Integer isValid) {
     this.isValid = isValid;
   }
+  
+  public Integer getState() {
+    return state;
+  }
+  
+  public void setState(Integer state) {
+    this.state = state;
+  }
 
   public LocalDateTime getCreateTime() {
     return createTime;
@@ -197,4 +208,3 @@ public class BuyRequest {
     this.updateTime = updateTime;
   }
 }
-

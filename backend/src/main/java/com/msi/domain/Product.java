@@ -15,25 +15,20 @@ public class Product {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne
-  @JoinColumn(name = "merchant_id")
-  private Merchant merchant;
+  @Column(name = "merchant_id")
+  private Long merchantId;
 
-  @ManyToOne
-  @JoinColumn(name = "brand_id")
-  private Brand brand;
+  @Column(name = "brand_id")
+  private Long brandId;
 
-  @ManyToOne
-  @JoinColumn(name = "series_id")
-  private PhoneSeries series;
+  @Column(name = "series_id")
+  private Long seriesId;
 
-  @ManyToOne
-  @JoinColumn(name = "model_id")
-  private PhoneModel model;
+  @Column(name = "model_id")
+  private Long modelId;
 
-  @ManyToOne
-  @JoinColumn(name = "spec_id")
-  private PhoneSpec spec;
+  @Column(name = "spec_id")
+  private Long specId;
 
   @Column(name = "desc", columnDefinition = "TEXT")
   private String description;
@@ -67,6 +62,9 @@ public class Product {
 
   @Column(name = "is_valid")
   private Integer isValid;
+  
+  @Column(name = "state")
+  private Integer state;
 
   @Column(name = "price")
   private Integer price;
@@ -80,7 +78,7 @@ public class Product {
   @Column(name = "update_time")
   private LocalDateTime updateTime;
 
-  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Transient
   private List<ProductImage> images = new ArrayList<>();
 
   @PrePersist
@@ -106,44 +104,44 @@ public class Product {
     this.id = id;
   }
 
-  public Merchant getMerchant() {
-    return merchant;
+  public Long getMerchantId() {
+    return merchantId;
   }
 
-  public void setMerchant(Merchant merchant) {
-    this.merchant = merchant;
+  public void setMerchantId(Long merchantId) {
+    this.merchantId = merchantId;
   }
 
-  public Brand getBrand() {
-    return brand;
+  public Long getBrandId() {
+    return brandId;
   }
 
-  public void setBrand(Brand brand) {
-    this.brand = brand;
+  public void setBrandId(Long brandId) {
+    this.brandId = brandId;
   }
 
-  public PhoneSeries getSeries() {
-    return series;
+  public Long getSeriesId() {
+    return seriesId;
   }
 
-  public void setSeries(PhoneSeries series) {
-    this.series = series;
+  public void setSeriesId(Long seriesId) {
+    this.seriesId = seriesId;
   }
 
-  public PhoneModel getModel() {
-    return model;
+  public Long getModelId() {
+    return modelId;
   }
 
-  public void setModel(PhoneModel model) {
-    this.model = model;
+  public void setModelId(Long modelId) {
+    this.modelId = modelId;
   }
 
-  public PhoneSpec getSpec() {
-    return spec;
+  public Long getSpecId() {
+    return specId;
   }
 
-  public void setSpec(PhoneSpec spec) {
-    this.spec = spec;
+  public void setSpecId(Long specId) {
+    this.specId = specId;
   }
 
   public String getDescription() {
@@ -248,6 +246,14 @@ public class Product {
 
   public void setIsValid(Integer isValid) {
     this.isValid = isValid;
+  }
+  
+  public Integer getState() {
+    return state;
+  }
+  
+  public void setState(Integer state) {
+    this.state = state;
   }
 
   public LocalDateTime getCreateTime() {

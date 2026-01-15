@@ -10,5 +10,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BuyRequestRepository extends JpaRepository<BuyRequest, Long>, JpaSpecificationExecutor<BuyRequest> {
   Page<BuyRequest> findByMerchantIdAndIsValid(Long merchantId, Integer isValid, Pageable pageable);
+  java.util.Optional<BuyRequest> findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndIsValid(
+      Long merchantId, Long brandId, Long seriesId, Long modelId, Long specId, Integer isValid);
+  java.util.Optional<BuyRequest> findByIdAndIsValid(Long id, Integer isValid);
+  Page<BuyRequest> findByIsValidAndState(Integer isValid, Integer state, Pageable pageable);
+  Page<BuyRequest> findByCityCodeAndIsValidAndState(String cityCode, Integer isValid, Integer state, Pageable pageable);
 }
-

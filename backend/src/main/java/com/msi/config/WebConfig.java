@@ -21,7 +21,7 @@ public class WebConfig implements WebMvcConfigurer {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(authenticationInterceptor)
-            .addPathPatterns("/api/merchants/**", "/api/sms/**") // 拦截商户和短信相关接口
+            .addPathPatterns("/api/**") // 拦截所有接口
             .excludePathPatterns(
                 "/api/wx-login"
             );

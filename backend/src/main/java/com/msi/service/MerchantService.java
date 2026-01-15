@@ -100,6 +100,10 @@ public class MerchantService {
         } else {
             // 有则更新token值
             merchant = merchantOpt.get();
+            // 检查商户是否已被禁用
+            if (merchant.getIsValid() == 0) {
+                throw new IllegalArgumentException("商户已被禁用");
+            }
             merchant.setToken(token);
             merchant = merchantRepository.save(merchant);
         }
@@ -172,6 +176,14 @@ public class MerchantService {
         merchantRepository.deleteById(id);
     }
 
+    public void deleteProduct(Long merchantId, Long productId) {
+        productService.withdrawProduct(productId, merchantId);
+    }
+
+    public void updateProductState(Long merchantId, Long productId, Integer state) {
+        productService.updateProductState(productId, merchantId, state);
+    }
+
     public boolean isMemberExpired(Long merchantId) {
         if (merchantId == null) {
             throw new IllegalArgumentException("商户ID不能为空");
@@ -199,9 +211,26 @@ public class MerchantService {
         if (product == null) {
             throw new IllegalArgumentException("商品信息不能为空");
         }
-        if (isMemberExpired(merchant.getId())) {
-            throw new IllegalArgumentException("商户会员已过期");
+        validateProductForBusiness(product);
+        product.setMerchantId(merchant.getId());
+        return productService.publishProduct(product);
+    }
+
+    public Product updateProduct(Long merchantId, Long productId, Product product) {
+        if (merchantId == null) {
+            throw new IllegalArgumentException("商户ID不能为空");
         }
+        if (productId == null) {
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        if (product == null) {
+            throw new IllegalArgumentException("商品信息不能为空");
+        }
+        validateProductForBusiness(product);
+        return productService.updateProduct(productId, merchantId, product);
+    }
+
+    private void validateProductForBusiness(Product product) {
         Integer productType = product.getProductType();
         if (productType == null) {
             throw new IllegalArgumentException("产品类型不能为空");
@@ -238,22 +267,40 @@ public class MerchantService {
         } else {
             throw new IllegalArgumentException("产品类型不支持");
         }
-        product.setMerchant(merchant);
-        return productService.publishProduct(product);
     }
 
     public Page<Product> getMerchantProducts(Long merchantId, int page, int size) {
-        if (isMemberExpired(merchantId)) {
-            throw new IllegalArgumentException("商户会员已过期");
-        }
         return productService.findProductsByMerchant(merchantId, page, size);
     }
 
+    public Page<Product> getMerchantProductsByModel(Long merchantId,
+                                                    Long brandId,
+                                                    Long seriesId,
+                                                    Long modelId,
+                                                    Long specId,
+                                                    int page,
+                                                    int size) {
+        return productService.findProductsByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId, page, size);
+    }
+
+    public Product getMerchantProductByModel(Long merchantId,
+                                             Long brandId,
+                                             Long seriesId,
+                                             Long modelId,
+                                             Long specId) {
+        return productService.findProductByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId);
+    }
+
     public Page<BuyRequest> getMerchantBuyRequests(Long merchantId, int page, int size) {
-        if (isMemberExpired(merchantId)) {
-            throw new IllegalArgumentException("商户会员已过期");
-        }
         return productService.findBuyProductsByMerchant(merchantId, page, size);
+    }
+    
+    public BuyRequest getMerchantBuyRequestByModel(Long merchantId,
+                                                   Long brandId,
+                                                   Long seriesId,
+                                                   Long modelId,
+                                                   Long specId) {
+        return productService.findBuyRequestByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId);
     }
 
     public BuyRequest addBuyRequest(Long merchantId, BuyRequest buyRequest) {
@@ -262,9 +309,6 @@ public class MerchantService {
         }
         if (buyRequest == null) {
             throw new IllegalArgumentException("求购信息不能为空");
-        }
-        if (isMemberExpired(merchantId)) {
-            throw new IllegalArgumentException("商户会员已过期");
         }
         if (buyRequest.getBrandId() == null) {
             throw new IllegalArgumentException("品牌ID不能为空");
@@ -301,6 +345,43 @@ public class MerchantService {
         }
         buyRequest.setMerchantId(merchantId);
         return productService.publishBuyRequest(buyRequest);
+    }
+    
+    
+    public void updateBuyRequestState(Long merchantId, Long buyRequestId, Integer state) {
+        if (merchantId == null) {
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (buyRequestId == null) {
+            throw new IllegalArgumentException("求购ID不能为空");
+        }
+        if (state == null || (state != 0 && state != 1)) {
+            throw new IllegalArgumentException("求购状态不合法");
+        }
+        productService.updateBuyRequestState(buyRequestId, merchantId, state);
+    }
+    
+    public BuyRequest updateBuyRequest(Long merchantId, Long buyRequestId, BuyRequest buyRequest) {
+        if (merchantId == null) {
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (buyRequestId == null) {
+            throw new IllegalArgumentException("求购ID不能为空");
+        }
+        if (buyRequest == null) {
+            throw new IllegalArgumentException("求购信息不能为空");
+        }
+        return productService.updateBuyRequest(buyRequestId, merchantId, buyRequest);
+    }
+    
+    public void deleteBuyRequest(Long merchantId, Long buyRequestId) {
+        if (merchantId == null) {
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (buyRequestId == null) {
+            throw new IllegalArgumentException("求购ID不能为空");
+        }
+        productService.withdrawBuyRequest(buyRequestId, merchantId);
     }
     
     public Merchant updateMerchant(Long id, Merchant merchant) {

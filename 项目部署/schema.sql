@@ -379,6 +379,7 @@ CREATE TABLE IF NOT EXISTS merchant_phone_product (
   stock INT COMMENT '产品库存',
   listing_time DATETIME COMMENT '上架时间',
   is_valid INT DEFAULT 1 COMMENT '1有效0无效',
+  `state` INT DEFAULT 1 COMMENT '1商户上架 2商户下架',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   KEY idx_merchant_phone_product_merchant_id (merchant_id),
@@ -477,6 +478,7 @@ CREATE TABLE IF NOT EXISTS buy_request (
   deadline DATETIME COMMENT '求购截止时间',
   cost_integral INT COMMENT '求购花费积分',
   is_valid INT DEFAULT 1 COMMENT '1有效0无效',
+  `state` INT DEFAULT 1 COMMENT '1求购中 2已解决',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );
@@ -547,4 +549,17 @@ CREATE TABLE IF NOT EXISTS sms_log (
   code VARCHAR(16) COMMENT '短信验证码',
   send_time DATETIME COMMENT '发送时间',
   KEY idx_sms_log_wechat_id (wechat_id)
+);
+
+-- 商户通话记录表
+DROP TABLE IF EXISTS merchant_call_record;
+CREATE TABLE IF NOT EXISTS merchant_call_record (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  call_type INT DEFAULT 0 COMMENT '0产品电话 1求购电话',
+  caller_merchant_id BIGINT COMMENT '拨打电话的商户ID',
+  callee_merchant_id BIGINT COMMENT '被拨打电话的商户ID',
+  product_id BIGINT COMMENT '因哪个产品拨打电话',
+  call_time DATETIME COMMENT '通话时间',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );
