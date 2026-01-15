@@ -146,33 +146,6 @@ INSERT INTO merchant_member_info (
 (5, '2026-01-05 16:45:00', NULL, '2026-01-05 16:45:00', '2027-01-04 23:59:59', 2, 1000.00, 1200.00, 200.00, 0.00, 1),
 (6, '2026-01-06 08:15:00', NULL, '2026-01-06 08:15:00', '2026-02-05 23:59:59', 1, 100.00, 120.00, 20.00, 0.00, 1);
 
--- 会员充值记录
-DROP TABLE IF EXISTS merchant_member_recharge;
-CREATE TABLE IF NOT EXISTS merchant_member_recharge (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  merchant_id BIGINT COMMENT '商户信息表ID',
-  recharge_amount DECIMAL(10, 2) COMMENT '充值金额',
-  original_price DECIMAL(10, 2) COMMENT '原价',
-  discount_amount DECIMAL(10, 2) COMMENT '优惠金额',
-  recharge_type INT COMMENT '1.月会员/2.年会员/3.终身会员',
-  recharge_time DATETIME COMMENT '充值时间',
-  is_valid INT DEFAULT 1 COMMENT '1有效0无效'
-);
-
-INSERT INTO merchant_member_recharge (
-  merchant_id,
-  recharge_amount,
-  original_price,
-  discount_amount,
-  recharge_type,
-  recharge_time,
-  is_valid
-) VALUES
-(1, 1000.00, 1200.00, 200.00, 2, '2026-01-01 10:00:00', 1),
-(3, 100.00, 120.00, 20.00, 1, '2026-01-03 09:30:00', 1),
-(5, 1000.00, 1200.00, 200.00, 2, '2026-01-05 16:45:00', 1),
-(6, 100.00, 120.00, 20.00, 1, '2026-01-06 08:15:00', 1);
-
 -- 会员积分表
 DROP TABLE IF EXISTS merchant_member_integral;
 CREATE TABLE IF NOT EXISTS merchant_member_integral (
@@ -197,28 +170,11 @@ CREATE TABLE IF NOT EXISTS merchant_member_integral_spend (
   change_time DATETIME COMMENT '变更时间'
 );
 
--- 积分充值记录
-DROP TABLE IF EXISTS merchant_member_integral_recharge;
-CREATE TABLE IF NOT EXISTS merchant_member_integral_recharge (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  merchant_id BIGINT COMMENT '商户信息表ID',
-  integral_before_recharge INT COMMENT '充值前积分',
-  integral_after_recharge INT COMMENT '充值后积分',
-  recharge_amount INT COMMENT '充值积分',
-  recharge_money DECIMAL(10, 2) COMMENT '充值金额',
-  recharge_time DATETIME COMMENT '充值时间'
-);
-
 INSERT INTO merchant_member_integral (merchant_id, integral, is_valid) VALUES
 (1, 960, 1),
 (3, 10, 1),
 (5, 400, 1),
 (6, 200, 1);
-
-INSERT INTO merchant_member_integral_recharge (merchant_id, integral_before_recharge, integral_after_recharge, recharge_amount, recharge_money, recharge_time) VALUES
-(1, 0, 1000, 1000, 100.00, '2026-01-02 10:00:00'),
-(5, 0, 500, 500, 50.00, '2026-01-05 17:00:00'),
-(6, 0, 200, 200, 20.00, '2026-01-06 09:00:00');
 
 INSERT INTO merchant_member_integral_spend (merchant_id, integral_before_spend, integral_after_spend, change_amount, change_reason, order_id, change_time) VALUES
 (1, 0, 1000, 1000, '花钱充值积分', NULL, '2026-01-02 10:00:00'),

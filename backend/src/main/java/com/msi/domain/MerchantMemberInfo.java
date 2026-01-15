@@ -11,9 +11,8 @@ public class MerchantMemberInfo {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne
-  @JoinColumn(name = "merchant_id")
-  private Merchant merchant;
+  @Column(name = "merchant_id")
+  private Long merchantId;
 
   @Column(name = "start_date")
   private LocalDateTime startDate;
@@ -65,11 +64,11 @@ public class MerchantMemberInfo {
   public void setId(Long id) {
     this.id = id;
   }
-  public Merchant getMerchant() {
-    return merchant;
+  public Long getMerchantId() {
+    return merchantId;
   }
-  public void setMerchant(Merchant merchant) {
-    this.merchant = merchant;
+  public void setMerchantId(Long merchantId) {
+    this.merchantId = merchantId;
   }
   public LocalDateTime getStartDate() {
     return startDate;
@@ -132,4 +131,3 @@ public class MerchantMemberInfo {
     this.updateTime = updateTime;
   }
 }
-

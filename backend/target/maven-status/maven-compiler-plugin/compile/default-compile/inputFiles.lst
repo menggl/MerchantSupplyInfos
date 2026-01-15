@@ -1,12 +1,13 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/MerchantSupplyInfosApplication.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/config/WebConfig.java
-/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/constants/IntegralConstants.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/constants/Constants.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/DictController.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/ImageController.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/LoginController.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/MerchantController.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/SmsController.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/SupplyController.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller/WeChatPayController.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/Brand.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/BuyRequest.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/CityDict.java
@@ -15,6 +16,7 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/MerchantMemberInfo.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/MerchantMemberIntegral.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/MerchantMemberIntegralSpend.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/MerchantRechargeOrder.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/PhoneModel.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/PhoneRemarkDict.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/domain/PhoneSeries.java
@@ -42,6 +44,7 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantMemberInfoRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantMemberIntegralRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantMemberIntegralSpendRepository.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantRechargeOrderRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/MerchantRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/PhoneModelRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/PhoneRemarkDictRepository.java
@@ -50,9 +53,15 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/ProductImageRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/ProductRepository.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/repository/SmsLogRepository.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/request/IntegralRechargeRequest.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/request/MemberRechargeRequest.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/request/WeChatPayNotifyRequest.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/request/WeChatRechargeCreateRequest.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/service/DictService.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/service/MerchantService.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/service/ProductService.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/service/RechargeService.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/service/SmsService.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/service/SupplyService.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/service/WeChatPayService.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/service/WechatService.java

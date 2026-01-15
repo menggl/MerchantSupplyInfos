@@ -247,4 +247,21 @@ public class MerchantController {
         }
     }
 
+    /**
+     * 商户签到随机送积分，2积分或者3积分
+     */
+    @PostMapping("/merchant/sign-in")
+    public ResponseEntity<Void> signInForIntegral(@RequestAttribute("merchant") Merchant currentMerchant) {
+        try {
+            if (currentMerchant == null || currentMerchant.getId() == null) {
+                return ResponseEntity.status(401).body(null);
+            }
+            merchantService.signInForIntegral(currentMerchant.getId());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.error("商户签到送积分失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
 }

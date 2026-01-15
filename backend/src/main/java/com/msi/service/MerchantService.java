@@ -2,6 +2,7 @@ package com.msi.service;
 
 import com.msi.domain.Merchant;
 import com.msi.domain.Product;
+import com.msi.constants.Constants;
 import com.msi.domain.BuyRequest;
 import com.msi.domain.ProductImage;
 import com.msi.domain.MerchantMemberInfo;
@@ -9,6 +10,9 @@ import com.msi.domain.MerchantMemberIntegral;
 import com.msi.domain.MerchantMemberIntegralSpend;
 import com.msi.enums.IntegralChangeReason;
 import com.msi.repository.MerchantRepository;
+
+import io.netty.util.internal.ThreadLocalRandom;
+
 import com.msi.repository.MerchantMemberInfoRepository;
 import com.msi.repository.MerchantMemberIntegralRepository;
 import com.msi.repository.MerchantMemberIntegralSpendRepository;
@@ -120,14 +124,11 @@ public class MerchantService {
             merchant = merchantRepository.save(merchant);
         }
 
-        // 获取会员信息
         MerchantMemberInfo info = null;
-        java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchant_Id(merchant.getId());
-        // 如果商户会员信息表不存在，则在数据库表中添加一条数据
+        java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(merchant.getId());
         if (infoOpt.isEmpty()) {
             info = new MerchantMemberInfo();
-            info.setMerchant(merchant);
-            // 默认会员时间
+            info.setMerchantId(merchant.getId());
             info.setStartDate(java.time.LocalDateTime.now());
             info.setEndDate(java.time.LocalDateTime.now().plusDays(defaultMemberDays));
             info.setMemberType(1);
@@ -178,7 +179,7 @@ public class MerchantService {
             throw new IllegalArgumentException("商户不存在");
         }
         Merchant merchant = opt.get();
-        java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchant_Id(merchant.getId());
+        java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(merchant.getId());
         MerchantMemberInfo info = infoOpt.orElse(null);
         updateLoginCache(merchant, info);
         return merchant;
@@ -205,7 +206,7 @@ public class MerchantService {
             throw new IllegalArgumentException("商户不存在");
         }
         Merchant m = opt.get();
-        java.util.Optional<com.msi.domain.MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchant_Id(m.getId());
+        java.util.Optional<com.msi.domain.MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(m.getId());
         if (infoOpt.isEmpty()) {
             return true;
         }
@@ -303,6 +304,40 @@ public class MerchantService {
         return productService.findProductByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId);
     }
 
+    @Transactional
+    public void signInForIntegral(Long merchantId) {
+        if (merchantId == null) {
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        Optional<Merchant> opt = merchantRepository.findById(merchantId);
+        if (opt.isEmpty()) {
+            throw new IllegalArgumentException("商户不存在");
+        }
+        MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchantId).orElse(null);
+        int before = 0;
+        if (integral != null && integral.getIntegral() != null) {
+            before = integral.getIntegral();
+        }
+        int change = ThreadLocalRandom.current().nextInt(2, 4);
+        int after = before + change;
+        if (integral == null) {
+            integral = new MerchantMemberIntegral();
+            integral.setMerchantId(merchantId);
+        }
+        integral.setIntegral(after);
+        merchantMemberIntegralRepository.save(integral);
+
+        MerchantMemberIntegralSpend record = new MerchantMemberIntegralSpend();
+        record.setMerchantId(merchantId);
+        record.setIntegralBeforeSpend(before);
+        record.setIntegralAfterSpend(after);
+        record.setChangeAmount(change);
+        record.setChangeReason(IntegralChangeReason.SIGN_IN.getDescription());
+        record.setOrderId(null);
+        record.setChangeTime(LocalDateTime.now());
+        merchantMemberIntegralSpendRepository.save(record);
+    }
+
     public Page<BuyRequest> getMerchantBuyRequests(Long merchantId, int page, int size) {
         return productService.findBuyProductsByMerchant(merchantId, page, size);
     }
@@ -353,7 +388,7 @@ public class MerchantService {
         if (buyRequest.getDeadline() == null) {
             throw new IllegalArgumentException("求购截止时间不能为空");
         }
-        int costIntegral = com.msi.constants.IntegralConstants.BUY_REQUEST_COST;
+        int costIntegral = Constants.BUY_REQUEST_COST;
         MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchantId).orElse(null);
         int currentIntegral = 0;
         if (integral != null && integral.getIntegral() != null) {
@@ -365,6 +400,7 @@ public class MerchantService {
         buyRequest.setCostIntegral(costIntegral);
         buyRequest.setMerchantId(merchantId);
         BuyRequest saved = productService.publishBuyRequest(buyRequest);
+
         if (costIntegral > 0) {
             int afterIntegral = currentIntegral - costIntegral;
             if (integral == null) {
@@ -373,6 +409,7 @@ public class MerchantService {
             }
             integral.setIntegral(afterIntegral);
             merchantMemberIntegralRepository.save(integral);
+            
             MerchantMemberIntegralSpend record = new MerchantMemberIntegralSpend();
             record.setMerchantId(merchantId);
             record.setIntegralBeforeSpend(currentIntegral);
@@ -474,6 +511,10 @@ public class MerchantService {
         return save(existing);
     }
 
+    public void refreshLoginCache(Merchant merchant, MerchantMemberInfo info) {
+        updateLoginCache(merchant, info);
+    }
+
     private void updateLoginCache(Merchant merchant, MerchantMemberInfo info) {
         // 如果没有token，生成并保存
         if (merchant.getToken() == null || merchant.getToken().isEmpty()) {
@@ -530,7 +571,7 @@ public class MerchantService {
             return null;
         }
         Merchant m = opt.get();
-        java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchant_Id(m.getId());
+        java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(m.getId());
         updateLoginCache(m, infoOpt.orElse(null));
         return m;
     }

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MerchantMemberInfoRepository extends JpaRepository<MerchantMemberInfo, Long> {
-  java.util.Optional<MerchantMemberInfo> findByMerchant_Id(Long merchantId);
+  java.util.Optional<MerchantMemberInfo> findByMerchantId(Long merchantId);
 }
