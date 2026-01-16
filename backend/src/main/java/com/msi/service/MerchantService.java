@@ -13,6 +13,11 @@ import com.msi.repository.MerchantRepository;
 
 import io.netty.util.internal.ThreadLocalRandom;
 
+import com.msi.repository.CityDictRepository;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 import com.msi.repository.MerchantMemberInfoRepository;
 import com.msi.repository.MerchantMemberIntegralRepository;
 import com.msi.repository.MerchantMemberIntegralSpendRepository;
@@ -45,6 +50,8 @@ public class MerchantService {
     @Value("${msi.member.default-days:30}")
     private int defaultMemberDays;
     private final MerchantMemberInfoRepository memberInfoRepository;
+    private final CityDictRepository cityDictRepository;
+    private final Cache<String, Boolean> cityCodeCache;
 
     private final WechatService wechatService;
     private final SmsService smsService;
@@ -59,7 +66,8 @@ public class MerchantService {
                            SmsService smsService,
                            ProductService productService,
                            MerchantMemberIntegralRepository merchantMemberIntegralRepository,
-                           MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository) {
+                           MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository,
+                           CityDictRepository cityDictRepository) {
         this.merchantRepository = merchantRepository;
         this.redisTemplate = redisTemplate;
         this.memberInfoRepository = memberInfoRepository;
@@ -68,6 +76,11 @@ public class MerchantService {
         this.productService = productService;
         this.merchantMemberIntegralRepository = merchantMemberIntegralRepository;
         this.merchantMemberIntegralSpendRepository = merchantMemberIntegralSpendRepository;
+        this.cityDictRepository = cityDictRepository;
+        this.cityCodeCache = CacheBuilder.newBuilder()
+                .expireAfterWrite(24, TimeUnit.HOURS)
+                .maximumSize(1000)
+                .build();
     }
 
     public static class WechatLoginInfo {
@@ -462,6 +475,20 @@ public class MerchantService {
         if (id == null) {
             throw new IllegalArgumentException("商户ID不能为空");
         }
+        // 添加城市code入参校验
+        String cityCode = merchant.getCityCode();
+        if (cityCode == null || cityCode.isEmpty()) {
+            throw new IllegalArgumentException("城市code不能为空");
+        }
+        // 判断cityCode是否在字典表中
+        try {
+            if (!cityCodeCache.get(cityCode, () -> cityDictRepository.existsByCityCode(cityCode))) {
+                throw new IllegalArgumentException("城市code不存在");
+            }
+        } catch (ExecutionException e) {
+            throw new RuntimeException("验证城市Code失败", e);
+        }
+
         Optional<Merchant> opt = merchantRepository.findById(id);
         if (opt.isEmpty()) {
             throw new IllegalArgumentException("商户不存在");
@@ -535,6 +562,8 @@ public class MerchantService {
         existing.setMerchantAddress(address);
         existing.setMerchantLatitude(merchant.getMerchantLatitude());
         existing.setMerchantLongitude(merchant.getMerchantLongitude());
+        existing.setCityCode(cityCode);
+
         Merchant saved = save(existing);
 
         if (updatedMemberInfo != null) {

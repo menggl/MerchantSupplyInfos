@@ -22,6 +22,9 @@ public class CityDict {
   @Column(name = "valid")
   private Integer valid;
 
+  @Column(name = "is_online")
+  private Integer isOnline;
+
   @Column(name = "create_time", updatable = false)
   private LocalDateTime createTime;
 
@@ -34,6 +37,9 @@ public class CityDict {
     modifyTime = LocalDateTime.now();
     if (valid == null) {
       valid = 1;
+    }
+    if (isOnline == null) {
+      isOnline = 0;
     }
   }
 
@@ -56,6 +62,9 @@ public class CityDict {
 
   public Integer getValid() { return valid; }
   public void setValid(Integer valid) { this.valid = valid; }
+
+  public Integer getIsOnline() { return isOnline; }
+  public void setIsOnline(Integer isOnline) { this.isOnline = isOnline; }
 
   public LocalDateTime getCreateTime() { return createTime; }
   public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }

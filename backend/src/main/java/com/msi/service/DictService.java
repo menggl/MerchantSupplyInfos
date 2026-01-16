@@ -405,10 +405,10 @@ public class DictService {
 		List<CityDict> list = cityRepository.findAllByValidOrderBySortAsc(1);
 		List<CityDto> cities = list.stream()
 				.filter(c -> c.getCityName() != null && !"全国".equals(c.getCityName()))
-				.map(c -> new CityDto(c.getCityCode(), c.getCityName()))
+				.map(c -> new CityDto(c.getCityCode(), c.getCityName(), c.getIsOnline()))
 				.collect(Collectors.toList());
 		List<CityDto> result = new ArrayList<>();
-		result.add(new CityDto("000000", "全国"));
+		result.add(new CityDto("000000", "全国", 1));
 		result.addAll(cities);
 		return result;
 	}
