@@ -471,6 +471,7 @@ public class MerchantService {
         String contact = merchant.getContactName();
         String phone = merchant.getMerchantPhone();
         String address = merchant.getMerchantAddress();
+        String businessLicenseUrl = merchant.getBusinessLicenseUrl();
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("商户名称不能为空");
         }
@@ -486,8 +487,9 @@ public class MerchantService {
         if (address == null || address.isEmpty()) {
             throw new IllegalArgumentException("地址不能为空");
         }
-        if (merchant.getMerchantLatitude() == null || merchant.getMerchantLongitude() == null) {
-            throw new IllegalArgumentException("经纬度不能为空");
+        // 商户营业执照图片url，也不是必填项，但是如果传入过来，也得保存好
+        if (businessLicenseUrl != null && !businessLicenseUrl.isEmpty()) {
+            existing.setBusinessLicenseUrl(businessLicenseUrl);
         }
         /**
          * 手机号变更，每次都要验证
@@ -500,13 +502,45 @@ public class MerchantService {
             }
             smsService.deleteCode(existing.getWechatId(), phone);
         }
+
+        boolean firstProfileUpdate =
+                (existing.getMerchantName() == null || existing.getMerchantName().isEmpty()) &&
+                (existing.getMerchantPhone() == null || existing.getMerchantPhone().isEmpty());
+
+        MerchantMemberInfo updatedMemberInfo = null;
+        if (firstProfileUpdate) {
+            LocalDateTime now = LocalDateTime.now();
+            existing.setRegistrationDate(now);
+
+            Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(existing.getId());
+            MerchantMemberInfo info = infoOpt.orElse(null);
+            if (info == null) {
+                info = new MerchantMemberInfo();
+                info.setMerchantId(existing.getId());
+                info.setMemberType(1);
+                info.setPaymentAmount(java.math.BigDecimal.ZERO);
+                info.setOriginalPrice(java.math.BigDecimal.ZERO);
+                info.setDiscountPrice(java.math.BigDecimal.ZERO);
+                info.setCommission(java.math.BigDecimal.ZERO);
+            }
+            info.setStartDate(now);
+            info.setEndDate(now.plusDays(defaultMemberDays));
+            info.setIsValid(1);
+            updatedMemberInfo = memberInfoRepository.save(info);
+        }
+
         existing.setMerchantName(name);
         existing.setContactName(contact);
         existing.setMerchantPhone(phone);
         existing.setMerchantAddress(address);
         existing.setMerchantLatitude(merchant.getMerchantLatitude());
         existing.setMerchantLongitude(merchant.getMerchantLongitude());
-        return save(existing);
+        Merchant saved = save(existing);
+
+        if (updatedMemberInfo != null) {
+            refreshLoginCache(saved, updatedMemberInfo);
+        }
+        return saved;
     }
 
     public void refreshLoginCache(Merchant merchant, MerchantMemberInfo info) {

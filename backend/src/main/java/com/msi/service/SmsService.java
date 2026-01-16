@@ -103,7 +103,8 @@ public class SmsService {
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = start.plusDays(1);
         long cnt = smsLogRepository.countByWechatIdAndSendTimeBetween(wechatId, start, end);
-        if (cnt >= 5) {
+        // todo 测试使用，先将发送次数上限改为100次
+        if (cnt >= 100) {
             throw new IllegalArgumentException("今日发送次数已达上限");
         }
         int code = (int)(Math.random() * 900000) + 100000; // 6位随机码

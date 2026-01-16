@@ -28,6 +28,9 @@ public class Merchant {
     @Column(name = "merchant_address")
     private String merchantAddress;
 
+    @Column(name = "business_license_url")
+    private String businessLicenseUrl;
+
     @Column(name = "city_code")
     private String cityCode;
 
@@ -132,6 +135,14 @@ public class Merchant {
 
     public void setMerchantAddress(String merchantAddress) {
         this.merchantAddress = merchantAddress;
+    }
+
+    public String getBusinessLicenseUrl() {
+        return businessLicenseUrl;
+    }
+
+    public void setBusinessLicenseUrl(String businessLicenseUrl) {
+        this.businessLicenseUrl = businessLicenseUrl;
     }
 
     public String getCityCode() {
