@@ -14,6 +14,7 @@ import com.msi.repository.PhoneSeriesRepository;
 import com.msi.repository.PhoneSpecRepository;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -65,11 +66,11 @@ public class DictService {
 	}
 
 	public List<BrandDto> getAllDicts() {
-		// 1. Fetch all data
-		List<Brand> brands = brandRepository.findAll();
-		List<PhoneSeries> allSeries = seriesRepository.findAll();
-		List<PhoneModel> allModels = modelRepository.findAll();
-		List<PhoneSpec> allSpecs = specRepository.findAll();
+		// 1. Fetch all data sorted
+		List<Brand> brands = brandRepository.findAll(Sort.by("sort").ascending());
+		List<PhoneSeries> allSeries = seriesRepository.findAll(Sort.by("sort").ascending());
+		List<PhoneModel> allModels = modelRepository.findAll(Sort.by("sort").ascending());
+		List<PhoneSpec> allSpecs = specRepository.findAll(Sort.by("sort").ascending());
 
 		// 2. Group by parent ID
 		Map<Long, List<PhoneSeries>> seriesMap = allSeries.stream()
@@ -86,40 +87,34 @@ public class DictService {
 
 		// 3. Assemble DTOs
 		return brands.stream()
-				.sorted(Comparator.comparingInt(b -> b.getSort() == null ? 0 : b.getSort()))
 				.map(brand -> {
 					List<SeriesDto> seriesDtos = seriesMap.getOrDefault(brand.getId(), new ArrayList<>()).stream()
-							.sorted(Comparator.comparingInt(s -> s.getSort() == null ? 0 : s.getSort()))
 							.map(series -> {
 								List<ModelDto> modelDtos = modelMap.getOrDefault(series.getId(), new ArrayList<>())
 										.stream()
-										.sorted(Comparator.comparingInt(m -> m.getSort() == null ? 0 : m.getSort()))
 										.map(model -> {
 											List<SpecDto> specDtos = specMap
 													.getOrDefault(model.getId(), new ArrayList<>()).stream()
-													.sorted(Comparator
-															.comparingInt(s -> s.getSort() == null ? 0 : s.getSort()))
-													.map(spec -> new SpecDto(spec.getId(), spec.getSpecName(),
-															spec.getSort()))
+													.map(spec -> new SpecDto(spec.getId(), spec.getSpecName()))
 													.collect(Collectors.toList());
-											return new ModelDto(model.getId(), model.getModelName(), model.getSort(),
+											return new ModelDto(model.getId(), model.getModelName(),
 													specDtos);
 										})
 										.collect(Collectors.toList());
-								return new SeriesDto(series.getId(), series.getSeriesName(), series.getSort(),
+								return new SeriesDto(series.getId(), series.getSeriesName(),
 										modelDtos);
 							})
 							.collect(Collectors.toList());
-					return new BrandDto(brand.getId(), brand.getName(), brand.getSort(), seriesDtos);
+					return new BrandDto(brand.getId(), brand.getName(), seriesDtos);
 				})
 				.collect(Collectors.toList());
 	}
 
 	public List<BrandDto> getAllBrands() {
-		return brandRepository.findAll().stream()
+		
+		return brandRepository.findAll(Sort.by("sort").ascending()).stream()
 				.filter(b -> b.getDeleted() == null || b.getDeleted() == 0)
-				.sorted(Comparator.comparingInt(b -> b.getSort() == null ? 0 : b.getSort()))
-				.map(brand -> new BrandDto(brand.getId(), brand.getName(), brand.getSort(), null))
+				.map(brand -> new BrandDto(brand.getId(), brand.getName(), null))
 				.collect(Collectors.toList());
 	}
 
@@ -128,10 +123,9 @@ public class DictService {
 		if (brand.isEmpty()) {
 			return new ArrayList<>();
 		}
-		return seriesRepository.findByBrand(brand.get()).stream()
+		return seriesRepository.findByBrandOrderBySortAsc(brand.get()).stream()
 				.filter(s -> s.getDeleted() == null || s.getDeleted() == 0)
-				.sorted(Comparator.comparingInt(s -> s.getSort() == null ? 0 : s.getSort()))
-				.map(series -> new SeriesDto(brandId, series.getId(), series.getSeriesName(), series.getSort(), null))
+				.map(series -> new SeriesDto(brandId, series.getId(), series.getSeriesName(), null))
 				.collect(Collectors.toList());
 	}
 
@@ -141,10 +135,9 @@ public class DictService {
 			return new ArrayList<>();
 		}
 		Long brandId = series.get().getBrand().getId();
-		return modelRepository.findBySeries(series.get()).stream()
+		return modelRepository.findBySeriesOrderBySortAsc(series.get()).stream()
 				.filter(m -> m.getDeleted() == null || m.getDeleted() == 0)
-				.sorted(Comparator.comparingInt(m -> m.getSort() == null ? 0 : m.getSort()))
-				.map(model -> new ModelDto(brandId, seriesId, model.getId(), model.getModelName(), model.getSort(),
+				.map(model -> new ModelDto(brandId, seriesId, model.getId(), model.getModelName(),
 						null))
 				.collect(Collectors.toList());
 	}
@@ -156,10 +149,9 @@ public class DictService {
 		}
 		Long seriesId = model.get().getSeries().getId();
 		Long brandId = model.get().getSeries().getBrand().getId();
-		return specRepository.findByModel(model.get()).stream()
+		return specRepository.findByModelOrderBySortAsc(model.get()).stream()
 				.filter(s -> s.getDeleted() == null || s.getDeleted() == 0)
-				.sorted(Comparator.comparingInt(s -> s.getSort() == null ? 0 : s.getSort()))
-				.map(spec -> new SpecDto(brandId, seriesId, modelId, spec.getId(), spec.getSpecName(), spec.getSort()))
+				.map(spec -> new SpecDto(brandId, seriesId, modelId, spec.getId(), spec.getSpecName()))
 				.collect(Collectors.toList());
 	}
 
@@ -240,7 +232,7 @@ public class DictService {
 		if (brand == null)
 			return null;
 
-		List<PhoneSeries> ss = seriesRepository.findByBrand(brand).stream()
+		List<PhoneSeries> ss = seriesRepository.findByBrandOrderBySortAsc(brand).stream()
 				.filter(s -> seriesName.equals(s.getSeriesName()))
 				.collect(Collectors.toList());
 		if (ss.isEmpty())

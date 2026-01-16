@@ -121,9 +121,10 @@
       v-model="drawerVisible"
       title="求购详情"
       direction="rtl"
-      size="50%"
+      size="600px"
+      destroy-on-close
     >
-      <div v-if="currentRequest" style="padding: 20px;">
+      <div v-if="currentRequest" style="padding: 0 20px;">
         <el-descriptions title="基本信息" :column="1" border>
           <el-descriptions-item label="品牌">{{ currentRequest.brandName }}</el-descriptions-item>
           <el-descriptions-item label="系列">{{ currentRequest.seriesName }}</el-descriptions-item>
@@ -154,18 +155,39 @@
           <el-descriptions-item label="商家名称">{{ currentRequest.merchantName }}</el-descriptions-item>
           <el-descriptions-item label="联系电话">{{ currentRequest.merchantPhone || '-' }}</el-descriptions-item>
           <el-descriptions-item label="所在城市">{{ currentRequest.cityName || currentRequest.cityCode || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="商家地址">{{ currentRequest.merchantAddress || '-' }}</el-descriptions-item>
         </el-descriptions>
+
+        <div v-if="currentRequest.latitude && currentRequest.longitude" style="margin-top: 20px;">
+          <div style="font-weight: bold; margin-bottom: 10px;">商家位置</div>
+          <div ref="mapContainer" style="height: 300px; width: 100%; border-radius: 4px;"></div>
+        </div>
       </div>
     </el-drawer>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, nextTick, watch } from 'vue'
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, Search } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
+
+// Fix for default marker icon
+import icon from 'leaflet/dist/images/marker-icon.png'
+import iconShadow from 'leaflet/dist/images/marker-shadow.png'
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const requests = ref([])
 const loading = ref(false)
@@ -175,6 +197,8 @@ const total = ref(0)
 const cityOptions = ref([])
 const drawerVisible = ref(false)
 const currentRequest = ref(null)
+const mapContainer = ref(null)
+let map = null
 
 const searchForm = ref({
   id: '',
@@ -190,6 +214,30 @@ const formatTime = (time) => {
 const showDetail = (row) => {
   currentRequest.value = row
   drawerVisible.value = true
+  
+  nextTick(() => {
+    if (row.latitude && row.longitude && mapContainer.value) {
+      if (map) {
+        map.remove()
+        map = null
+      }
+      
+      map = L.map(mapContainer.value).setView([row.latitude, row.longitude], 15)
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map)
+      
+      L.marker([row.latitude, row.longitude]).addTo(map)
+        .bindPopup(row.merchantName)
+        .openPopup()
+        
+      // Ensure map renders correctly inside drawer transition
+      setTimeout(() => {
+        map.invalidateSize()
+      }, 300)
+    }
+  })
 }
 
 const fetchRequests = async () => {

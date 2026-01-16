@@ -9,6 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PhoneSpecRepository extends JpaRepository<PhoneSpec, Long> {
-  List<PhoneSpec> findByModel(PhoneModel model);
+  List<PhoneSpec> findByModelOrderBySortAsc(PhoneModel model);
   Optional<PhoneSpec> findByModelAndSpecName(PhoneModel model, String specName);
 }

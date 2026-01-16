@@ -81,9 +81,7 @@ public class MerchantService {
         if (code == null || code.isEmpty()) {
             throw new IllegalArgumentException("Code不能为空");
         }
-        // todo 测试使用，模拟 code
-        code = "mock_code";
-
+        
         // 调用微信接口获取 openid 和 session_key
         WechatService.WechatSession session = wechatService.getSession(code);
         String openid = session.getOpenid();

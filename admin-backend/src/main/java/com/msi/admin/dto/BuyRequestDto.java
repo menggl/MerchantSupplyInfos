@@ -7,6 +7,10 @@ public class BuyRequestDto {
     private Long merchantId;
     private String merchantName;
     private String merchantPhone;
+    private String merchantAddress;
+    private java.math.BigDecimal latitude;
+    private java.math.BigDecimal longitude;
+    
     private Long brandId;
     private String brandName;
     private Long seriesId;
@@ -38,6 +42,30 @@ public class BuyRequestDto {
 
     public String getMerchantPhone() { return merchantPhone; }
     public void setMerchantPhone(String merchantPhone) { this.merchantPhone = merchantPhone; }
+
+    public String getMerchantAddress() {
+        return merchantAddress;
+    }
+
+    public void setMerchantAddress(String merchantAddress) {
+        this.merchantAddress = merchantAddress;
+    }
+
+    public java.math.BigDecimal getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(java.math.BigDecimal latitude) {
+        this.latitude = latitude;
+    }
+
+    public java.math.BigDecimal getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(java.math.BigDecimal longitude) {
+        this.longitude = longitude;
+    }
 
     public Long getBrandId() { return brandId; }
     public void setBrandId(Long brandId) { this.brandId = brandId; }

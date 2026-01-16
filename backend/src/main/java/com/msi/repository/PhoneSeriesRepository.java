@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PhoneSeriesRepository extends JpaRepository<PhoneSeries, Long> {
-  List<PhoneSeries> findByBrand(Brand brand);
+  List<PhoneSeries> findByBrandOrderBySortAsc(Brand brand);
   Optional<PhoneSeries> findByBrandAndSeriesName(Brand brand, String seriesName);
 }
 

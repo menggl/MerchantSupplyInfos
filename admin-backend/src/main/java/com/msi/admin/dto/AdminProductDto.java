@@ -7,6 +7,9 @@ public class AdminProductDto {
     private Long merchantId;
     private String merchantName;
     private String merchantPhone;
+    private String merchantAddress;
+    private java.math.BigDecimal latitude;
+    private java.math.BigDecimal longitude;
     
     private String brandName;
     private String seriesName;
@@ -64,6 +67,30 @@ public class AdminProductDto {
 
     public void setMerchantPhone(String merchantPhone) {
         this.merchantPhone = merchantPhone;
+    }
+
+    public String getMerchantAddress() {
+        return merchantAddress;
+    }
+
+    public void setMerchantAddress(String merchantAddress) {
+        this.merchantAddress = merchantAddress;
+    }
+
+    public java.math.BigDecimal getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(java.math.BigDecimal latitude) {
+        this.latitude = latitude;
+    }
+
+    public java.math.BigDecimal getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(java.math.BigDecimal longitude) {
+        this.longitude = longitude;
     }
 
     public String getBrandName() {

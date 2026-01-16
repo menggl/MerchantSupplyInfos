@@ -84,22 +84,32 @@ const onSubmit = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: linear-gradient(135deg, #2d3a4b 0%, #4b6cb7 100%);
-  background-size: cover;
+  background:
+    radial-gradient(circle at 20% 0, rgba(191, 219, 254, 0.9) 0, transparent 55%),
+    radial-gradient(circle at 80% 100%, rgba(129, 212, 250, 0.8) 0, transparent 55%),
+    linear-gradient(135deg, #1d4ed8 0%, #38bdf8 50%, #0ea5e9 100%);
+  background-size: 100% 100%;
 }
 
 .login-card {
-  width: 400px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  background-color: rgba(255, 255, 255, 0.95);
+  width: 420px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
 }
 
 .login-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   text-align: center;
-  margin-bottom: 30px;
-  color: #303133;
+  margin-bottom: 24px;
+  letter-spacing: 2px;
+  color: #1e293b;
+}
+
+.login-card :deep(.el-card__body) {
+  padding: 32px 36px;
 }
 </style>

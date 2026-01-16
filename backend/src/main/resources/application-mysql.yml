@@ -21,6 +21,8 @@ spring:
       port: 6379
       database: 0
       password: Root@N8Hz@u#1-e
+  jackson:
+    default-property-inclusion: non_null
 msi:
   member:
     default-days: 30

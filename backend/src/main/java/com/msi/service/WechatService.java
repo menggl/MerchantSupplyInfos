@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -20,6 +21,7 @@ public class WechatService {
     private String secret;
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public WechatService() {
         this.restTemplate = new RestTemplate();
@@ -30,20 +32,21 @@ public class WechatService {
             // For development/test without real credentials
             logger.warn("WeChat AppID/Secret not configured. Returning mock session.");
             if ("mock_code".equals(code)) {
-                 WechatSession mock = new WechatSession();
-                 mock.setOpenid("mock_openid_123456");
-                 mock.setSessionKey("mock_session_key");
-                 return mock;
+                WechatSession mock = new WechatSession();
+                mock.setOpenid("mock_openid_123456");
+                mock.setSessionKey("mock_session_key");
+                return mock;
             }
         }
         String url = "https://api.weixin.qq.com/sns/jscode2session?appid=" + appid +
                 "&secret=" + secret +
                 "&js_code=" + code +
                 "&grant_type=authorization_code";
+
         try {
-            // 调用微信接口获取 openid  session_key
-            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-            Map<String, Object> body = response.getBody();
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            String raw = response.getBody();
+            Map<String, Object> body = objectMapper.readValue(raw, Map.class);
 
             if (body == null) {
                 throw new RuntimeException("微信接口返回为空");
@@ -73,11 +76,28 @@ public class WechatService {
         private String sessionKey;
         private String unionid;
 
-        public String getOpenid() { return openid; }
-        public void setOpenid(String openid) { this.openid = openid; }
-        public String getSessionKey() { return sessionKey; }
-        public void setSessionKey(String sessionKey) { this.sessionKey = sessionKey; }
-        public String getUnionid() { return unionid; }
-        public void setUnionid(String unionid) { this.unionid = unionid; }
+        public String getOpenid() {
+            return openid;
+        }
+
+        public void setOpenid(String openid) {
+            this.openid = openid;
+        }
+
+        public String getSessionKey() {
+            return sessionKey;
+        }
+
+        public void setSessionKey(String sessionKey) {
+            this.sessionKey = sessionKey;
+        }
+
+        public String getUnionid() {
+            return unionid;
+        }
+
+        public void setUnionid(String unionid) {
+            this.unionid = unionid;
+        }
     }
 }

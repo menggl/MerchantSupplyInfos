@@ -107,6 +107,9 @@ public class SupplyService {
             merchantRepository.findById(product.getMerchantId()).ifPresent(m -> {
                 dto.setMerchantName(m.getMerchantName());
                 dto.setMerchantPhone(m.getMerchantPhone());
+                dto.setMerchantAddress(m.getMerchantAddress());
+                dto.setLatitude(m.getLatitude());
+                dto.setLongitude(m.getLongitude());
             });
         }
         

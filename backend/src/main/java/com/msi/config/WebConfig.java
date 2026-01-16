@@ -23,7 +23,8 @@ public class WebConfig implements WebMvcConfigurer {
     registry.addInterceptor(authenticationInterceptor)
             .addPathPatterns("/api/**") // 拦截所有接口
             .excludePathPatterns(
-                "/api/wx-login"
+                "/api/wx-login",
+                "/api/dict/**"
             );
   }
 }

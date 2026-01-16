@@ -6,6 +6,8 @@ services:
     container_name: msi-backend
     environment:
       - SPRING_PROFILES_ACTIVE=mysql
+      - WECHAT_MINIAPP_APPID=${WECHAT_MINIAPP_APPID}
+      - WECHAT_MINIAPP_SECRET=${WECHAT_MINIAPP_SECRET}
     ports:
       - "8083:8080"
   admin-backend:
