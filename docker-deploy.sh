@@ -19,13 +19,14 @@ fi
 
 SERVICES=("$@")
 if [ "${#SERVICES[@]}" -eq 0 ]; then
-  mapfile -t SERVICES < <("${DC[@]}" -f "$COMPOSE_FILE" config --services)
+  SERVICES=(backend)
 fi
 
 PULL="${PULL:-0}"
 RETRIES="${RETRIES:-3}"
 SLEEP_BASE_SECONDS="${SLEEP_BASE_SECONDS:-2}"
 VOLUMES="${VOLUMES:-0}"
+PRUNE_IMAGES="${PRUNE_IMAGES:-1}"
 
 build_one() {
   local service="$1"
@@ -73,3 +74,10 @@ fi
 echo "==> Starting services"
 "${DC[@]}" -f "$COMPOSE_FILE" up -d --remove-orphans "${SERVICES[@]}"
 "${DC[@]}" -f "$COMPOSE_FILE" ps
+
+if [ "$PRUNE_IMAGES" = "1" ]; then
+  echo "==> Cleaning dangling Docker images"
+  if ! docker image prune -f >/dev/null 2>&1; then
+    echo "Warn: docker image prune 失败，已忽略" >&2
+  fi
+fi

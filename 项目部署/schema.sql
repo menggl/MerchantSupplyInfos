@@ -65,6 +65,7 @@ INSERT INTO phone_spec (brand_id, series_id, model_id, spec_name, sort) SELECT b
 DROP TABLE IF EXISTS merchant_info;
 CREATE TABLE IF NOT EXISTS merchant_info (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  public_id VARCHAR(32) UNIQUE COMMENT '商户外部ID（UUID去掉-）',
   wechat_id VARCHAR(128) UNIQUE,
   token VARCHAR(128) UNIQUE COMMENT '登录凭证',
   wechat_name VARCHAR(128),
@@ -330,7 +331,7 @@ CREATE TABLE IF NOT EXISTS merchant_phone_product (
   second_hand_condition VARCHAR(128) COMMENT '二手机成色',
   second_hand_function VARCHAR(128) COMMENT '二手机拆修和功能',
   battery_status INT COMMENT '电池状态',
-  `desc` TEXT COMMENT '产品描述信息',
+  description TEXT COMMENT '产品描述信息',
   price INT COMMENT '产品价格',
   stock INT COMMENT '产品库存',
   listing_time DATETIME COMMENT '上架时间',
@@ -346,7 +347,7 @@ INSERT INTO merchant_phone_product (
   merchant_id, brand_id, series_id, model_id, spec_id, city_code,
   product_type, remark, other_remark,
   second_hand_version, second_hand_condition, second_hand_function, battery_status,
-  `desc`, price, stock, listing_time
+  description, price, stock, listing_time
 ) VALUES
 (
   1,
@@ -397,23 +398,23 @@ CREATE TABLE IF NOT EXISTS merchant_product_image (
 
 INSERT INTO merchant_product_image (product_id, image_url) VALUES
 (
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 1 AND `desc` = '全新未拆封，正品保证'),
+  (SELECT id FROM merchant_phone_product WHERE merchant_id = 1 AND description = '全新未拆封，正品保证'),
   'https://example.com/products/iphone16promax_1.jpg'
 ),
 (
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 1 AND `desc` = '全新未拆封，正品保证'),
+  (SELECT id FROM merchant_phone_product WHERE merchant_id = 1 AND description = '全新未拆封，正品保证'),
   'https://example.com/products/iphone16promax_2.jpg'
 ),
 (
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 5 AND `desc` = '个人自用一手，成色很好'),
+  (SELECT id FROM merchant_phone_product WHERE merchant_id = 5 AND description = '个人自用一手，成色很好'),
   'https://example.com/products/iphone15_1.jpg'
 ),
 (
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 6 AND `desc` = '遥遥领先'),
+  (SELECT id FROM merchant_phone_product WHERE merchant_id = 6 AND description = '遥遥领先'),
   'https://example.com/products/mate60pro_1.jpg'
 ),
 (
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 6 AND `desc` = '遥遥领先'),
+  (SELECT id FROM merchant_phone_product WHERE merchant_id = 6 AND description = '遥遥领先'),
   'https://example.com/products/mate60pro_2.jpg'
 );
 

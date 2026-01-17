@@ -1,10 +1,8 @@
 package com.msi.dto;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-public class SupplyProductDetailDto {
-  private String merchantPublicId;
+public class MerchantProductDto {
   private Long productId;
   private Long brandId;
   private Long seriesId;
@@ -14,27 +12,15 @@ public class SupplyProductDetailDto {
   private String seriesName;
   private String modelName;
   private String specName;
-  private String merchantName;
-  private String merchantAddress;
-  private String merchantCity;
+  private Integer productType;
+  private LocalDateTime updateTime;
   private Integer price;
   private Integer stock;
-  private String secondHandCondition;
   private String secondHandVersion;
+  private String secondHandCondition;
   private String secondHandFunction;
   private String remark;
   private String otherRemark;
-  private LocalDateTime listingTime;
-  private List<String> imageUrls;
-  private Integer batteryStatus;
-
-  public String getMerchantPublicId() {
-    return merchantPublicId;
-  }
-
-  public void setMerchantPublicId(String merchantPublicId) {
-    this.merchantPublicId = merchantPublicId;
-  }
 
   public Long getProductId() {
     return productId;
@@ -108,28 +94,20 @@ public class SupplyProductDetailDto {
     this.specName = specName;
   }
 
-  public String getMerchantName() {
-    return merchantName;
+  public Integer getProductType() {
+    return productType;
   }
 
-  public void setMerchantName(String merchantName) {
-    this.merchantName = merchantName;
+  public void setProductType(Integer productType) {
+    this.productType = productType;
   }
 
-  public String getMerchantAddress() {
-    return merchantAddress;
+  public LocalDateTime getUpdateTime() {
+    return updateTime;
   }
 
-  public void setMerchantAddress(String merchantAddress) {
-    this.merchantAddress = merchantAddress;
-  }
-
-  public String getMerchantCity() {
-    return merchantCity;
-  }
-
-  public void setMerchantCity(String merchantCity) {
-    this.merchantCity = merchantCity;
+  public void setUpdateTime(LocalDateTime updateTime) {
+    this.updateTime = updateTime;
   }
 
   public Integer getPrice() {
@@ -148,20 +126,20 @@ public class SupplyProductDetailDto {
     this.stock = stock;
   }
 
-  public String getSecondHandCondition() {
-    return secondHandCondition;
-  }
-
-  public void setSecondHandCondition(String secondHandCondition) {
-    this.secondHandCondition = secondHandCondition;
-  }
-
   public String getSecondHandVersion() {
     return secondHandVersion;
   }
 
   public void setSecondHandVersion(String secondHandVersion) {
     this.secondHandVersion = secondHandVersion;
+  }
+
+  public String getSecondHandCondition() {
+    return secondHandCondition;
+  }
+
+  public void setSecondHandCondition(String secondHandCondition) {
+    this.secondHandCondition = secondHandCondition;
   }
 
   public String getSecondHandFunction() {
@@ -186,29 +164,5 @@ public class SupplyProductDetailDto {
 
   public void setOtherRemark(String otherRemark) {
     this.otherRemark = otherRemark;
-  }
-
-  public LocalDateTime getListingTime() {
-    return listingTime;
-  }
-
-  public void setListingTime(LocalDateTime listingTime) {
-    this.listingTime = listingTime;
-  }
-
-  public List<String> getImageUrls() {
-    return imageUrls;
-  }
-
-  public void setImageUrls(List<String> imageUrls) {
-    this.imageUrls = imageUrls;
-  }
-
-  public Integer getBatteryStatus() {
-    return batteryStatus;
-  }
-
-  public void setBatteryStatus(Integer batteryStatus) {
-    this.batteryStatus = batteryStatus;
   }
 }

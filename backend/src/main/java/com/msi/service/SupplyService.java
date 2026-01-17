@@ -141,50 +141,52 @@ public class SupplyService {
 		return product;
 	}
 
-	public String getMerchantPhoneAndRecordCall(Merchant currentMerchant, Long merchantId, Long productId) {
-		if (currentMerchant == null || currentMerchant.getId() == null) {
-			throw new IllegalArgumentException("商户未登录");
-		}
-		if (merchantId == null) {
-			throw new IllegalArgumentException("商户ID不能为空");
-		}
-		if (productId == null) {
-			throw new IllegalArgumentException("产品ID不能为空");
-		}
-		Product product = getAvailableProductById(productId);
-		if (product.getMerchantId() == null || !product.getMerchantId().equals(merchantId)) {
-			throw new IllegalArgumentException("商品不属于该商户");
-		}
-		Merchant targetMerchant = merchantService.getMerchantInfo(merchantId);
-		MerchantCallRecord record = new MerchantCallRecord();
-		record.setCallerMerchantId(currentMerchant.getId());
-		record.setCalleeMerchantId(merchantId);
-		record.setProductId(productId);
-		record.setCallType(0);// 因为产品打电话，所以是0
-		callRecordRepository.save(record);
-		return targetMerchant.getMerchantPhone();
-	}
+    public String getMerchantPhoneAndRecordCall(Merchant currentMerchant, String publicId, Long productId) {
+        if (currentMerchant == null || currentMerchant.getId() == null) {
+            throw new IllegalArgumentException("商户未登录");
+        }
+        if (publicId == null || publicId.isEmpty()) {
+            throw new IllegalArgumentException("商户publicId不能为空");
+        }
+        if (productId == null) {
+            throw new IllegalArgumentException("产品ID不能为空");
+        }
+        Product product = getAvailableProductById(productId);
+        Merchant targetMerchant = merchantService.getMerchantInfoByPublicId(publicId);
+        Long merchantId = targetMerchant.getId();
+        if (product.getMerchantId() == null || !product.getMerchantId().equals(merchantId)) {
+            throw new IllegalArgumentException("商品不属于该商户");
+        }
+        MerchantCallRecord record = new MerchantCallRecord();
+        record.setCallerMerchantId(currentMerchant.getId());
+        record.setCalleeMerchantId(merchantId);
+        record.setProductId(productId);
+        record.setCallType(0);// 因为产品打电话，所以是0
+        callRecordRepository.save(record);
+        return targetMerchant.getMerchantPhone();
+    }
 
-	public String getMerchantPhoneByBuyRequestAndRecordCall(Merchant currentMerchant, Long merchantId,
-			Long buyRequestId) {
-		if (currentMerchant == null || currentMerchant.getId() == null) {
-			throw new IllegalArgumentException("商户未登录");
-		}
-		if (merchantId == null) {
-			throw new IllegalArgumentException("商户ID不能为空");
-		}
-		if (buyRequestId == null) {
-			throw new IllegalArgumentException("求购ID不能为空");
-		}
-		BuyRequest buyRequest = buyRequestRepository.findByIdAndIsValid(buyRequestId, 1)
-				.orElseThrow(() -> new IllegalArgumentException("求购信息不存在"));
-		if (buyRequest.getMerchantId() == null || !buyRequest.getMerchantId().equals(merchantId)) {
-			throw new IllegalArgumentException("求购信息不属于该商户");
-		}
-		Merchant targetMerchant = merchantService.getMerchantInfo(merchantId);
-		MerchantCallRecord record = new MerchantCallRecord();
-		record.setCallerMerchantId(currentMerchant.getId());
-		record.setCalleeMerchantId(merchantId);
+    public String getMerchantPhoneByBuyRequestAndRecordCall(Merchant currentMerchant, String publicId,
+            Long buyRequestId) {
+        if (currentMerchant == null || currentMerchant.getId() == null) {
+            throw new IllegalArgumentException("商户未登录");
+        }
+        if (publicId == null || publicId.isEmpty()) {
+            throw new IllegalArgumentException("商户publicId不能为空");
+        }
+        if (buyRequestId == null) {
+            throw new IllegalArgumentException("求购ID不能为空");
+        }
+        BuyRequest buyRequest = buyRequestRepository.findByIdAndIsValid(buyRequestId, 1)
+                .orElseThrow(() -> new IllegalArgumentException("求购信息不存在"));
+        Merchant targetMerchant = merchantService.getMerchantInfoByPublicId(publicId);
+        Long merchantId = targetMerchant.getId();
+        if (buyRequest.getMerchantId() == null || !buyRequest.getMerchantId().equals(merchantId)) {
+            throw new IllegalArgumentException("求购信息不属于该商户");
+        }
+        MerchantCallRecord record = new MerchantCallRecord();
+        record.setCallerMerchantId(currentMerchant.getId());
+        record.setCalleeMerchantId(merchantId);
 		record.setProductId(buyRequestId);
 		record.setCallType(1);// 因为求购电话，所以是1
 		callRecordRepository.save(record);

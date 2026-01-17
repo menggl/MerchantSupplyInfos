@@ -27,7 +27,11 @@
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/BrandDto.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/BuyRequestHallDto.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/CityDto.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/MerchantBuyRequestDto.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/MerchantBuyRequestModelDto.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/MerchantDto.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/MerchantProductDto.java
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/MerchantProductModelDto.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/ModelDto.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/PhoneRemarkDto.java
 /Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/dto/SeriesDto.java

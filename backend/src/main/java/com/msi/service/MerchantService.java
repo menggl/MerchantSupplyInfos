@@ -123,6 +123,7 @@ public class MerchantService {
             merchant.setRegistrationDate(java.time.LocalDateTime.now());
             merchant.setCancellationDate(null);
             merchant.setIsValid(1);
+            merchant.setPublicId(java.util.UUID.randomUUID().toString().replace("-", ""));
             merchant = merchantRepository.save(merchant);
         } else {
             // 有则更新token值
@@ -176,6 +177,9 @@ public class MerchantService {
         if (id == null) {
             throw new IllegalArgumentException("商户ID不能为空");
         }
+        // todo 测试用，将缓存先清除
+        redisTemplate.delete("merchant:info:" + id);
+
         String json = redisTemplate.opsForValue().get("merchant:info:" + id);
         if (json != null && !json.isEmpty()) {
             try {
@@ -191,6 +195,21 @@ public class MerchantService {
         }
         Merchant merchant = opt.get();
         java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(merchant.getId());
+        MerchantMemberInfo info = infoOpt.orElse(null);
+        updateLoginCache(merchant, info);
+        return merchant;
+    }
+
+    public Merchant getMerchantInfoByPublicId(String publicId) {
+        if (publicId == null || publicId.isEmpty()) {
+            throw new IllegalArgumentException("商户publicId不能为空");
+        }
+        Optional<Merchant> opt = merchantRepository.findByPublicId(publicId);
+        if (opt.isEmpty()) {
+            throw new IllegalArgumentException("商户不存在");
+        }
+        Merchant merchant = opt.get();
+        Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(merchant.getId());
         MerchantMemberInfo info = infoOpt.orElse(null);
         updateLoginCache(merchant, info);
         return merchant;
@@ -410,6 +429,7 @@ public class MerchantService {
         }
         buyRequest.setCostIntegral(costIntegral);
         buyRequest.setMerchantId(merchantId);
+        buyRequest.setState(1);
         BuyRequest saved = productService.publishBuyRequest(buyRequest);
 
         if (costIntegral > 0) {

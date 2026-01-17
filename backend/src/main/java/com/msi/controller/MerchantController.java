@@ -3,21 +3,46 @@ package com.msi.controller;
 import com.msi.domain.Merchant;
 import com.msi.domain.BuyRequest;
 import com.msi.domain.Product;
+import com.msi.dto.MerchantBuyRequestDto;
+import com.msi.dto.MerchantBuyRequestModelDto;
+import com.msi.dto.MerchantProductDto;
+import com.msi.dto.MerchantProductModelDto;
+import com.msi.service.DictService;
 import com.msi.service.MerchantService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/merchants")
 public class MerchantController {
     private static final Logger logger = LoggerFactory.getLogger(MerchantController.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private final MerchantService merchantService;
+    private final DictService dictService;
 
-    public MerchantController(MerchantService merchantService) {
+    public MerchantController(MerchantService merchantService, DictService dictService) {
         this.merchantService = merchantService;
+        this.dictService = dictService;
+    }
+
+    private String toJson(Object value) {
+        if (value == null) {
+            return "null";
+        }
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            logger.warn("Failed to serialize object for logging", e);
+            return String.valueOf(value);
+        }
     }
 
     /**
@@ -26,10 +51,12 @@ public class MerchantController {
     @PostMapping("/products")
     public ResponseEntity<Product> addProduct(@RequestAttribute("merchant") Merchant currentMerchant, @RequestBody Product product) {
         try {
+            logger.info("addProduct request: {}", toJson(product));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             Product added = merchantService.addProduct(currentMerchant, product);
+            logger.info("addProduct response: {}", toJson(added));
             return ResponseEntity.ok(added);
         } catch (IllegalArgumentException e) {
             logger.error("上架商品失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
@@ -42,10 +69,12 @@ public class MerchantController {
     @DeleteMapping("/products/{productId}")
     public ResponseEntity<Void> deleteProduct(@RequestAttribute("merchant") Merchant currentMerchant, @PathVariable Long productId) {
         try {
+            logger.info("deleteProduct request: {}", toJson(productId));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             merchantService.deleteProduct(currentMerchant.getId(), productId);
+            logger.info("deleteProduct response: {}", toJson("ok"));
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             logger.error("删除商品失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
@@ -58,10 +87,16 @@ public class MerchantController {
     @PutMapping("/products/{productId}/state")
     public ResponseEntity<Void> updateProductState(@RequestAttribute("merchant") Merchant currentMerchant, @PathVariable Long productId, @RequestParam Integer state) {
         try {
+            logger.info("updateProductState request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "productId", productId,
+                    "state", state
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             merchantService.updateProductState(currentMerchant.getId(), productId, state);
+            logger.info("updateProductState response: {}", toJson("ok"));
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             logger.error("更新商品状态失败: merchantId={}, productId={}, {}", currentMerchant.getId(), productId, e.getMessage(), e);
@@ -74,10 +109,16 @@ public class MerchantController {
     @PutMapping("/products/{productId}")
     public ResponseEntity<Product> updateProduct(@RequestAttribute("merchant") Merchant currentMerchant, @PathVariable Long productId, @RequestBody Product product) {
         try {
+            logger.info("updateProduct request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "productId", productId,
+                    "product", product
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             Product updated = merchantService.updateProduct(currentMerchant.getId(), productId, product);
+            logger.info("updateProduct response: {}", toJson(updated));
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             logger.error("更新商品信息失败: merchantId={}, productId={}, {}", currentMerchant.getId(), productId, e.getMessage(), e);
@@ -85,22 +126,37 @@ public class MerchantController {
         }
     }
     /**
-     * 查询商家某个机型（品牌、系列、型号、配置）的上架信息，前端逻辑：如果商家已经有该型号的产品，就修改该产品，如果没有才允许新增一条产品
+     * 查询商家某个机型（品牌、系列、型号、配置）的上架信息，用于判断是否是重复上架了同型号的产品
+     * 返回字段列表如下：
+     * productId, brandId, seriesId, modelId, specId, brandName, seriesName, modelName, specName
+     * 商家名称、商家地址、新机还是二手机字段、产品更新时间、价格
+     * 二手机：成色
+     * 新机：备注、其它备注
+     * 使用一个dto MerchantProductModelDto 来返回，一个单独的convert方法来转换数据
      */
     @GetMapping("/products/model")
-    public ResponseEntity<Product> getProductsByModel(
+    public ResponseEntity<MerchantProductModelDto> getProductsByModel(
             @RequestAttribute("merchant") Merchant currentMerchant,
             @RequestParam Long brandId,
             @RequestParam Long seriesId,
             @RequestParam Long modelId,
             @RequestParam Long specId) {
         try {
+            logger.info("getProductsByModel request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "brandId", brandId,
+                    "seriesId", seriesId,
+                    "modelId", modelId,
+                    "specId", specId
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             Product product = merchantService.getMerchantProductByModel(
                     currentMerchant.getId(), brandId, seriesId, modelId, specId);
-            return ResponseEntity.ok(product);
+            MerchantProductModelDto dto = convertToMerchantProductModelDto(product);
+            logger.info("getProductsByModel response: {}", toJson(dto));
+            return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {
             logger.error("查询商户某机型商品失败: merchantId={}, {}", 
                     currentMerchant != null ? currentMerchant.getId() : null, e.getMessage(), e);
@@ -108,19 +164,31 @@ public class MerchantController {
         }
     }
     /**
-     * 查询商户所有已经上架了的商品
+     * 查询商户所有已经上架了的商品列表
+     * 返回的数据用一个单独的dto来封装，dto中的属性字段如下：
+     * productId, brandId, seriesId, modelId, specId, brandName, seriesName, modelName, specName
+     * 新机还是二手机字段、产品更新时间、价格、库存
+     * 二手机：版本、成色、拆修和功能
+     * 新机：备注、其它备注
      */
     @GetMapping("/products")
-    public ResponseEntity<Page<Product>> getProductsByMerchant(
+    public ResponseEntity<Page<MerchantProductDto>> getProductsByMerchant(
             @RequestAttribute("merchant") Merchant currentMerchant,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
+            logger.info("getProductsByMerchant request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "page", page,
+                    "size", size
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             Page<Product> products = merchantService.getMerchantProducts(currentMerchant.getId(), page, size);
-            return ResponseEntity.ok(products);
+            Page<MerchantProductDto> result = products.map(this::convertToMerchantProductDto);
+            logger.info("getProductsByMerchant response: {}", toJson(result));
+            return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
             logger.error("查询商户商品失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
             return ResponseEntity.badRequest().body(null);
@@ -137,10 +205,12 @@ public class MerchantController {
     @PostMapping("/products/buy")
     public ResponseEntity<BuyRequest> addBuyProduct(@RequestAttribute("merchant") Merchant currentMerchant, @RequestBody BuyRequest buyRequest) {
         try {
+            logger.info("addBuyProduct request: {}", toJson(buyRequest));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             BuyRequest added = merchantService.addBuyRequest(currentMerchant.getId(), buyRequest);
+            logger.info("addBuyProduct response: {}", toJson(added));
             return ResponseEntity.ok(added);
         } catch (IllegalArgumentException e) {
             logger.error("发布求购商品失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
@@ -154,10 +224,15 @@ public class MerchantController {
     public ResponseEntity<Void> deleteBuyProduct(@RequestAttribute("merchant") Merchant currentMerchant,
                                                  @PathVariable Long buyRequestId) {
         try {
+            logger.info("deleteBuyProduct request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "buyRequestId", buyRequestId
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             merchantService.deleteBuyRequest(currentMerchant.getId(), buyRequestId);
+            logger.info("deleteBuyProduct response: {}", toJson("ok"));
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             logger.error("删除求购信息失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
@@ -173,10 +248,16 @@ public class MerchantController {
             @PathVariable Long buyRequestId,
             @RequestParam Integer state) {
         try {
+            logger.info("updateBuyProductState request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "buyRequestId", buyRequestId,
+                    "state", state
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             merchantService.updateBuyRequestState(currentMerchant.getId(), buyRequestId, state);
+            logger.info("updateBuyProductState response: {}", toJson("ok"));
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             logger.error("更新求购商品状态失败: merchantId={}, buyRequestId={}, {}", 
@@ -193,10 +274,16 @@ public class MerchantController {
             @PathVariable Long buyRequestId,
             @RequestBody BuyRequest buyRequest) {
         try {
+            logger.info("updateBuyProduct request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "buyRequestId", buyRequestId,
+                    "buyRequest", buyRequest
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             BuyRequest updated = merchantService.updateBuyRequest(currentMerchant.getId(), buyRequestId, buyRequest);
+            logger.info("updateBuyProduct response: {}", toJson(updated));
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             logger.error("更新求购商品信息失败: merchantId={}, buyRequestId={}, {}", 
@@ -205,22 +292,36 @@ public class MerchantController {
         }
     }
     /**
-     * 查询商家某个机型（品牌、系列、型号、配置）的求购信息
+     * 查询商家某个机型（品牌、系列、型号、配置）的求购信息，用户去重查询
+     * 返回信息用一个单独的dto类来封装，dto中的字段包含下面的信息：
+     * buyRequestId, brandId, seriesId, modelId, specId, brandName, seriesName, modelName, specName
+     * 求购状态（上架还是下架）、求购更新时间、求购截止时间、求购数量、求购价格范围（最低价、最高价）、当前登录商家的联系电话，当前登录商家的地址
+     * dto使用一个专门的convert方法来转换
+     * 最后更新接口文档
      */
     @GetMapping("/products/buy/model")
-    public ResponseEntity<BuyRequest> getBuyProductsByModel(
+    public ResponseEntity<MerchantBuyRequestModelDto> getBuyProductsByModel(
             @RequestAttribute("merchant") Merchant currentMerchant,
             @RequestParam Long brandId,
             @RequestParam Long seriesId,
             @RequestParam Long modelId,
             @RequestParam Long specId) {
         try {
+            logger.info("getBuyProductsByModel request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "brandId", brandId,
+                    "seriesId", seriesId,
+                    "modelId", modelId,
+                    "specId", specId
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             BuyRequest buyRequest = merchantService.getMerchantBuyRequestByModel(
                     currentMerchant.getId(), brandId, seriesId, modelId, specId);
-            return ResponseEntity.ok(buyRequest);
+            MerchantBuyRequestModelDto dto = convertToMerchantBuyRequestModelDto(buyRequest);
+            logger.info("getBuyProductsByModel response: {}", toJson(dto));
+            return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {
             logger.error("查询商户某机型求购商品失败: merchantId={}, {}", 
                     currentMerchant != null ? currentMerchant.getId() : null, e.getMessage(), e);
@@ -231,20 +332,129 @@ public class MerchantController {
      * 查询商户发布的求购商品信息
      */
     @GetMapping("/products/buy")
-    public ResponseEntity<Page<BuyRequest>> getBuyProductsByMerchant(
+    public ResponseEntity<Page<MerchantBuyRequestDto>> getBuyProductsByMerchant(
             @RequestAttribute("merchant") Merchant currentMerchant,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
+            logger.info("getBuyProductsByMerchant request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "page", page,
+                    "size", size
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             Page<BuyRequest> buyRequests = merchantService.getMerchantBuyRequests(currentMerchant.getId(), page, size);
-            return ResponseEntity.ok(buyRequests);
+            Page<MerchantBuyRequestDto> result = buyRequests.map(this::convertToMerchantBuyRequestDto);
+            logger.info("getBuyProductsByMerchant response: {}", toJson(result));
+            return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
             logger.error("查询商户求购商品失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
             return ResponseEntity.badRequest().body(null);
         }
+    }
+
+    private MerchantBuyRequestModelDto convertToMerchantBuyRequestModelDto(BuyRequest buyRequest) {
+        MerchantBuyRequestModelDto dto = new MerchantBuyRequestModelDto();
+        dto.setBuyRequestId(buyRequest.getId());
+        Long brandId = buyRequest.getBrandId();
+        Long seriesId = buyRequest.getSeriesId();
+        Long modelId = buyRequest.getModelId();
+        Long specId = buyRequest.getSpecId();
+        dto.setBrandId(brandId);
+        dto.setSeriesId(seriesId);
+        dto.setModelId(modelId);
+        dto.setSpecId(specId);
+        dto.setBrandName(dictService.getBrandNameById(brandId));
+        dto.setSeriesName(dictService.getSeriesNameById(seriesId));
+        dto.setModelName(dictService.getModelNameById(modelId));
+        dto.setSpecName(dictService.getSpecNameById(specId));
+        dto.setState(buyRequest.getState());
+        dto.setUpdateTime(buyRequest.getUpdateTime());
+        dto.setDeadline(buyRequest.getDeadline());
+        dto.setBuyCount(buyRequest.getBuyCount());
+        dto.setMinPrice(buyRequest.getMinPrice());
+        dto.setMaxPrice(buyRequest.getMaxPrice());
+        Merchant merchant = null;
+        if (buyRequest.getMerchantId() != null) {
+            try {
+                merchant = merchantService.getMerchantInfo(buyRequest.getMerchantId());
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        if (merchant != null) {
+            dto.setContactPhone(merchant.getMerchantPhone());
+            dto.setContactAddress(merchant.getMerchantAddress());
+        }
+        return dto;
+    }
+
+    private MerchantProductDto convertToMerchantProductDto(Product product) {
+        MerchantProductDto dto = new MerchantProductDto();
+        dto.setProductId(product.getId());
+        Long brandId = product.getBrandId();
+        Long seriesId = product.getSeriesId();
+        Long modelId = product.getModelId();
+        Long specId = product.getSpecId();
+        dto.setBrandId(brandId);
+        dto.setSeriesId(seriesId);
+        dto.setModelId(modelId);
+        dto.setSpecId(specId);
+        dto.setBrandName(dictService.getBrandNameById(brandId));
+        dto.setSeriesName(dictService.getSeriesNameById(seriesId));
+        dto.setModelName(dictService.getModelNameById(modelId));
+        dto.setSpecName(dictService.getSpecNameById(specId));
+        dto.setProductType(product.getProductType());
+        dto.setUpdateTime(product.getUpdateTime());
+        dto.setPrice(product.getPrice());
+        dto.setStock(product.getStock());
+        Integer type = product.getProductType();
+        if (type != null && type == 1) {
+            dto.setSecondHandVersion(product.getSecondHandVersion());
+            dto.setSecondHandCondition(product.getSecondHandCondition());
+            dto.setSecondHandFunction(product.getSecondHandFunction());
+            dto.setRemark(null);
+            dto.setOtherRemark(null);
+        } else {
+            dto.setSecondHandVersion(null);
+            dto.setSecondHandCondition(null);
+            dto.setSecondHandFunction(null);
+            dto.setRemark(product.getRemark());
+            dto.setOtherRemark(product.getOtherRemark());
+        }
+        return dto;
+    }
+
+    private MerchantProductModelDto convertToMerchantProductModelDto(Product product) {
+        MerchantProductModelDto dto = new MerchantProductModelDto();
+        dto.setProductId(product.getId());
+        Long brandId = product.getBrandId();
+        Long seriesId = product.getSeriesId();
+        Long modelId = product.getModelId();
+        Long specId = product.getSpecId();
+        dto.setBrandId(brandId);
+        dto.setSeriesId(seriesId);
+        dto.setModelId(modelId);
+        dto.setSpecId(specId);
+        dto.setBrandName(dictService.getBrandNameById(brandId));
+        dto.setSeriesName(dictService.getSeriesNameById(seriesId));
+        dto.setModelName(dictService.getModelNameById(modelId));
+        dto.setSpecName(dictService.getSpecNameById(specId));
+        dto.setProductType(product.getProductType());
+        dto.setUpdateTime(product.getUpdateTime());
+        dto.setPrice(product.getPrice());
+        Integer type = product.getProductType();
+        if (type != null && type == 1) {
+            dto.setSecondHandCondition(product.getSecondHandCondition());
+            dto.setRemark(null);
+            dto.setOtherRemark(null);
+        } else {
+            dto.setSecondHandCondition(null);
+            dto.setRemark(product.getRemark());
+            dto.setOtherRemark(product.getOtherRemark());
+        }
+        return dto;
     }
 
     /**
@@ -253,15 +463,50 @@ public class MerchantController {
     @PostMapping("/merchant/sign-in")
     public ResponseEntity<Void> signInForIntegral(@RequestAttribute("merchant") Merchant currentMerchant) {
         try {
+            logger.info("signInForIntegral request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null
+            )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             merchantService.signInForIntegral(currentMerchant.getId());
+            logger.info("signInForIntegral response: {}", toJson("ok"));
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             logger.error("商户签到送积分失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
             return ResponseEntity.badRequest().body(null);
         }
+    }
+
+    private MerchantBuyRequestDto convertToMerchantBuyRequestDto(BuyRequest buyRequest) {
+        MerchantBuyRequestDto dto = new MerchantBuyRequestDto();
+        dto.setBuyRequestId(buyRequest.getId());
+        dto.setBrandId(buyRequest.getBrandId());
+        dto.setSeriesId(buyRequest.getSeriesId());
+        dto.setModelId(buyRequest.getModelId());
+        dto.setSpecId(buyRequest.getSpecId());
+        dto.setBrandName(dictService.getBrandNameById(buyRequest.getBrandId()));
+        dto.setSeriesName(dictService.getSeriesNameById(buyRequest.getSeriesId()));
+        dto.setModelName(dictService.getModelNameById(buyRequest.getModelId()));
+        dto.setSpecName(dictService.getSpecNameById(buyRequest.getSpecId()));
+        dto.setProductType(buyRequest.getProductType());
+        dto.setState(buyRequest.getState());
+        dto.setBuyCount(buyRequest.getBuyCount());
+        dto.setMinPrice(buyRequest.getMinPrice());
+        dto.setMaxPrice(buyRequest.getMaxPrice());
+        dto.setDeadline(buyRequest.getDeadline());
+        Merchant merchant = null;
+        if (buyRequest.getMerchantId() != null) {
+            try {
+                merchant = merchantService.getMerchantInfo(buyRequest.getMerchantId());
+            } catch (IllegalArgumentException ignore) {
+            }
+        }
+        if (merchant != null) {
+            dto.setContactPhone(merchant.getMerchantPhone());
+            dto.setContactAddress(merchant.getMerchantAddress());
+        }
+        return dto;
     }
 
 }

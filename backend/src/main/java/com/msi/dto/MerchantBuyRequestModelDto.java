@@ -1,8 +1,9 @@
 package com.msi.dto;
 
-public class BuyRequestHallDto {
+import java.time.LocalDateTime;
+
+public class MerchantBuyRequestModelDto {
   private Long buyRequestId;
-  private String merchantPublicId;
   private Long brandId;
   private Long seriesId;
   private Long modelId;
@@ -11,14 +12,14 @@ public class BuyRequestHallDto {
   private String seriesName;
   private String modelName;
   private String specName;
+  private Integer state;
+  private LocalDateTime updateTime;
+  private LocalDateTime deadline;
   private Integer buyCount;
   private Integer minPrice;
   private Integer maxPrice;
   private String contactPhone;
   private String contactAddress;
-  private String deadline;
-  private String cityName;
-  private String createTime;
 
   public Long getBuyRequestId() {
     return buyRequestId;
@@ -26,14 +27,6 @@ public class BuyRequestHallDto {
 
   public void setBuyRequestId(Long buyRequestId) {
     this.buyRequestId = buyRequestId;
-  }
-
-  public String getMerchantPublicId() {
-    return merchantPublicId;
-  }
-
-  public void setMerchantPublicId(String merchantPublicId) {
-    this.merchantPublicId = merchantPublicId;
   }
 
   public Long getBrandId() {
@@ -100,6 +93,30 @@ public class BuyRequestHallDto {
     this.specName = specName;
   }
 
+  public Integer getState() {
+    return state;
+  }
+
+  public void setState(Integer state) {
+    this.state = state;
+  }
+
+  public LocalDateTime getUpdateTime() {
+    return updateTime;
+  }
+
+  public void setUpdateTime(LocalDateTime updateTime) {
+    this.updateTime = updateTime;
+  }
+
+  public LocalDateTime getDeadline() {
+    return deadline;
+  }
+
+  public void setDeadline(LocalDateTime deadline) {
+    this.deadline = deadline;
+  }
+
   public Integer getBuyCount() {
     return buyCount;
   }
@@ -139,28 +156,5 @@ public class BuyRequestHallDto {
   public void setContactAddress(String contactAddress) {
     this.contactAddress = contactAddress;
   }
-
-  public String getDeadline() {
-    return deadline;
-  }
-
-  public void setDeadline(String deadline) {
-    this.deadline = deadline;
-  }
-
-  public String getCityName() {
-    return cityName;
-  }
-
-  public void setCityName(String cityName) {
-    this.cityName = cityName;
-  }
-
-  public String getCreateTime() {
-    return createTime;
-  }
-
-  public void setCreateTime(String createTime) {
-    this.createTime = createTime;
-  }
 }
+

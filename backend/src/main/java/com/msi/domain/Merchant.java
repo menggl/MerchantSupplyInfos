@@ -10,6 +10,9 @@ public class Merchant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "public_id", unique = true, updatable = false)
+    private String publicId;
+
     @Column(name = "wechat_id")
     private String wechatId;
 
@@ -71,6 +74,9 @@ public class Merchant {
     protected void onCreate() {
         createTime = LocalDateTime.now();
         updateTime = LocalDateTime.now();
+        if (publicId == null || publicId.isEmpty()) {
+            publicId = java.util.UUID.randomUUID().toString().replace("-", "");
+        }
         if (isValid == null) {
             isValid = 1;
         }
@@ -87,6 +93,14 @@ public class Merchant {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getPublicId() {
+        return publicId;
+    }
+
+    public void setPublicId(String publicId) {
+        this.publicId = publicId;
     }
 
     public String getWechatId() {

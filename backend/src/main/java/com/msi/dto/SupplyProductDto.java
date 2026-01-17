@@ -3,6 +3,7 @@ package com.msi.dto;
 import java.time.LocalDateTime;
 
 public class SupplyProductDto {
+  private String merchantPublicId;
   private Long productId;
   private String merchantName;
   private String merchantAddress;
@@ -12,6 +13,14 @@ public class SupplyProductDto {
   private String remark;
   private String otherRemark;
   private LocalDateTime listingTime;
+
+  public String getMerchantPublicId() {
+    return merchantPublicId;
+  }
+
+  public void setMerchantPublicId(String merchantPublicId) {
+    this.merchantPublicId = merchantPublicId;
+  }
 
   public Long getProductId() {
     return productId;
@@ -85,4 +94,3 @@ public class SupplyProductDto {
     this.listingTime = listingTime;
   }
 }
-

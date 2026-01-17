@@ -49,7 +49,7 @@ public class MerchantPhoneProduct {
     @Column(name = "battery_status")
     private Integer batteryStatus;
 
-    @Column(name = "`desc`", columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "price")

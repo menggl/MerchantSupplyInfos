@@ -58,6 +58,17 @@ public class BuyRequest {
   @Column(name = "update_time")
   private LocalDateTime updateTime;
 
+  @Transient
+  private String merchantPublicId;
+
+  public String getMerchantPublicId() {
+    return merchantPublicId;
+  }
+
+  public void setMerchantPublicId(String merchantPublicId) {
+    this.merchantPublicId = merchantPublicId;
+  }
+
   @PrePersist
   protected void onCreate() {
     createTime = LocalDateTime.now();

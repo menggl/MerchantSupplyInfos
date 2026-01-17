@@ -30,7 +30,7 @@ public class Product {
   @Column(name = "spec_id")
   private Long specId;
 
-  @Column(name = "desc", columnDefinition = "TEXT")
+  @Column(name = "description", columnDefinition = "TEXT")
   private String description;
 
   @Column(name = "city_code")
@@ -80,6 +80,17 @@ public class Product {
 
   @Transient
   private List<ProductImage> images = new ArrayList<>();
+
+  @Transient
+  private String merchantPublicId;
+
+  public String getMerchantPublicId() {
+    return merchantPublicId;
+  }
+
+  public void setMerchantPublicId(String merchantPublicId) {
+    this.merchantPublicId = merchantPublicId;
+  }
 
   @PrePersist
   protected void onCreate() {
