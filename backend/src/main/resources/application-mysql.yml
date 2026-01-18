@@ -39,3 +39,5 @@ aliyun:
     accessKeyId: ${ALIYUN_ACCESS_KEY_ID:}
     accessKeySecret: ${ALIYUN_ACCESS_KEY_SECRET:}
     host: ${ALIYUN_OSS_HOST:}
+image:
+  host: ${IMAGE_HOST:}

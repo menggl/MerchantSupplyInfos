@@ -34,3 +34,5 @@ wechat:
   miniapp:
     appid: ${WECHAT_MINIAPP_APPID:}
     secret: ${WECHAT_MINIAPP_SECRET:}
+image:
+  host: ${IMAGE_HOST:}

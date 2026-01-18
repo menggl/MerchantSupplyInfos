@@ -3,6 +3,7 @@ package com.msi.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,6 +35,8 @@ public class ImageController {
     private String ossAccessKeySecret;
     @Value("${aliyun.oss.host:}")
     private String ossHost;
+    @Value("${image.host:}")
+    private String imageHost;
 
     public ImageController() {
         this.uploadDir = Paths.get(System.getProperty("user.dir")).resolve("uploads");
@@ -59,24 +62,35 @@ public class ImageController {
             }
             String name = UUID.randomUUID().toString().replace("-", "");
             String filename = ext.isEmpty() ? name : name + "." + ext;
-            if (ossEndpoint == null || ossEndpoint.isEmpty() || ossBucket == null || ossBucket.isEmpty()
-                || ossAccessKeyId == null || ossAccessKeyId.isEmpty() || ossAccessKeySecret == null || ossAccessKeySecret.isEmpty()) {
-                throw new IllegalArgumentException("OSS配置不完整");
-            }
-            OSS ossClient = new OSSClientBuilder().build(ossEndpoint, ossAccessKeyId, ossAccessKeySecret);
-            try {
-                ossClient.putObject(ossBucket, filename, file.getInputStream());
-            } finally {
-                ossClient.shutdown();
-            }
+            boolean ossConfigured = ossEndpoint != null && !ossEndpoint.isEmpty()
+                && ossBucket != null && !ossBucket.isEmpty()
+                && ossAccessKeyId != null && !ossAccessKeyId.isEmpty()
+                && ossAccessKeySecret != null && !ossAccessKeySecret.isEmpty();
             Map<String, String> resp = new HashMap<>();
             resp.put("filename", filename);
             String url;
-            if (ossHost != null && !ossHost.isEmpty()) {
-                url = ossHost.endsWith("/") ? (ossHost + filename) : (ossHost + "/" + filename);
+            if (ossConfigured) {
+                OSS ossClient = new OSSClientBuilder().build(ossEndpoint, ossAccessKeyId, ossAccessKeySecret);
+                try {
+                    ossClient.putObject(ossBucket, filename, file.getInputStream());
+                } finally {
+                    ossClient.shutdown();
+                }
+                if (ossHost != null && !ossHost.isEmpty()) {
+                    url = ossHost.endsWith("/") ? (ossHost + filename) : (ossHost + "/" + filename);
+                } else {
+                    String endpointHost = ossEndpoint.replaceFirst("^https?://", "");
+                    url = "https://" + ossBucket + "." + endpointHost + "/" + filename;
+                }
             } else {
-                String endpointHost = ossEndpoint.replaceFirst("^https?://", "");
-                url = "https://" + ossBucket + "." + endpointHost + "/" + filename;
+                Path target = uploadDir.resolve(filename);
+                Files.copy(file.getInputStream(), target);
+                if (imageHost != null && !imageHost.isEmpty()) {
+                    String base = imageHost.endsWith("/") ? imageHost.substring(0, imageHost.length() - 1) : imageHost;
+                    url = base + "/api/images/" + filename;
+                } else {
+                    url = "/api/images/" + filename;
+                }
             }
             resp.put("url", url);
             return ResponseEntity.ok(resp);
@@ -95,16 +109,33 @@ public class ImageController {
             if (filename == null || filename.isEmpty()) {
                 throw new IllegalArgumentException("文件名不能为空");
             }
-            String url;
-            if (ossHost != null && !ossHost.isEmpty()) {
-                url = ossHost.endsWith("/") ? (ossHost + filename) : (ossHost + "/" + filename);
+            boolean ossConfigured = ossEndpoint != null && !ossEndpoint.isEmpty()
+                && ossBucket != null && !ossBucket.isEmpty()
+                && ossAccessKeyId != null && !ossAccessKeyId.isEmpty()
+                && ossAccessKeySecret != null && !ossAccessKeySecret.isEmpty();
+            if (ossConfigured) {
+                String url;
+                if (ossHost != null && !ossHost.isEmpty()) {
+                    url = ossHost.endsWith("/") ? (ossHost + filename) : (ossHost + "/" + filename);
+                } else {
+                    String endpointHost = ossEndpoint.replaceFirst("^https?://", "");
+                    url = "https://" + ossBucket + "." + endpointHost + "/" + filename;
+                }
+                return ResponseEntity.status(302)
+                    .header(HttpHeaders.LOCATION, url)
+                    .build();
             } else {
-                String endpointHost = ossEndpoint.replaceFirst("^https?://", "");
-                url = "https://" + ossBucket + "." + endpointHost + "/" + filename;
+                Path filePath = uploadDir.resolve(filename);
+                if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+                    throw new IllegalArgumentException("文件不存在");
+                }
+                String contentType = Files.probeContentType(filePath);
+                Resource resource = new PathResource(filePath);
+                MediaType mediaType = contentType != null ? MediaType.parseMediaType(contentType) : MediaType.APPLICATION_OCTET_STREAM;
+                return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .body(resource);
             }
-            return ResponseEntity.status(302)
-                .header(HttpHeaders.LOCATION, url)
-                .build();
         } catch (IllegalArgumentException e) {
             logger.error("图片下载失败: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().build();

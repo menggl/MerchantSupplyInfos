@@ -86,8 +86,8 @@ public class ProductService {
 		}
 
 		if (productRepository
-				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndIsValid(
-						merchant.getId(), brand.getId(), series.getId(), model.getId(), spec.getId(), 1)
+				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndProductTypeAndIsValid(
+						merchant.getId(), brand.getId(), series.getId(), model.getId(), spec.getId(), product.getProductType(), 1)
 				.isPresent()) {
 			throw new IllegalArgumentException("该型号商品已存在");
 		}
@@ -169,7 +169,8 @@ public class ProductService {
 			Long brandId,
 			Long seriesId,
 			Long modelId,
-			Long specId) {
+			Long specId,
+			Integer productType) {
 		if (merchantId == null) {
 			throw new IllegalArgumentException("商户ID不能为空");
 		}
@@ -185,9 +186,12 @@ public class ProductService {
 		if (specId == null) {
 			throw new IllegalArgumentException("配置ID不能为空");
 		}
+		if (productType == null) {
+			throw new IllegalArgumentException("产品类型不能为空");
+		}
 		return productRepository
-				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndIsValid(
-						merchantId, brandId, seriesId, modelId, specId, 1)
+				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndProductTypeAndIsValid(
+						merchantId, brandId, seriesId, modelId, specId, productType, 1)
 				.orElseThrow(() -> new IllegalArgumentException("商品不存在"));
 	}
 
@@ -203,7 +207,8 @@ public class ProductService {
 			Long brandId,
 			Long seriesId,
 			Long modelId,
-			Long specId) {
+			Long specId,
+			Integer productType) {
 		if (merchantId == null) {
 			throw new IllegalArgumentException("商户ID不能为空");
 		}
@@ -219,9 +224,12 @@ public class ProductService {
 		if (specId == null) {
 			throw new IllegalArgumentException("配置ID不能为空");
 		}
+		if (productType == null) {
+			throw new IllegalArgumentException("产品类型不能为空");
+		}
 		return buyRequestRepository
-				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndIsValid(
-						merchantId, brandId, seriesId, modelId, specId, 1)
+				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndProductTypeAndIsValid(
+						merchantId, brandId, seriesId, modelId, specId, productType, 1)
 				.orElseThrow(() -> new IllegalArgumentException("求购信息不存在"));
 	}
 

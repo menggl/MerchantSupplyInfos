@@ -140,20 +140,22 @@ public class MerchantController {
             @RequestParam Long brandId,
             @RequestParam Long seriesId,
             @RequestParam Long modelId,
-            @RequestParam Long specId) {
+            @RequestParam Long specId,
+            @RequestParam Integer productType) {
         try {
             logger.info("getProductsByModel request: {}", toJson(Map.of(
                     "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
                     "brandId", brandId,
                     "seriesId", seriesId,
                     "modelId", modelId,
-                    "specId", specId
+                    "specId", specId,
+                    "productType", productType
             )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             Product product = merchantService.getMerchantProductByModel(
-                    currentMerchant.getId(), brandId, seriesId, modelId, specId);
+                    currentMerchant.getId(), brandId, seriesId, modelId, specId, productType);
             MerchantProductModelDto dto = convertToMerchantProductModelDto(product);
             logger.info("getProductsByModel response: {}", toJson(dto));
             return ResponseEntity.ok(dto);
@@ -292,7 +294,7 @@ public class MerchantController {
         }
     }
     /**
-     * 查询商家某个机型（品牌、系列、型号、配置）的求购信息，用户去重查询
+     * 查询商家某个机型（品牌、系列、型号、配置）的求购信息，区分二手和新机，用户去重查询
      * 返回信息用一个单独的dto类来封装，dto中的字段包含下面的信息：
      * buyRequestId, brandId, seriesId, modelId, specId, brandName, seriesName, modelName, specName
      * 求购状态（上架还是下架）、求购更新时间、求购截止时间、求购数量、求购价格范围（最低价、最高价）、当前登录商家的联系电话，当前登录商家的地址
@@ -305,20 +307,22 @@ public class MerchantController {
             @RequestParam Long brandId,
             @RequestParam Long seriesId,
             @RequestParam Long modelId,
-            @RequestParam Long specId) {
+            @RequestParam Long specId,
+            @RequestParam Integer productType) {
         try {
             logger.info("getBuyProductsByModel request: {}", toJson(Map.of(
                     "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
                     "brandId", brandId,
                     "seriesId", seriesId,
                     "modelId", modelId,
-                    "specId", specId
+                    "specId", specId,
+                    "productType", productType
             )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
             BuyRequest buyRequest = merchantService.getMerchantBuyRequestByModel(
-                    currentMerchant.getId(), brandId, seriesId, modelId, specId);
+                    currentMerchant.getId(), brandId, seriesId, modelId, specId, productType);
             MerchantBuyRequestModelDto dto = convertToMerchantBuyRequestModelDto(buyRequest);
             logger.info("getBuyProductsByModel response: {}", toJson(dto));
             return ResponseEntity.ok(dto);
@@ -370,6 +374,7 @@ public class MerchantController {
         dto.setSeriesName(dictService.getSeriesNameById(seriesId));
         dto.setModelName(dictService.getModelNameById(modelId));
         dto.setSpecName(dictService.getSpecNameById(specId));
+        dto.setProductType(buyRequest.getProductType());
         dto.setState(buyRequest.getState());
         dto.setUpdateTime(buyRequest.getUpdateTime());
         dto.setDeadline(buyRequest.getDeadline());
@@ -405,6 +410,7 @@ public class MerchantController {
         dto.setSeriesName(dictService.getSeriesNameById(seriesId));
         dto.setModelName(dictService.getModelNameById(modelId));
         dto.setSpecName(dictService.getSpecNameById(specId));
+        dto.setState(product.getState());
         dto.setProductType(product.getProductType());
         dto.setUpdateTime(product.getUpdateTime());
         dto.setPrice(product.getPrice());

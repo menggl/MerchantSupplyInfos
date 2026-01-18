@@ -12,6 +12,7 @@ public class MerchantProductDto {
   private String seriesName;
   private String modelName;
   private String specName;
+  private Integer state;
   private Integer productType;
   private LocalDateTime updateTime;
   private Integer price;
@@ -92,6 +93,14 @@ public class MerchantProductDto {
 
   public void setSpecName(String specName) {
     this.specName = specName;
+  }
+
+  public Integer getState() {
+    return state;
+  }
+
+  public void setState(Integer state) {
+    this.state = state;
   }
 
   public Integer getProductType() {

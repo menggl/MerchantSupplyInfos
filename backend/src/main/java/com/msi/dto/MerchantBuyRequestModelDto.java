@@ -12,6 +12,7 @@ public class MerchantBuyRequestModelDto {
   private String seriesName;
   private String modelName;
   private String specName;
+  private Integer productType;
   private Integer state;
   private LocalDateTime updateTime;
   private LocalDateTime deadline;
@@ -93,6 +94,14 @@ public class MerchantBuyRequestModelDto {
     this.specName = specName;
   }
 
+  public Integer getProductType() {
+    return productType;
+  }
+
+  public void setProductType(Integer productType) {
+    this.productType = productType;
+  }
+
   public Integer getState() {
     return state;
   }
@@ -157,4 +166,3 @@ public class MerchantBuyRequestModelDto {
     this.contactAddress = contactAddress;
   }
 }
-

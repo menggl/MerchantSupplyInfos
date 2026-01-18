@@ -330,8 +330,9 @@ public class MerchantService {
                                              Long brandId,
                                              Long seriesId,
                                              Long modelId,
-                                             Long specId) {
-        return productService.findProductByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId);
+                                             Long specId,
+                                             Integer productType) {
+        return productService.findProductByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId, productType);
     }
 
     @Transactional
@@ -376,8 +377,9 @@ public class MerchantService {
                                                    Long brandId,
                                                    Long seriesId,
                                                    Long modelId,
-                                                   Long specId) {
-        return productService.findBuyRequestByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId);
+                                                   Long specId,
+                                                   Integer productType) {
+        return productService.findBuyRequestByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId, productType);
     }
 
     @Transactional
