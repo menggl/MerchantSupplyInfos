@@ -431,8 +431,8 @@ public class ProductService {
 		validateBuyRequestParams(merchant, buyRequest);
 
 		if (buyRequestRepository
-				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndIsValid(
-						merchant.getId(), buyRequest.getBrandId(), buyRequest.getSeriesId(), buyRequest.getModelId(), buyRequest.getSpecId(), 1)
+				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndProductTypeAndIsValid(
+						merchant.getId(), buyRequest.getBrandId(), buyRequest.getSeriesId(), buyRequest.getModelId(), buyRequest.getSpecId(), buyRequest.getProductType(), 1)
 				.isPresent()) {
 			throw new IllegalArgumentException("该型号求购信息已存在");
 		}

@@ -11,6 +11,7 @@ public class BuyRequestHallDto {
   private String seriesName;
   private String modelName;
   private String specName;
+  private Integer productType;
   private Integer buyCount;
   private Integer minPrice;
   private Integer maxPrice;
@@ -98,6 +99,14 @@ public class BuyRequestHallDto {
 
   public void setSpecName(String specName) {
     this.specName = specName;
+  }
+
+  public Integer getProductType() {
+    return productType;
+  }
+
+  public void setProductType(Integer productType) {
+    this.productType = productType;
   }
 
   public Integer getBuyCount() {
