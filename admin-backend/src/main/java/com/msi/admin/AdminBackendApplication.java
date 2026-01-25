@@ -15,17 +15,5 @@ public class AdminBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(AdminBackendApplication.class, args);
     }
-
-    @Bean
-    public CommandLineRunner logRedisConfig(@Value("${spring.data.redis.host}") String redisHost,
-                                            @Value("${spring.data.redis.port}") int redisPort) {
-        return args -> {
-            log.info("============================================================");
-            log.info("Redis Configuration Check:");
-            log.info("Host: {}", redisHost);
-            log.info("Port: {}", redisPort);
-            log.info("============================================================");
-        };
-    }
 }
 

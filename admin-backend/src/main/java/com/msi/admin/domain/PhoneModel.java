@@ -6,14 +6,11 @@ import jakarta.persistence.*;
 @Table(name = "phone_model")
 public class PhoneModel {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  @ManyToOne
-  @JoinColumn(name = "brand_id")
-  private Brand brand;
-  @ManyToOne
-  @JoinColumn(name = "series_id")
-  private PhoneSeries series;
+  @Column(name = "brand_id")
+  private Long brandId;
+  @Column(name = "series_id")
+  private Long seriesId;
   @Column(name = "model_name")
   private String modelName;
   private Integer sort;
@@ -27,20 +24,20 @@ public class PhoneModel {
     this.id = id;
   }
 
-  public PhoneSeries getSeries() {
-    return series;
+  public Long getSeriesId() {
+    return seriesId;
   }
 
-  public void setSeries(PhoneSeries series) {
-    this.series = series;
+  public void setSeriesId(Long seriesId) {
+    this.seriesId = seriesId;
   }
 
-  public Brand getBrand() {
-    return brand;
+  public Long getBrandId() {
+    return brandId;
   }
 
-  public void setBrand(Brand brand) {
-    this.brand = brand;
+  public void setBrandId(Long brandId) {
+    this.brandId = brandId;
   }
 
   public String getModelName() {

@@ -6,11 +6,9 @@ import jakarta.persistence.*;
 @Table(name = "phone_series")
 public class PhoneSeries {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  @ManyToOne
-  @JoinColumn(name = "brand_id")
-  private Brand brand;
+  @Column(name = "brand_id")
+  private Long brandId;
   @Column(name = "series_name")
   private String seriesName;
   private Integer sort;
@@ -24,12 +22,12 @@ public class PhoneSeries {
     this.id = id;
   }
 
-  public Brand getBrand() {
-    return brand;
+  public Long getBrandId() {
+    return brandId;
   }
 
-  public void setBrand(Brand brand) {
-    this.brand = brand;
+  public void setBrandId(Long brandId) {
+    this.brandId = brandId;
   }
 
   public String getSeriesName() {

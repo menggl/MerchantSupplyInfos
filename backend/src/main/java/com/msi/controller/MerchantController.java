@@ -5,8 +5,12 @@ import com.msi.domain.BuyRequest;
 import com.msi.domain.Product;
 import com.msi.dto.MerchantBuyRequestDto;
 import com.msi.dto.MerchantBuyRequestModelDto;
+import com.msi.dto.MerchantIntegralDto;
 import com.msi.dto.MerchantProductDto;
 import com.msi.dto.MerchantProductModelDto;
+import com.msi.exception.DailySignInLimitExceededException;
+import com.msi.constants.ErrorCode;
+import com.msi.exception.InsufficientIntegralException;
 import com.msi.service.DictService;
 import com.msi.service.MerchantService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -160,8 +164,6 @@ public class MerchantController {
             logger.info("getProductsByModel response: {}", toJson(dto));
             return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {
-            logger.error("查询商户某机型商品失败: merchantId={}, {}", 
-                    currentMerchant != null ? currentMerchant.getId() : null, e.getMessage(), e);
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -196,6 +198,33 @@ public class MerchantController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+    /**
+     * 查询商户已经上架了的某个产品的详细信息
+     */
+    @GetMapping("/products/{productId}")
+    public ResponseEntity<MerchantProductModelDto> getProductDetail(
+            @RequestAttribute("merchant") Merchant currentMerchant,
+            @PathVariable Long productId) {
+        try {
+            logger.info("getProductDetail request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "productId", productId
+            )));
+            if (currentMerchant == null || currentMerchant.getId() == null) {
+                return ResponseEntity.status(401).body(null);
+            }
+            Product product = merchantService.getMerchantProduct(currentMerchant.getId(), productId);
+            if (product == null) {
+                return ResponseEntity.badRequest().body(null);
+            }
+            MerchantProductModelDto dto = convertToMerchantProductModelDto(product);
+            logger.info("getProductDetail response: {}", toJson(dto));
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            logger.error("查询商品详情失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
     
     
 
@@ -205,7 +234,7 @@ public class MerchantController {
      * 增加：商家发布求购信息
      */
     @PostMapping("/products/buy")
-    public ResponseEntity<BuyRequest> addBuyProduct(@RequestAttribute("merchant") Merchant currentMerchant, @RequestBody BuyRequest buyRequest) {
+    public ResponseEntity<?> addBuyProduct(@RequestAttribute("merchant") Merchant currentMerchant, @RequestBody BuyRequest buyRequest) {
         try {
             logger.info("addBuyProduct request: {}", toJson(buyRequest));
             if (currentMerchant == null || currentMerchant.getId() == null) {
@@ -214,6 +243,12 @@ public class MerchantController {
             BuyRequest added = merchantService.addBuyRequest(currentMerchant.getId(), buyRequest);
             logger.info("addBuyProduct response: {}", toJson(added));
             return ResponseEntity.ok(added);
+        } catch (InsufficientIntegralException e) {
+            logger.error("发布求购商品失败: 积分不足 merchantId={}, {}", currentMerchant.getId(), e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "errorCode", ErrorCode.INTEGRAL_INSUFFICIENT,
+                "error", "积分不足"
+            ));
         } catch (IllegalArgumentException e) {
             logger.error("发布求购商品失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
             return ResponseEntity.badRequest().body(null);
@@ -332,6 +367,7 @@ public class MerchantController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
     /**
      * 查询商户发布的求购商品信息
      */
@@ -359,11 +395,11 @@ public class MerchantController {
         }
     }
 
-        /**
+    /**
      * 商户签到随机送积分，2积分或者3积分
      */
     @PostMapping("/merchant/sign-in")
-    public ResponseEntity<Void> signInForIntegral(@RequestAttribute("merchant") Merchant currentMerchant) {
+    public ResponseEntity<java.util.Map<String, Object>> signInForIntegral(@RequestAttribute("merchant") Merchant currentMerchant) {
         try {
             logger.info("signInForIntegral request: {}", toJson(Map.of(
                     "merchantId", currentMerchant != null ? currentMerchant.getId() : null
@@ -371,11 +407,48 @@ public class MerchantController {
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
-            merchantService.signInForIntegral(currentMerchant.getId());
-            logger.info("signInForIntegral response: {}", toJson("ok"));
-            return ResponseEntity.ok().build();
+            int change = merchantService.signInForIntegral(currentMerchant.getId());
+            logger.info("signInForIntegral response: {}", toJson(Map.of(
+                    "merchantId", currentMerchant.getId(),
+                    "changeAmount", change
+            )));
+            java.util.Map<String, Object> ok = new java.util.HashMap<>();
+            ok.put("status", "success");
+            ok.put("changeAmount", change);
+            return ResponseEntity.ok(ok);
+        } catch (DailySignInLimitExceededException e) {
+            logger.error("商户签到送积分失败(当日重复签到): merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
+            java.util.Map<String, Object> err = new java.util.HashMap<>();
+            err.put("errorCode", "SIGN_IN_ALREADY_TODAY");
+            err.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(err);
         } catch (IllegalArgumentException e) {
             logger.error("商户签到送积分失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
+            java.util.Map<String, Object> err = new java.util.HashMap<>();
+            err.put("errorCode", "SIGN_IN_FAILED");
+            err.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(err);
+        }
+    }
+
+    /**
+     * 查询用户当前积分数量，使用独立的dto对象封装返回值
+     * 返回字段：1 商户剩余积分、2 发布求购信息需要多少积分
+     */
+    @GetMapping("/merchant/integral")
+    public ResponseEntity<MerchantIntegralDto> getMerchantIntegral(@RequestAttribute("merchant") Merchant currentMerchant) {
+        try {
+            logger.info("getMerchantIntegral request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null
+            )));
+            if (currentMerchant == null || currentMerchant.getId() == null) {
+                return ResponseEntity.status(401).body(null);
+            }
+            MerchantIntegralDto dto = merchantService.getMerchantIntegral(currentMerchant.getId());
+            logger.info("getMerchantIntegral response: {}", toJson(dto));
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            logger.error("查询商户积分失败: merchantId={}, {}", currentMerchant.getId(), e.getMessage(), e);
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -471,13 +544,27 @@ public class MerchantController {
         dto.setProductType(product.getProductType());
         dto.setUpdateTime(product.getUpdateTime());
         dto.setPrice(product.getPrice());
+        dto.setStock(product.getStock());
         Integer type = product.getProductType();
         if (type != null && type == 1) {
             dto.setSecondHandCondition(product.getSecondHandCondition());
+            dto.setSecondHandVersion(product.getSecondHandVersion());
+            dto.setSecondHandFunction(product.getSecondHandFunction());
+            dto.setBatteryStatus(product.getBatteryStatus());
+            if (product.getImages() != null) {
+                dto.setImages(product.getImages().stream()
+                        .filter(img -> img.getIsValid() != null && img.getIsValid() == 1)
+                        .map(img -> new com.msi.dto.ProductImageDto(img.getId(), img.getImageUrl()))
+                        .collect(java.util.stream.Collectors.toList()));
+            }
             dto.setRemark(null);
             dto.setOtherRemark(null);
         } else {
             dto.setSecondHandCondition(null);
+            dto.setSecondHandVersion(null);
+            dto.setSecondHandFunction(null);
+            dto.setBatteryStatus(null);
+            dto.setImages(null);
             dto.setRemark(product.getRemark());
             dto.setOtherRemark(product.getOtherRemark());
         }

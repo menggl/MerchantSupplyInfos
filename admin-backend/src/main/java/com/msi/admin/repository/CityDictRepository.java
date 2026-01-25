@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface CityDictRepository extends JpaRepository<CityDict, Long> {
     Optional<CityDict> findByCityCode(String cityCode);
     List<CityDict> findByValidOrderBySortAsc(Integer valid);
+    List<CityDict> findByIsOnlineOrderBySortAsc(Integer isOnline);
     List<CityDict> findAllByOrderBySortAsc();
     @Query("select max(c.sort) from CityDict c")
     Integer findMaxSort();

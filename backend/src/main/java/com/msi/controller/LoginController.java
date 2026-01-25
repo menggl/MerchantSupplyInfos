@@ -1,6 +1,9 @@
 package com.msi.controller;
 
 import com.msi.service.MerchantService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +21,32 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 public class LoginController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private final MerchantService merchantService;
 
     public LoginController(MerchantService merchantService) {
         this.merchantService = merchantService;
     }
 
+    private String toJson(Object value) {
+        if (value == null) {
+            return "null";
+        }
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            logger.warn("Failed to serialize object for logging", e);
+            return String.valueOf(value);
+        }
+    }
+
 
     @PostMapping("/wx-login")
-    public ResponseEntity<MerchantService.WechatLoginInfo> wxLogin(@RequestBody WxLoginRequest request) {
+    public ResponseEntity<Merchant> wxLogin(@RequestBody WxLoginRequest request) {
         try {
-            MerchantService.WechatLoginInfo result = merchantService.loginByWechat(request.getCode());
+            logger.info("wxLogin request: {}", toJson(request));
+            Merchant result = merchantService.loginByWechat(request.getCode());
+            logger.info("wxLogin response: {}", toJson(result));
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
             logger.error("微信登录参数错误: {}", e.getMessage());
@@ -45,10 +63,12 @@ public class LoginController {
     @PutMapping("/merchants/update")
     public ResponseEntity<Merchant> updateMerchant(@RequestAttribute("merchant") Merchant currentMerchant, @RequestBody Merchant merchant) {
         try {
+            logger.info("updateMerchant request: {}", toJson(merchant));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body((Merchant) null);
             }
             Merchant updated = merchantService.updateMerchant(currentMerchant.getId(), merchant);
+            logger.info("updateMerchant response: {}", toJson(updated));
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             if ("商户不存在".equals(e.getMessage())) {

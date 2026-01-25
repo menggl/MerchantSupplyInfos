@@ -1,6 +1,8 @@
 package com.msi.admin.controller;
 
+import com.msi.admin.domain.MerchantMemberIntegralSpend;
 import com.msi.admin.service.MerchantService;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +42,19 @@ public class AdminMerchantController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(detail);
+    }
+
+    @GetMapping("/{id}/integral-logs")
+    public ResponseEntity<Map<String, Object>> getMerchantIntegralLogs(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<MerchantMemberIntegralSpend> pageResult = merchantService.getMerchantIntegralLogs(id, page, size);
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", pageResult.getContent());
+        result.put("total", pageResult.getTotalElements());
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")

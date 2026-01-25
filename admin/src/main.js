@@ -7,7 +7,7 @@ import axios from 'axios'
 import router from './router'
 
 // 设置axios默认配置
-axios.defaults.baseURL = '/api'
+axios.defaults.baseURL = 'http://8.141.125.139:8888/api'
 axios.defaults.headers.post['Content-Type'] = 'application/json'
 
 axios.interceptors.request.use((config) => {

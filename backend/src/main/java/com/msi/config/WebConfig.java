@@ -24,7 +24,8 @@ public class WebConfig implements WebMvcConfigurer {
             .addPathPatterns("/api/**") // 拦截所有接口
             .excludePathPatterns(
                 "/api/wx-login",
-                "/api/dict/**"
+                "/api/dict/**",
+                "/api/images/**"
             );
   }
 }

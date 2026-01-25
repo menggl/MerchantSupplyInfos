@@ -49,7 +49,7 @@ public class SupplyService {
 	}
 
 	public List<CityDto> getCities() {
-		List<CityDict> list = cityRepository.findAllByValidOrderBySortAsc(1);
+		List<CityDict> list = cityRepository.findAllByIsOnlineOrderBySortAsc(1);
 		List<CityDto> cities = list.stream()
 				.filter(c -> c.getCityName() != null && !"全国".equals(c.getCityName()))
 				.map(c -> new CityDto(c.getCityCode(), c.getCityName(), c.getIsOnline()))

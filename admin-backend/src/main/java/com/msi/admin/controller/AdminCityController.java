@@ -39,9 +39,10 @@ public class AdminCityController {
     public ResponseEntity<Map<String, Object>> updateCity(@PathVariable Long id, @RequestBody Map<String, Object> request) {
         String cityCode = (String) request.get("cityCode");
         String cityName = (String) request.get("cityName");
+        Integer isOnline = request.containsKey("is_online") ? (Integer) request.get("is_online") : null;
         Integer valid = request.containsKey("valid") ? (Integer) request.get("valid") : null;
         
-        CityDict city = cityDictService.updateCity(id, cityCode, cityName, valid);
+        CityDict city = cityDictService.updateCity(id, cityCode, cityName, isOnline, valid);
         Map<String, Object> response = new HashMap<>();
         response.put("success", city != null);
         response.put("city", city);

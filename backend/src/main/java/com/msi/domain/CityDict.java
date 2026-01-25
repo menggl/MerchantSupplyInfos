@@ -2,6 +2,7 @@ package com.msi.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "city_dict")
@@ -23,6 +24,7 @@ public class CityDict {
   private Integer valid;
 
   @Column(name = "is_online")
+  @JsonProperty("is_online")
   private Integer isOnline;
 
   @Column(name = "create_time", updatable = false)
@@ -40,6 +42,9 @@ public class CityDict {
     }
     if (isOnline == null) {
       isOnline = 0;
+    }
+    if (sort == null) {
+      sort = 0;
     }
   }
 

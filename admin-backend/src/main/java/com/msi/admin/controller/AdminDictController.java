@@ -201,7 +201,7 @@ public class AdminDictController {
   @PostMapping("/models")
   public ResponseEntity<Map<String, Object>> addModel(@RequestParam Long brandId, @RequestParam Long seriesId, @RequestBody Map<String, String> request) {
     String name = request.get("modelName");
-    PhoneModel model = dictService.addModel(brandId, seriesId, name);
+    PhoneModel model = dictService.addModel(seriesId, name);
     Map<String, Object> response = new HashMap<>();
     response.put("success", model != null);
     response.put("model", model);
@@ -381,7 +381,7 @@ public class AdminDictController {
 
   @PostMapping("/dict/import/file")
   /**
-   * 先清空字典数据库表中的所有数据，然后将JSON文件中的数据导入数据库
+   * 将JSON文件中的数据导入数据库，先清空字典数据库表中的所有数据，然后将JSON文件中的数据导入数据库
    * @param file
    * @return
    */

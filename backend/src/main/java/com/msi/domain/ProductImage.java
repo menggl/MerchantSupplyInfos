@@ -1,5 +1,6 @@
 package com.msi.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ public class ProductImage {
   private Long id;
 
   @ManyToOne
+  @JsonIgnore
   @JoinColumn(name = "product_id")
   private Product product;
 

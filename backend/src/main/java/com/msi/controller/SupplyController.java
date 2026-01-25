@@ -81,17 +81,17 @@ public class SupplyController {
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
 		try {
-			logger.info("searchAvailableProducts request: {}", toJson(Map.of(
-					"merchantId", currentMerchant != null ? currentMerchant.getId() : null,
-					"cityCode", cityCode,
-					"productType", productType,
-					"brandId", brandId,
-					"seriesId", seriesId,
-					"modelId", modelId,
-					"specId", specId,
-					"page", page,
-					"size", size
-			)));
+			Map<String, Object> reqMap = new java.util.HashMap<>();
+			reqMap.put("merchantId", currentMerchant != null ? currentMerchant.getId() : null);
+			reqMap.put("cityCode", cityCode);
+			reqMap.put("productType", productType);
+			reqMap.put("brandId", brandId);
+			reqMap.put("seriesId", seriesId);
+			reqMap.put("modelId", modelId);
+			reqMap.put("specId", specId);
+			reqMap.put("page", page);
+			reqMap.put("size", size);
+			logger.info("searchAvailableProducts request: {}", toJson(reqMap));
 			if (currentMerchant == null || currentMerchant.getId() == null) {
 				return ResponseEntity.status(401).body(null);
 			}
@@ -120,10 +120,10 @@ public class SupplyController {
 			@RequestAttribute("merchant") Merchant currentMerchant,
 			@PathVariable Long productId) {
 		try {
-			logger.info("getProductDetail request: {}", toJson(Map.of(
-					"merchantId", currentMerchant != null ? currentMerchant.getId() : null,
-					"productId", productId
-			)));
+			Map<String, Object> reqMap = new java.util.HashMap<>();
+			reqMap.put("merchantId", currentMerchant != null ? currentMerchant.getId() : null);
+			reqMap.put("productId", productId);
+			logger.info("getProductDetail request: {}", toJson(reqMap));
 			if (currentMerchant == null || currentMerchant.getId() == null) {
 				return ResponseEntity.status(401).body(null);
 			}
@@ -148,18 +148,16 @@ public class SupplyController {
 			@RequestParam String publicId,
 			@RequestParam Long productId) {
 		try {
-			logger.info("getMerchantPhone request: {}", toJson(Map.of(
-					"callerMerchantId", currentMerchant != null ? currentMerchant.getId() : null,
-					"publicId", publicId,
-					"productId", productId
-			)));
+			Map<String, Object> reqMap = new java.util.HashMap<>();
+			reqMap.put("callerMerchantId", currentMerchant != null ? currentMerchant.getId() : null);
+			reqMap.put("publicId", publicId);
+			reqMap.put("productId", productId);
+			logger.info("getMerchantPhone request: {}", toJson(reqMap));
 			if (currentMerchant == null || currentMerchant.getId() == null) {
 				return ResponseEntity.status(401).body(null);
 			}
 			String phone = supplyService.getMerchantPhoneAndRecordCall(currentMerchant, publicId, productId);
-			logger.info("getMerchantPhone response: {}", toJson(Map.of(
-					"phone", maskPhone(phone)
-			)));
+			logger.info("getMerchantPhone response: {}", toJson(java.util.Collections.singletonMap("phone", maskPhone(phone))));
 			return ResponseEntity.ok(phone);
 		} catch (IllegalArgumentException e) {
 			logger.error("查询商户电话信息失败: callerMerchantId={}, publicId={}, productId={}, {}",
@@ -214,18 +212,16 @@ public class SupplyController {
 			@RequestParam String publicId,
 			@RequestParam Long buyRequestId) {
 		try {
-			logger.info("getMerchantPhoneByBuyRequest request: {}", toJson(Map.of(
-					"callerMerchantId", currentMerchant != null ? currentMerchant.getId() : null,
-					"publicId", publicId,
-					"buyRequestId", buyRequestId
-			)));
+			Map<String, Object> reqMap = new java.util.HashMap<>();
+			reqMap.put("callerMerchantId", currentMerchant != null ? currentMerchant.getId() : null);
+			reqMap.put("publicId", publicId);
+			reqMap.put("buyRequestId", buyRequestId);
+			logger.info("getMerchantPhoneByBuyRequest request: {}", toJson(reqMap));
 			if (currentMerchant == null || currentMerchant.getId() == null) {
 				return ResponseEntity.status(401).body(null);
 			}
 			String phone = supplyService.getMerchantPhoneByBuyRequestAndRecordCall(currentMerchant, publicId, buyRequestId);
-			logger.info("getMerchantPhoneByBuyRequest response: {}", toJson(Map.of(
-					"phone", maskPhone(phone)
-			)));
+			logger.info("getMerchantPhoneByBuyRequest response: {}", toJson(java.util.Collections.singletonMap("phone", maskPhone(phone))));
 			return ResponseEntity.ok(phone);
 		} catch (IllegalArgumentException e) {
 			logger.error("查询求购商户电话信息失败: callerMerchantId={}, publicId={}, buyRequestId={}, {}",
@@ -350,6 +346,7 @@ public class SupplyController {
 		dto.setMaxPrice(buyRequest.getMaxPrice());
 		dto.setDeadline(buyRequest.getDeadline().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 		dto.setCityName(supplyService.getCityNameByCode(buyRequest.getCityCode()));
+		dto.setProductType(buyRequest.getProductType());
 		if (buyRequest.getCreateTime() != null) {
 			dto.setCreateTime(buyRequest.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 		}

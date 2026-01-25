@@ -8,7 +8,7 @@ RUN mvn -q -DskipTests package
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine
-RUN apk add --no-cache tzdata && \
+RUN apk add --no-cache tzdata fontconfig ttf-dejavu && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 ENV TZ=Asia/Shanghai

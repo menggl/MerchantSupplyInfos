@@ -1,5 +1,6 @@
 package com.msi.controller;
 
+import com.msi.constants.ErrorCode;
 import com.msi.domain.Merchant;
 import com.msi.service.MerchantService;
 import com.msi.service.SmsService;
@@ -58,7 +59,8 @@ public class SmsController {
             String msg = e.getMessage();
             Map<String, String> err = new java.util.HashMap<>();
             if (msg != null && msg.startsWith("CAPTCHA_")) {
-                err.put("errorCode", msg);
+                err.put("errorCode", ErrorCode.CAPTCHA_ERROR);
+                err.put("message", "图形验证码错误");
             } else {
                 err.put("errorCode", "SMS_FAILED");
                 err.put("message", msg);

@@ -12,4 +12,6 @@ public interface CityDictRepository extends JpaRepository<CityDict, Long> {
   boolean existsByCityCode(String cityCode);
   List<CityDict> findAllByValid(Integer valid);
   List<CityDict> findAllByValidOrderBySortAsc(Integer valid);
+  List<CityDict> findAllByValidOrderByIsOnlineDescSortAsc(Integer valid);
+  List<CityDict> findAllByIsOnlineOrderBySortAsc(Integer isOnline);
 }

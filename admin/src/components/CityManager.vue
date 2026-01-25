@@ -16,6 +16,7 @@
           <div style="flex: 1;">城市名称</div>
           <div style="width: 80px; text-align: center;">排序</div>
           <div style="width: 100px; text-align: center;">状态</div>
+          <div style="width: 100px; text-align: center;">上架状态</div>
           <div style="width: 180px;">创建时间</div>
           <div style="width: 150px; text-align: center;">操作</div>
         </div>
@@ -57,12 +58,13 @@
                 </div>
                 <div style="width: 80px; text-align: center;">{{ element.sort }}</div>
                 <div style="width: 100px; text-align: center;">
-                  <el-button 
-                    :type="element.valid === 1 ? 'success' : 'info'" 
-                    size="small" 
-                    @click.stop="toggleStatus(element)"
-                  >
+                  <el-button :type="element.valid === 1 ? 'success' : 'info'" size="small" @click.stop="toggleValid(element)">
                     {{ element.valid === 1 ? '有效' : '无效' }}
+                  </el-button>
+                </div>
+                <div style="width: 100px; text-align: center;">
+                  <el-button :type="element.is_online === 1 ? 'success' : 'info'" size="small" @click.stop="toggleStatus(element)">
+                    {{ element.is_online === 1 ? '上架' : '下架' }}
                   </el-button>
                 </div>
                 <div style="width: 180px;">{{ formatTime(element.createTime) }}</div>
@@ -211,7 +213,7 @@ const commitInlineEdit = async (city) => {
     const payload = {
       cityCode: field === 'cityCode' ? newValue : city.cityCode,
       cityName: field === 'cityName' ? newValue : city.cityName,
-      valid: city.valid
+      is_online: city.is_online
     }
     const response = await axios.put(`/admin/cities/${city.id}`, payload)
     if (response.data && response.data.success) {
@@ -232,25 +234,25 @@ const commitInlineEdit = async (city) => {
 }
 
 const toggleStatus = async (city) => {
-  const newStatus = city.valid === 1 ? 0 : 1
+  const newStatus = city.is_online === 1 ? 0 : 1
   try {
     const response = await axios.put(`/admin/cities/${city.id}`, {
       ...city,
-      valid: newStatus
+      is_online: newStatus
     })
     
     if (response.data && response.data.success) {
       ElMessage.success('状态已更新')
       
       // Update local status
-      city.valid = newStatus
+      city.is_online = newStatus
       
-      // Re-sort: Valid cities first, then Invalid cities
+      // Re-sort: Online cities first, then Offline cities
       // Preserve relative order within groups by using current list order
-      const validCities = cities.value.filter(c => c.valid === 1)
-      const invalidCities = cities.value.filter(c => c.valid !== 1)
+      const onlineCities = cities.value.filter(c => c.is_online === 1)
+      const offlineCities = cities.value.filter(c => c.is_online !== 1)
       
-      const newOrder = [...validCities, ...invalidCities].map((c, index) => ({
+      const newOrder = [...onlineCities, ...offlineCities].map((c, index) => ({
         ...c,
         sort: index + 1
       }))
@@ -265,6 +267,26 @@ const toggleStatus = async (city) => {
   } catch (error) {
     console.error('Failed to update status:', error)
     ElMessage.error('状态更新异常')
+  }
+}
+
+const toggleValid = async (city) => {
+  const newValid = city.valid === 1 ? 0 : 1
+  try {
+    const response = await axios.put(`/admin/cities/${city.id}`, {
+      ...city,
+      valid: newValid
+    })
+    
+    if (response.data && response.data.success) {
+      city.valid = newValid
+      ElMessage.success('有效状态更新成功')
+    } else {
+      ElMessage.error('有效状态更新失败')
+    }
+  } catch (error) {
+    console.error('Failed to update valid:', error)
+    ElMessage.error('有效状态更新异常')
   }
 }
 

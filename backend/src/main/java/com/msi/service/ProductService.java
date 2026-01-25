@@ -114,6 +114,8 @@ public class ProductService {
 		product.setSeriesId(series.getId());
 		product.setModelId(model.getId());
 		product.setSpecId(spec.getId());
+		product.setIsValid(1);
+		product.setState(1);
 
 		Product saved = productRepository.save(product);
 
@@ -189,10 +191,13 @@ public class ProductService {
 		if (productType == null) {
 			throw new IllegalArgumentException("产品类型不能为空");
 		}
-		return productRepository
+		Product product = productRepository
 				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndProductTypeAndIsValid(
 						merchantId, brandId, seriesId, modelId, specId, productType, 1)
 				.orElseThrow(() -> new IllegalArgumentException("商品不存在"));
+		List<ProductImage> images = productImageRepository.findByProduct_IdAndIsValid(product.getId(), 1);
+		product.setImages(images);
+		return product;
 	}
 
 	public Page<BuyRequest> findBuyProductsByMerchant(Long merchantId, int page, int size) {
@@ -252,7 +257,26 @@ public class ProductService {
 		buyRequestRepository.save(buyRequest);
 	}
 
-	public void withdrawBuyRequest(Long buyRequestId, Long merchantId) {
+	public Product findProductByMerchantAndId(Long merchantId, Long productId) {
+        if (merchantId == null) {
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (productId == null) {
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        Product product = productRepository.findByIdAndIsValid(productId, 1).orElse(null);
+        if (product == null) {
+            return null;
+        }
+        if (!product.getMerchantId().equals(merchantId)) {
+            return null;
+        }
+        List<ProductImage> images = productImageRepository.findByProduct_IdAndIsValid(product.getId(), 1);
+        product.setImages(images);
+        return product;
+    }
+
+    public void withdrawBuyRequest(Long buyRequestId, Long merchantId) {
 		if (buyRequestId == null) {
 			throw new IllegalArgumentException("求购ID不能为空");
 		}

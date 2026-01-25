@@ -19,7 +19,7 @@ fi
 
 SERVICES=("$@")
 if [ "${#SERVICES[@]}" -eq 0 ]; then
-  SERVICES=(backend)
+  SERVICES=(admin-backend admin-frontend)
 fi
 
 PULL="${PULL:-0}"

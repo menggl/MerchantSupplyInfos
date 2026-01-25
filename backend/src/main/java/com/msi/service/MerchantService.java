@@ -10,6 +10,8 @@ import com.msi.domain.MerchantMemberIntegral;
 import com.msi.domain.MerchantMemberIntegralSpend;
 import com.msi.enums.IntegralChangeReason;
 import com.msi.repository.MerchantRepository;
+import com.msi.exception.DailySignInLimitExceededException;
+import com.msi.exception.InsufficientIntegralException;
 
 import io.netty.util.internal.ThreadLocalRandom;
 
@@ -23,6 +25,8 @@ import com.msi.repository.MerchantMemberIntegralRepository;
 import com.msi.repository.MerchantMemberIntegralSpendRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.domain.Page;
@@ -32,9 +36,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Service
 public class MerchantService {
+    private static final Logger logger = LoggerFactory.getLogger(MerchantService.class);
     private final MerchantRepository merchantRepository;
     private final StringRedisTemplate redisTemplate;
     @Value("${aliyun.sms.region:cn-hangzhou}")
@@ -47,7 +53,7 @@ public class MerchantService {
     private String signName;
     @Value("${aliyun.sms.templateCode:}")
     private String templateCode;
-    @Value("${msi.member.default-days:30}")
+    @Value("${msi.member.default-days:180}")
     private int defaultMemberDays;
     private final MerchantMemberInfoRepository memberInfoRepository;
     private final CityDictRepository cityDictRepository;
@@ -83,15 +89,9 @@ public class MerchantService {
                 .build();
     }
 
-    public static class WechatLoginInfo {
-        private Merchant merchant;
-
-        public Merchant getMerchant() { return merchant; }
-        public void setMerchant(Merchant merchant) { this.merchant = merchant; }
-    }
-
-    public WechatLoginInfo loginByWechat(String code) {
+    public Merchant loginByWechat(String code) {
         if (code == null || code.isEmpty()) {
+            logger.error("Code不能为空");
             throw new IllegalArgumentException("Code不能为空");
         }
         
@@ -155,10 +155,7 @@ public class MerchantService {
         }
         // 更新缓存
         updateLoginCache(merchant, info);
-
-        WechatLoginInfo result = new WechatLoginInfo();
-        result.setMerchant(merchant);
-        return result;
+        return merchant;
     }
     
     public List<Merchant> findAll() {
@@ -175,6 +172,7 @@ public class MerchantService {
 
     public Merchant getMerchantInfo(Long id) {
         if (id == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         // todo 测试用，将缓存先清除
@@ -191,6 +189,7 @@ public class MerchantService {
         }
         Optional<Merchant> opt = merchantRepository.findById(id);
         if (opt.isEmpty()) {
+            logger.error("商户不存在");
             throw new IllegalArgumentException("商户不存在");
         }
         Merchant merchant = opt.get();
@@ -202,10 +201,12 @@ public class MerchantService {
 
     public Merchant getMerchantInfoByPublicId(String publicId) {
         if (publicId == null || publicId.isEmpty()) {
+            logger.error("商户publicId不能为空");
             throw new IllegalArgumentException("商户publicId不能为空");
         }
         Optional<Merchant> opt = merchantRepository.findByPublicId(publicId);
         if (opt.isEmpty()) {
+            logger.error("商户不存在");
             throw new IllegalArgumentException("商户不存在");
         }
         Merchant merchant = opt.get();
@@ -229,10 +230,12 @@ public class MerchantService {
 
     public boolean isMemberExpired(Long merchantId) {
         if (merchantId == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         Optional<Merchant> opt = merchantRepository.findById(merchantId);
         if (opt.isEmpty()) {
+            logger.error("商户不存在");
             throw new IllegalArgumentException("商户不存在");
         }
         Merchant m = opt.get();
@@ -249,9 +252,11 @@ public class MerchantService {
 
     public Product addProduct(Merchant merchant, Product product) {
         if (merchant == null || merchant.getId() == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         if (product == null) {
+            logger.error("商品信息不能为空");
             throw new IllegalArgumentException("商品信息不能为空");
         }
         validateProductForBusiness(product);
@@ -261,12 +266,15 @@ public class MerchantService {
 
     public Product updateProduct(Long merchantId, Long productId, Product product) {
         if (merchantId == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         if (productId == null) {
+            logger.error("商品ID不能为空");
             throw new IllegalArgumentException("商品ID不能为空");
         }
         if (product == null) {
+            logger.error("商品信息不能为空");
             throw new IllegalArgumentException("商品信息不能为空");
         }
         validateProductForBusiness(product);
@@ -276,24 +284,34 @@ public class MerchantService {
     private void validateProductForBusiness(Product product) {
         Integer productType = product.getProductType();
         if (productType == null) {
+            logger.error("产品类型不能为空");
             throw new IllegalArgumentException("产品类型不能为空");
         }
         if (productType == 0) {
             if (product.getRemark() == null || product.getRemark().isEmpty()) {
+                logger.error("备注不能为空");
                 throw new IllegalArgumentException("备注不能为空");
             }
             if (product.getOtherRemark() == null || product.getOtherRemark().isEmpty()) {
+                logger.error("其它备注不能为空");
                 throw new IllegalArgumentException("其它备注不能为空");
             }
         } else if (productType == 1) {
             if (product.getSecondHandVersion() == null || product.getSecondHandVersion().isEmpty()) {
+                logger.error("二手机版本不能为空");
                 throw new IllegalArgumentException("二手机版本不能为空");
             }
             if (product.getSecondHandCondition() == null || product.getSecondHandCondition().isEmpty()) {
+                logger.error("二手机成色不能为空");
                 throw new IllegalArgumentException("二手机成色不能为空");
             }
             if (product.getSecondHandFunction() == null || product.getSecondHandFunction().isEmpty()) {
+                logger.error("二手机功能描述不能为空");
                 throw new IllegalArgumentException("二手机功能描述不能为空");
+            }
+            if (product.getBatteryStatus() == null) {
+                logger.error("二手机电池性能不能为空");
+                throw new IllegalArgumentException("二手机电池性能不能为空");
             }
             boolean hasValidImage = false;
             if (product.getImages() != null) {
@@ -305,9 +323,11 @@ public class MerchantService {
                 }
             }
             if (!hasValidImage) {
+                logger.error("二手机图片列表不能为空");
                 throw new IllegalArgumentException("二手机图片列表不能为空");
             }
         } else {
+            logger.error("产品类型不支持");
             throw new IllegalArgumentException("产品类型不支持");
         }
     }
@@ -335,14 +355,33 @@ public class MerchantService {
         return productService.findProductByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId, productType);
     }
 
+    public Product getMerchantProduct(Long merchantId, Long productId) {
+        return productService.findProductByMerchantAndId(merchantId, productId);
+    }
+
     @Transactional
-    public void signInForIntegral(Long merchantId) {
+    public int signInForIntegral(Long merchantId) {
         if (merchantId == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         Optional<Merchant> opt = merchantRepository.findById(merchantId);
         if (opt.isEmpty()) {
+            logger.error("商户不存在");
             throw new IllegalArgumentException("商户不存在");
+        }
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        long todaySignInCount = merchantMemberIntegralSpendRepository
+                .countByMerchantIdAndChangeReasonAndChangeTimeBetween(
+                        merchantId,
+                        IntegralChangeReason.SIGN_IN.getDescription(),
+                        startOfDay,
+                        endOfDay
+                );
+        if (todaySignInCount > 0) {
+            throw new DailySignInLimitExceededException("今日已签到，不能重复签到");
         }
         MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchantId).orElse(null);
         int before = 0;
@@ -367,6 +406,37 @@ public class MerchantService {
         record.setOrderId(null);
         record.setChangeTime(LocalDateTime.now());
         merchantMemberIntegralSpendRepository.save(record);
+        return change;
+    }
+
+    public com.msi.dto.MerchantIntegralDto getMerchantIntegral(Long merchantId) {
+        if (merchantId == null) {
+            logger.error("商户ID不能为空");
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        Optional<Merchant> opt = merchantRepository.findById(merchantId);
+        if (opt.isEmpty()) {
+            logger.error("商户不存在");
+            throw new IllegalArgumentException("商户不存在");
+        }
+        MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchantId).orElse(null);
+        if (integral == null) {
+            integral = new MerchantMemberIntegral();
+            integral.setMerchantId(merchantId);
+            integral.setIntegral(0);
+            integral.setIsValid(1);
+            integral.setCreateTime(LocalDateTime.now());
+            integral.setUpdateTime(LocalDateTime.now());
+            merchantMemberIntegralRepository.save(integral);
+        }
+        int value = 0;
+        if (integral.getIntegral() != null) {
+            value = integral.getIntegral();
+        }
+        com.msi.dto.MerchantIntegralDto dto = new com.msi.dto.MerchantIntegralDto();
+        dto.setIntegral(value);
+        dto.setCostIntegral(Constants.BUY_REQUEST_COST);
+        return dto;
     }
 
     public Page<BuyRequest> getMerchantBuyRequests(Long merchantId, int page, int size) {
@@ -385,39 +455,50 @@ public class MerchantService {
     @Transactional
     public BuyRequest addBuyRequest(Long merchantId, BuyRequest buyRequest) {
         if (merchantId == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         if (buyRequest == null) {
+            logger.error("求购信息不能为空");
             throw new IllegalArgumentException("求购信息不能为空");
         }
         if (buyRequest.getBrandId() == null) {
+            logger.error("品牌ID不能为空");
             throw new IllegalArgumentException("品牌ID不能为空");
         }
         if (buyRequest.getSeriesId() == null) {
+            logger.error("系列ID不能为空");
             throw new IllegalArgumentException("系列ID不能为空");
         }
         if (buyRequest.getModelId() == null) {
+            logger.error("型号ID不能为空");
             throw new IllegalArgumentException("型号ID不能为空");
         }
         if (buyRequest.getSpecId() == null) {
+            logger.error("配置ID不能为空");
             throw new IllegalArgumentException("配置ID不能为空");
         }
         if (buyRequest.getProductType() == null) {
+            logger.error("产品类型不能为空");
             throw new IllegalArgumentException("产品类型不能为空");
         }
         Integer buyCount = buyRequest.getBuyCount();
         if (buyCount == null || buyCount <= 0) {
+            logger.error("求购数量必须大于0");
             throw new IllegalArgumentException("求购数量必须大于0");
         }
         Integer minPrice = buyRequest.getMinPrice();
         Integer maxPrice = buyRequest.getMaxPrice();
         if (minPrice == null || maxPrice == null) {
+            logger.error("求购价格区间不能为空");
             throw new IllegalArgumentException("求购价格区间不能为空");
         }
         if (minPrice <= 0 || maxPrice <= 0 || maxPrice < minPrice) {
+            logger.error("求购价格区间不合法");
             throw new IllegalArgumentException("求购价格区间不合法");
         }
         if (buyRequest.getDeadline() == null) {
+            logger.error("求购截止时间不能为空");
             throw new IllegalArgumentException("求购截止时间不能为空");
         }
         int costIntegral = Constants.BUY_REQUEST_COST;
@@ -427,7 +508,8 @@ public class MerchantService {
             currentIntegral = integral.getIntegral();
         }
         if (costIntegral > 0 && currentIntegral < costIntegral) {
-            throw new IllegalArgumentException("积分不足");
+            logger.error("积分不足");
+            throw new InsufficientIntegralException("积分不足");
         }
         buyRequest.setCostIntegral(costIntegral);
         buyRequest.setMerchantId(merchantId);
@@ -459,12 +541,15 @@ public class MerchantService {
     
     public void updateBuyRequestState(Long merchantId, Long buyRequestId, Integer state) {
         if (merchantId == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         if (buyRequestId == null) {
+            logger.error("求购ID不能为空");
             throw new IllegalArgumentException("求购ID不能为空");
         }
         if (state == null || (state != 0 && state != 1)) {
+            logger.error("求购状态不合法");
             throw new IllegalArgumentException("求购状态不合法");
         }
         productService.updateBuyRequestState(buyRequestId, merchantId, state);
@@ -472,12 +557,15 @@ public class MerchantService {
     
     public BuyRequest updateBuyRequest(Long merchantId, Long buyRequestId, BuyRequest buyRequest) {
         if (merchantId == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         if (buyRequestId == null) {
+            logger.error("求购ID不能为空");
             throw new IllegalArgumentException("求购ID不能为空");
         }
         if (buyRequest == null) {
+            logger.error("求购信息不能为空");
             throw new IllegalArgumentException("求购信息不能为空");
         }
         return productService.updateBuyRequest(buyRequestId, merchantId, buyRequest);
@@ -485,9 +573,11 @@ public class MerchantService {
     
     public void deleteBuyRequest(Long merchantId, Long buyRequestId) {
         if (merchantId == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         if (buyRequestId == null) {
+            logger.error("求购ID不能为空");
             throw new IllegalArgumentException("求购ID不能为空");
         }
         productService.withdrawBuyRequest(buyRequestId, merchantId);
@@ -495,16 +585,19 @@ public class MerchantService {
     
     public Merchant updateMerchant(Long id, Merchant merchant) {
         if (id == null) {
+            logger.error("商户ID不能为空");
             throw new IllegalArgumentException("商户ID不能为空");
         }
         // 添加城市code入参校验
         String cityCode = merchant.getCityCode();
         if (cityCode == null || cityCode.isEmpty()) {
+            logger.error("城市code不能为空");
             throw new IllegalArgumentException("城市code不能为空");
         }
         // 判断cityCode是否在字典表中
         try {
             if (!cityCodeCache.get(cityCode, () -> cityDictRepository.existsByCityCode(cityCode))) {
+                logger.error("城市code不存在");
                 throw new IllegalArgumentException("城市code不存在");
             }
         } catch (ExecutionException e) {
@@ -513,6 +606,7 @@ public class MerchantService {
 
         Optional<Merchant> opt = merchantRepository.findById(id);
         if (opt.isEmpty()) {
+            logger.error("商户不存在");
             throw new IllegalArgumentException("商户不存在");
         }
         Merchant existing = opt.get();
@@ -522,18 +616,23 @@ public class MerchantService {
         String address = merchant.getMerchantAddress();
         String businessLicenseUrl = merchant.getBusinessLicenseUrl();
         if (name == null || name.isEmpty()) {
+            logger.error("商户名称不能为空");
             throw new IllegalArgumentException("商户名称不能为空");
         }
         if (contact == null || contact.isEmpty()) {
+            logger.error("联系人姓名不能为空");
             throw new IllegalArgumentException("联系人姓名不能为空");
         }
         if (phone == null || phone.isEmpty()) {
+            logger.error("联系人手机号不能为空");
             throw new IllegalArgumentException("联系人手机号不能为空");
         }
         if (!phone.matches("^1[3-9]\\d{9}$")) {
+            logger.error("手机号格式错误");
             throw new IllegalArgumentException("手机号格式错误");
         }
         if (address == null || address.isEmpty()) {
+            logger.error("地址不能为空");
             throw new IllegalArgumentException("地址不能为空");
         }
         // 商户营业执照图片url，也不是必填项，但是如果传入过来，也得保存好
@@ -547,22 +646,25 @@ public class MerchantService {
         if (!phone.equals(existing.getMerchantPhone())) {
             String code = smsService.getCode(existing.getWechatId(), phone);
             if (code == null || !code.equals(merchant.getCode())) {
+                logger.error("验证码不正确");
                 throw new IllegalArgumentException("验证码不正确");
             }
             smsService.deleteCode(existing.getWechatId(), phone);
         }
 
+        Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(existing.getId());
+        MerchantMemberInfo info = infoOpt.orElse(null);
+
         boolean firstProfileUpdate =
                 (existing.getMerchantName() == null || existing.getMerchantName().isEmpty()) &&
-                (existing.getMerchantPhone() == null || existing.getMerchantPhone().isEmpty());
+                (existing.getMerchantPhone() == null || existing.getMerchantPhone().isEmpty())
+                || info == null;
 
-        MerchantMemberInfo updatedMemberInfo = null;
+        MerchantMemberInfo updatedMemberInfo = info;
         if (firstProfileUpdate) {
             LocalDateTime now = LocalDateTime.now();
             existing.setRegistrationDate(now);
 
-            Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(existing.getId());
-            MerchantMemberInfo info = infoOpt.orElse(null);
             if (info == null) {
                 info = new MerchantMemberInfo();
                 info.setMerchantId(existing.getId());
@@ -589,7 +691,7 @@ public class MerchantService {
         Merchant saved = save(existing);
 
         if (updatedMemberInfo != null) {
-            refreshLoginCache(saved, updatedMemberInfo);
+            updateLoginCache(saved, updatedMemberInfo);
         }
         return saved;
     }
@@ -611,10 +713,19 @@ public class MerchantService {
             info.getEndDate() != null && info.getEndDate().isAfter(java.time.LocalDateTime.now())) {
             merchant.setIsMember(1);
             merchant.setMemberExpireDate(info.getEndDate());
+            merchant.setMemberStartDate(info.getStartDate());
         } else {
             merchant.setIsMember(0);
             merchant.setMemberExpireDate(null);
         }
+        // 查询用户积分表merchant_member_integral，更新到merchant对象中
+        MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchant.getId()).orElse(null);
+        if (integral != null) {
+            merchant.setIntegral(integral.getIntegral());
+        } else {
+            merchant.setIntegral(0);
+        }
+
         
         try {
             ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());

@@ -49,8 +49,14 @@ public class Merchant {
     @Transient
     private Integer isMember; // 1: Yes, 0: No
 
+    // 会员开始时间
+    @Transient
+    private LocalDateTime memberStartDate;
     @Transient
     private LocalDateTime memberExpireDate;
+
+    @Transient
+    private Integer integral;
 
     @Column(name = "registration_date")
     private LocalDateTime registrationDate;
@@ -253,5 +259,21 @@ public class Merchant {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public void setMemberStartDate(LocalDateTime startDate) {
+        this.memberStartDate = startDate;
+    }
+
+    public LocalDateTime getMemberStartDate() {
+        return memberStartDate;
+    }
+
+    public Integer getIntegral() {
+        return integral;
+    }
+
+    public void setIntegral(Integer integral) {
+        this.integral = integral;
     }
 }

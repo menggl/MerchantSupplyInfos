@@ -14,6 +14,8 @@ import com.msi.repository.PhoneSeriesRepository;
 import com.msi.repository.PhoneSpecRepository;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class DictService {
+	private static final Logger logger = LoggerFactory.getLogger(DictService.class);
+
 	private final BrandRepository brandRepository;
 	private final PhoneSeriesRepository seriesRepository;
 	private final PhoneModelRepository modelRepository;
@@ -36,6 +40,8 @@ public class DictService {
 	private final Cache<Long, String> seriesNameCache;
 	private final Cache<Long, String> modelNameCache;
 	private final Cache<Long, String> specNameCache;
+	private final Cache<String, List<BrandDto>> allDictsCache;
+	private static final String ALL_DICTS_KEY = "ALL_DICTS";
 
 	public DictService(BrandRepository brandRepository, PhoneSeriesRepository seriesRepository,
 			PhoneModelRepository modelRepository, PhoneSpecRepository specRepository, CityDictRepository cityRepository,
@@ -62,9 +68,19 @@ public class DictService {
 				.expireAfterWrite(24, TimeUnit.HOURS)
 				.maximumSize(5000)
 				.build();
+		this.allDictsCache = CacheBuilder.newBuilder()
+				.expireAfterWrite(24, TimeUnit.HOURS)
+				.maximumSize(1)
+				.build();
 	}
 
 	public List<BrandDto> getAllDicts() {
+		List<BrandDto> cached = allDictsCache.getIfPresent(ALL_DICTS_KEY);
+		if (cached != null) {
+			logger.info("查询品牌、系列、型号、配置全量数据命中缓存，缓存大小: {}", cached.size());
+			return cached;
+		}
+
 		// 1. Fetch all data sorted
 		List<Brand> brands = brandRepository.findAll(Sort.by("sort").ascending());
 		List<PhoneSeries> allSeries = seriesRepository.findAll(Sort.by("sort").ascending());
@@ -85,7 +101,7 @@ public class DictService {
 				.collect(Collectors.groupingBy(s -> s.getModel().getId()));
 
 		// 3. Assemble DTOs
-		return brands.stream()
+		List<BrandDto> result = brands.stream()
 				.map(brand -> {
 					List<SeriesDto> seriesDtos = seriesMap.getOrDefault(brand.getId(), new ArrayList<>()).stream()
 							.map(series -> {
@@ -107,6 +123,11 @@ public class DictService {
 					return new BrandDto(brand.getId(), brand.getName(), seriesDtos);
 				})
 				.collect(Collectors.toList());
+
+		if (result != null) {
+			allDictsCache.put(ALL_DICTS_KEY, result);
+		}
+		return result;
 	}
 
 	public List<BrandDto> getAllBrands() {
@@ -158,7 +179,9 @@ public class DictService {
 	public Brand addBrand(String name) {
 		Brand brand = new Brand();
 		brand.setName(name);
-		return brandRepository.save(brand);
+		Brand saved = brandRepository.save(brand);
+		clearDictCache();
+		return saved;
 	}
 
 	public Brand updateBrand(Long id, String name) {
@@ -166,13 +189,16 @@ public class DictService {
 		if (optionalBrand.isPresent()) {
 			Brand brand = optionalBrand.get();
 			brand.setName(name);
-			return brandRepository.save(brand);
+			Brand saved = brandRepository.save(brand);
+			clearDictCache();
+			return saved;
 		}
 		return null;
 	}
 
 	public void deleteBrand(Long id) {
 		brandRepository.deleteById(id);
+		clearDictCache();
 	}
 
 	public void updateBrandSort(Long id, Integer sort) {
@@ -181,6 +207,7 @@ public class DictService {
 			Brand brand = optionalBrand.get();
 			brand.setSort(sort);
 			brandRepository.save(brand);
+			clearDictCache();
 		}
 	}
 
@@ -194,7 +221,9 @@ public class DictService {
 		series.setBrand(brand);
 		series.setSeriesName(seriesName);
 		series.setDeleted(0);
-		return seriesRepository.save(series);
+		PhoneSeries saved = seriesRepository.save(series);
+		clearDictCache();
+		return saved;
 	}
 
 	public PhoneSeries updateSeries(Long id, String seriesName) {
@@ -202,7 +231,9 @@ public class DictService {
 		if (optionalSeries.isPresent()) {
 			PhoneSeries series = optionalSeries.get();
 			series.setSeriesName(seriesName);
-			return seriesRepository.save(series);
+			PhoneSeries saved = seriesRepository.save(series);
+			clearDictCache();
+			return saved;
 		}
 		return null;
 	}
@@ -213,6 +244,7 @@ public class DictService {
 			PhoneSeries series = optionalSeries.get();
 			series.setDeleted(1);
 			seriesRepository.save(series);
+			clearDictCache();
 		}
 	}
 
@@ -222,6 +254,7 @@ public class DictService {
 			PhoneSeries series = optionalSeries.get();
 			series.setSort(sort);
 			seriesRepository.save(series);
+			clearDictCache();
 		}
 	}
 
@@ -242,7 +275,9 @@ public class DictService {
 		model.setSeries(ss.get(0));
 		model.setModelName(modelName);
 		model.setDeleted(0);
-		return modelRepository.save(model);
+		PhoneModel saved = modelRepository.save(model);
+		clearDictCache();
+		return saved;
 	}
 
 	public PhoneModel updateModel(Long id, String modelName) {
@@ -250,7 +285,9 @@ public class DictService {
 		if (optionalModel.isPresent()) {
 			PhoneModel model = optionalModel.get();
 			model.setModelName(modelName);
-			return modelRepository.save(model);
+			PhoneModel saved = modelRepository.save(model);
+			clearDictCache();
+			return saved;
 		}
 		return null;
 	}
@@ -261,6 +298,7 @@ public class DictService {
 			PhoneModel model = optionalModel.get();
 			model.setDeleted(1);
 			modelRepository.save(model);
+			clearDictCache();
 		}
 	}
 
@@ -270,6 +308,7 @@ public class DictService {
 			PhoneModel model = optionalModel.get();
 			model.setSort(sort);
 			modelRepository.save(model);
+			clearDictCache();
 		}
 	}
 
@@ -288,7 +327,9 @@ public class DictService {
 		spec.setModel(model);
 		spec.setSpecName(specName);
 		spec.setDeleted(0);
-		return specRepository.save(spec);
+		PhoneSpec saved = specRepository.save(spec);
+		clearDictCache();
+		return saved;
 	}
 
 	public PhoneSpec updateSpec(Long id, String specName) {
@@ -296,7 +337,9 @@ public class DictService {
 		if (optionalSpec.isPresent()) {
 			PhoneSpec spec = optionalSpec.get();
 			spec.setSpecName(specName);
-			return specRepository.save(spec);
+			PhoneSpec saved = specRepository.save(spec);
+			clearDictCache();
+			return saved;
 		}
 		return null;
 	}
@@ -307,6 +350,7 @@ public class DictService {
 			PhoneSpec spec = optionalSpec.get();
 			spec.setDeleted(1);
 			specRepository.save(spec);
+			clearDictCache();
 		}
 	}
 
@@ -316,7 +360,12 @@ public class DictService {
 			PhoneSpec spec = optionalSpec.get();
 			spec.setSort(sort);
 			specRepository.save(spec);
+			clearDictCache();
 		}
+	}
+
+	private void clearDictCache() {
+		allDictsCache.invalidate(ALL_DICTS_KEY);
 	}
 
 	// 根据ID获取实体的方法

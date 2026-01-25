@@ -17,9 +17,14 @@ public class MerchantProductModelDto {
   private Integer productType;
   private LocalDateTime updateTime;
   private Integer price;
+  private Integer stock;
   private String secondHandCondition;
   private String remark;
   private String otherRemark;
+  private String secondHandVersion;
+  private String secondHandFunction;
+  private Integer batteryStatus;
+  private java.util.List<ProductImageDto> images;
 
   public Long getProductId() {
     return productId;
@@ -133,6 +138,14 @@ public class MerchantProductModelDto {
     this.price = price;
   }
 
+  public Integer getStock() {
+    return stock;
+  }
+
+  public void setStock(Integer stock) {
+    this.stock = stock;
+  }
+
   public String getSecondHandCondition() {
     return secondHandCondition;
   }
@@ -155,5 +168,37 @@ public class MerchantProductModelDto {
 
   public void setOtherRemark(String otherRemark) {
     this.otherRemark = otherRemark;
+  }
+
+  public String getSecondHandVersion() {
+    return secondHandVersion;
+  }
+
+  public void setSecondHandVersion(String secondHandVersion) {
+    this.secondHandVersion = secondHandVersion;
+  }
+
+  public String getSecondHandFunction() {
+        return secondHandFunction;
+    }
+
+    public void setSecondHandFunction(String secondHandFunction) {
+        this.secondHandFunction = secondHandFunction;
+    }
+
+    public Integer getBatteryStatus() {
+    return batteryStatus;
+  }
+
+  public void setBatteryStatus(Integer batteryStatus) {
+    this.batteryStatus = batteryStatus;
+  }
+
+  public java.util.List<ProductImageDto> getImages() {
+    return images;
+  }
+
+  public void setImages(java.util.List<ProductImageDto> images) {
+    this.images = images;
   }
 }

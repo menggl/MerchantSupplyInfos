@@ -2,10 +2,10 @@ package com.msi.admin.service;
 
 import com.msi.admin.domain.Merchant;
 import com.msi.admin.domain.MerchantMemberInfo;
-import com.msi.admin.domain.MerchantMemberRecharge;
+import com.msi.admin.domain.MerchantRechargeOrder;
 import com.msi.admin.domain.MerchantPhoneProduct;
 import com.msi.admin.repository.MerchantMemberInfoRepository;
-import com.msi.admin.repository.MerchantMemberRechargeRepository;
+import com.msi.admin.repository.MerchantRechargeOrderRepository;
 import com.msi.admin.repository.MerchantPhoneProductRepository;
 import com.msi.admin.repository.MerchantRepository;
 import org.springframework.stereotype.Service;
@@ -26,16 +26,16 @@ public class DashboardService {
     private final MerchantRepository merchantRepository;
     private final MerchantPhoneProductRepository merchantPhoneProductRepository;
     private final MerchantMemberInfoRepository merchantMemberInfoRepository;
-    private final MerchantMemberRechargeRepository merchantMemberRechargeRepository;
+    private final MerchantRechargeOrderRepository merchantRechargeOrderRepository;
 
     public DashboardService(MerchantRepository merchantRepository,
                             MerchantPhoneProductRepository merchantPhoneProductRepository,
                             MerchantMemberInfoRepository merchantMemberInfoRepository,
-                            MerchantMemberRechargeRepository merchantMemberRechargeRepository) {
+                            MerchantRechargeOrderRepository merchantRechargeOrderRepository) {
         this.merchantRepository = merchantRepository;
         this.merchantPhoneProductRepository = merchantPhoneProductRepository;
         this.merchantMemberInfoRepository = merchantMemberInfoRepository;
-        this.merchantMemberRechargeRepository = merchantMemberRechargeRepository;
+        this.merchantRechargeOrderRepository = merchantRechargeOrderRepository;
     }
 
     public Map<String, Object> getDashboardStats() {
@@ -53,7 +53,7 @@ public class DashboardService {
         List<Merchant> merchants = merchantRepository.findAll();
         List<MerchantPhoneProduct> products = merchantPhoneProductRepository.findAll();
         List<MerchantMemberInfo> memberInfos = merchantMemberInfoRepository.findAll();
-        List<MerchantMemberRecharge> recharges = merchantMemberRechargeRepository.findAll();
+        List<MerchantRechargeOrder> recharges = merchantRechargeOrderRepository.findAll();
 
         List<Merchant> validMerchants = merchants.stream()
                 .filter(m -> m.getIsValid() == null || m.getIsValid() == 1)
@@ -64,8 +64,8 @@ public class DashboardService {
         List<MerchantMemberInfo> validMemberInfos = memberInfos.stream()
                 .filter(info -> info.getIsValid() == null || info.getIsValid() == 1)
                 .toList();
-        List<MerchantMemberRecharge> validRecharges = recharges.stream()
-                .filter(r -> r.getIsValid() == null || r.getIsValid() == 1)
+        List<MerchantRechargeOrder> validRecharges = recharges.stream()
+                .filter(r -> r.getStatus() != null && r.getStatus() == 1)
                 .toList();
 
         Map<LocalDate, Long> merchantDailyCount = validMerchants.stream()
@@ -93,16 +93,16 @@ public class DashboardService {
                 .count();
 
         Map<LocalDate, BigDecimal> rechargeDailyAmount = validRecharges.stream()
-                .filter(r -> r.getRechargeTime() != null && !r.getRechargeTime().isBefore(fromDateTime))
-                .collect(Collectors.groupingBy(r -> r.getRechargeTime().toLocalDate(),
-                        Collectors.mapping(r -> r.getRechargeAmount() != null ? r.getRechargeAmount() : BigDecimal.ZERO,
+                .filter(r -> r.getCreateTime() != null && !r.getCreateTime().isBefore(fromDateTime))
+                .collect(Collectors.groupingBy(r -> r.getCreateTime().toLocalDate(),
+                        Collectors.mapping(r -> r.getTotalAmount() != null ? new BigDecimal(r.getTotalAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO,
                                 Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
         BigDecimal rechargeTotalAmount = validRecharges.stream()
-                .map(r -> r.getRechargeAmount() != null ? r.getRechargeAmount() : BigDecimal.ZERO)
+                .map(r -> r.getTotalAmount() != null ? new BigDecimal(r.getTotalAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal rechargeBaseAmount = validRecharges.stream()
-                .filter(r -> r.getRechargeTime() == null || r.getRechargeTime().isBefore(fromDateTime))
-                .map(r -> r.getRechargeAmount() != null ? r.getRechargeAmount() : BigDecimal.ZERO)
+                .filter(r -> r.getCreateTime() == null || r.getCreateTime().isBefore(fromDateTime))
+                .map(r -> r.getTotalAmount() != null ? new BigDecimal(r.getTotalAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Map<String, Object> merchantStats = buildCountSeries(dateRange, merchantDailyCount, merchantTotalCount, merchantBaseCount);

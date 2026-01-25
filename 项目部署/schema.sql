@@ -7,7 +7,7 @@ USE msi;
 -- 手机品牌表
 DROP TABLE IF EXISTS brand;
 CREATE TABLE IF NOT EXISTS brand (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   name VARCHAR(64) UNIQUE,
   sort INT DEFAULT 0,
   deleted TINYINT DEFAULT 0
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS brand (
 -- 手机系列表
 DROP TABLE IF EXISTS phone_series;
 CREATE TABLE IF NOT EXISTS phone_series (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   brand_id BIGINT,
   series_name VARCHAR(64),
   sort INT DEFAULT 0,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS phone_series (
 -- 手机型号表
 DROP TABLE IF EXISTS phone_model;
 CREATE TABLE IF NOT EXISTS phone_model (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   brand_id BIGINT,
   series_id BIGINT,
   model_name VARCHAR(128),
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS phone_model (
 -- 手机规格表
 DROP TABLE IF EXISTS phone_spec;
 CREATE TABLE IF NOT EXISTS phone_spec (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   brand_id BIGINT,
   series_id BIGINT,
   model_id BIGINT,
@@ -46,20 +46,6 @@ CREATE TABLE IF NOT EXISTS phone_spec (
   deleted TINYINT DEFAULT 0
 );
 
-INSERT INTO brand (name, sort) VALUES ('苹果', 100), ('华为', 90), ('小米', 80), ('OPPO', 70), ('VIVO', 60), ('荣耀', 50);
-
-INSERT INTO phone_series (brand_id, series_name, sort) SELECT id, 'iPhone', 100 FROM brand WHERE name = '苹果';
-INSERT INTO phone_series (brand_id, series_name, sort) SELECT id, 'Mate', 100 FROM brand WHERE name = '华为';
-INSERT INTO phone_series (brand_id, series_name, sort) SELECT id, 'P', 90 FROM brand WHERE name = '华为';
-INSERT INTO phone_series (brand_id, series_name, sort) SELECT id, '小米', 100 FROM brand WHERE name = '小米';
-
-INSERT INTO phone_model (brand_id, series_id, model_name, sort) SELECT b.id, s.id, 'iPhone 16 Pro Max', 100 FROM brand b, phone_series s WHERE b.name = '苹果' AND s.series_name = 'iPhone';
-INSERT INTO phone_model (brand_id, series_id, model_name, sort) SELECT b.id, s.id, 'iPhone 15', 90 FROM brand b, phone_series s WHERE b.name = '苹果' AND s.series_name = 'iPhone';
-INSERT INTO phone_model (brand_id, series_id, model_name, sort) SELECT b.id, s.id, 'Mate 60 Pro', 100 FROM brand b, phone_series s WHERE b.name = '华为' AND s.series_name = 'Mate';
-
-INSERT INTO phone_spec (brand_id, series_id, model_id, spec_name, sort) SELECT b.id, s.id, m.id, '1TB 黑色', 100 FROM brand b, phone_series s, phone_model m WHERE b.name = '苹果' AND s.series_name = 'iPhone' AND m.model_name = 'iPhone 16 Pro Max';
-INSERT INTO phone_spec (brand_id, series_id, model_id, spec_name, sort) SELECT b.id, s.id, m.id, '128G 白色', 90 FROM brand b, phone_series s, phone_model m WHERE b.name = '苹果' AND s.series_name = 'iPhone' AND m.model_name = 'iPhone 15';
-INSERT INTO phone_spec (brand_id, series_id, model_id, spec_name, sort) SELECT b.id, s.id, m.id, '512G 雅川青', 100 FROM brand b, phone_series s, phone_model m WHERE b.name = '华为' AND s.series_name = 'Mate' AND m.model_name = 'Mate 60 Pro';
 
 -- 商户信息表
 DROP TABLE IF EXISTS merchant_info;
@@ -84,28 +70,6 @@ CREATE TABLE IF NOT EXISTS merchant_info (
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-INSERT INTO merchant_info (
-  wechat_id,
-  token,
-  wechat_name,
-  merchant_name,
-  merchant_phone,
-  registration_date,
-  cancellation_date,
-  city_code,
-  merchant_address,
-  latitude,
-  longitude,
-  business_license_url,
-  contact_name,
-  is_valid
-) VALUES
-('wx_test_0001', 'token_0001', '张三', '张三通讯', '13800000001', '2026-01-10 09:00:00', NULL, ' 370100', '济南市历下区泉城路1号', 36.651200, 117.120100, 'https://example.com/licenses/merchant_0001.jpg', '张三', 1),
-('wx_test_0002', 'token_0002', '李四', '李四数码', '13800000002', '2026-01-10 09:00:00', NULL, '440300', '深圳市南山区科技园科苑路88号', 22.542900, 113.959000, 'https://example.com/licenses/merchant_0002.jpg', '李四', 1),
-('wx_test_0003', 'token_0003', '王五', '王五手机城', '13800000003', '2026-01-10 09:00:00', NULL, '410100', '郑州市金水区花园路66号', 34.765700, 113.753200, 'https://example.com/licenses/merchant_0003.jpg', '王五', 1),
-('wx_test_0004', 'token_0004', '赵六', '赵六通讯广场', '13800000004', '2026-01-10 09:00:00', NULL, '110000', '北京市朝阳区建国路99号', 39.908700, 116.397500, 'https://example.com/licenses/merchant_0004.jpg', '赵六', 1),
-('wx_test_0005', 'token_0005', '钱七', '钱七二手数码', '13800000005', '2026-01-10 09:00:00', NULL, '510100', '成都市武侯区人民南路四段3号', 30.657000, 104.066500, 'https://example.com/licenses/merchant_0005.jpg', '钱七', 1),
-('wx_test_0006', 'token_0006', '孙八', '孙八通讯', '13800000006', '2026-01-10 09:00:00', NULL, '610100', '西安市雁塔区高新路12号', 34.220200, 108.910700, 'https://example.com/licenses/merchant_0006.jpg', '孙八', 1);
 
 -- 会员信息表
 DROP TABLE IF EXISTS merchant_member_info;
@@ -127,25 +91,6 @@ CREATE TABLE IF NOT EXISTS merchant_member_info (
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );
 
-INSERT INTO merchant_member_info (
-  merchant_id,
-  registration_date,
-  cancellation_date,
-  start_date,
-  end_date,
-  member_type,
-  payment_amount,
-  original_price,
-  discount_price,
-  commission,
-  is_valid
-) VALUES
-(1, '2026-01-01 10:00:00', NULL, '2026-01-01 10:00:00', '2026-12-31 23:59:59', 2, 0.00, 0.00, 0.00, 0.00, 1),
-(2, '2026-01-02 11:00:00', NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 1),
-(3, '2026-01-03 09:30:00', NULL, '2026-01-03 09:30:00', '2026-02-02 23:59:59', 1, 100.00, 120.00, 20.00, 0.00, 1),
-(4, '2026-01-04 14:20:00', NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 1),
-(5, '2026-01-05 16:45:00', NULL, '2026-01-05 16:45:00', '2027-01-04 23:59:59', 2, 1000.00, 1200.00, 200.00, 0.00, 1),
-(6, '2026-01-06 08:15:00', NULL, '2026-01-06 08:15:00', '2026-02-05 23:59:59', 1, 100.00, 120.00, 20.00, 0.00, 1);
 
 -- 会员积分表
 DROP TABLE IF EXISTS merchant_member_integral;
@@ -171,20 +116,6 @@ CREATE TABLE IF NOT EXISTS merchant_member_integral_spend (
   change_time DATETIME COMMENT '变更时间'
 );
 
-INSERT INTO merchant_member_integral (merchant_id, integral, is_valid) VALUES
-(1, 960, 1),
-(3, 10, 1),
-(5, 400, 1),
-(6, 200, 1);
-
-INSERT INTO merchant_member_integral_spend (merchant_id, integral_before_spend, integral_after_spend, change_amount, change_reason, order_id, change_time) VALUES
-(1, 0, 1000, 1000, '花钱充值积分', NULL, '2026-01-02 10:00:00'),
-(1, 1000, 1010, 10, '签到送积分', NULL, '2026-01-03 09:00:00'),
-(1, 1010, 960, -50, '花费积分求购', 1001, '2026-01-04 14:30:00'),
-(3, 0, 10, 10, '签到送积分', NULL, '2026-01-03 10:00:00'),
-(5, 0, 500, 500, '花钱充值积分', NULL, '2026-01-05 17:00:00'),
-(5, 500, 400, -100, '花费积分求购', 1002, '2026-01-06 11:20:00'),
-(6, 0, 200, 200, '花钱充值积分', NULL, '2026-01-06 09:00:00');
 
 
 DROP TABLE IF EXISTS city_dict;
@@ -194,29 +125,30 @@ CREATE TABLE IF NOT EXISTS city_dict (
   city_name VARCHAR(128),
   sort INT DEFAULT 0,
   valid INT DEFAULT 1,
+  is_online INT DEFAULT 0,
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
   modify_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-INSERT INTO city_dict (city_code, city_name, sort, valid) VALUES
-('000000', '全国', 1, 1),
-('410100', '郑州市', 2, 1),
-('440300', '深圳市', 3, 1),
-('370100', '济南市', 4, 1),
-('510100', '成都市', 5, 1),
-('110000', '北京市', 6, 1),
-('610100', '西安市', 7, 1),
-('120000', '天津市', 8, 1),
-('620100', '兰州市', 9, 1),
-('420100', '武汉市', 10, 1),
-('330100', '杭州市', 11, 1),
-('130100', '石家庄市', 12, 1),
-('430100', '长沙市', 13, 1),
-('320100', '南京市', 14, 1),
-('310000', '上海市', 15, 1),
-('140100', '太原市', 16, 1),
-('530100', '昆明市', 17, 1),
-('640100', '银川市', 18, 1);
+INSERT INTO city_dict (city_code, city_name, sort, valid, is_online) VALUES
+('000000', '全国', 1, 1, 1),
+('410100', '郑州市', 2, 1, 0),
+('440300', '深圳市', 3, 1, 0),
+('370100', '济南市', 4, 1, 1),
+('510100', '成都市', 5, 1, 0),
+('110000', '北京市', 6, 1, 0),
+('610100', '西安市', 7, 1, 0),
+('120000', '天津市', 8, 1, 0),
+('620100', '兰州市', 9, 1, 0),
+('420100', '武汉市', 10, 1, 0),
+('330100', '杭州市', 11, 1, 0),
+('130100', '石家庄市', 12, 1, 0),
+('430100', '长沙市', 13, 1, 0),
+('320100', '南京市', 14, 1, 0),
+('310000', '上海市', 15, 1, 0),
+('140100', '太原市', 16, 1, 0),
+('530100', '昆明市', 17, 1, 0),
+('640100', '银川市', 18, 1, 0);
 
 DROP TABLE IF EXISTS phone_remark_dict;
 CREATE TABLE IF NOT EXISTS phone_remark_dict (
@@ -309,11 +241,6 @@ INSERT INTO phone_remark_dict (remark_name, sort, valid, type) VALUES
 ('功能有轻度异常', 8, 1, 4);
 
 
-
-
-
-
-
 -- 商户上架二手手机产品表
 DROP TABLE IF EXISTS merchant_phone_product;
 CREATE TABLE IF NOT EXISTS merchant_phone_product (
@@ -343,49 +270,6 @@ CREATE TABLE IF NOT EXISTS merchant_phone_product (
   KEY idx_merchant_phone_product_search (city_code, product_type, brand_id, series_id, model_id, spec_id)
 );
 
-INSERT INTO merchant_phone_product (
-  merchant_id, brand_id, series_id, model_id, spec_id, city_code,
-  product_type, remark, other_remark,
-  second_hand_version, second_hand_condition, second_hand_function, battery_status,
-  description, price, stock, listing_time
-) VALUES
-(
-  1,
-  (SELECT id FROM brand WHERE name = '苹果'),
-  (SELECT id FROM phone_series WHERE series_name = 'iPhone'),
-  (SELECT id FROM phone_model WHERE model_name = 'iPhone 16 Pro Max'),
-  (SELECT id FROM phone_spec WHERE spec_name = '1TB 黑色'),
-  '370100', -- Jinan
-  0, -- New
-  '保证全国纯原', '当天发货',
-  NULL, NULL, NULL, NULL,
-  '全新未拆封，正品保证', 9999, 10, NOW()
-),
-(
-  5,
-  (SELECT id FROM brand WHERE name = '苹果'),
-  (SELECT id FROM phone_series WHERE series_name = 'iPhone'),
-  (SELECT id FROM phone_model WHERE model_name = 'iPhone 15'),
-  (SELECT id FROM phone_spec WHERE spec_name = '128G 白色'),
-  '510100', -- Chengdu
-  1, -- Second-hand
-  NULL, NULL,
-  '大陆国行', '细微磕碰划痕', '无任何维修', 95,
-  '个人自用一手，成色很好', 3500, 1, NOW()
-),
-(
-  6,
-  (SELECT id FROM brand WHERE name = '华为'),
-  (SELECT id FROM phone_series WHERE series_name = 'Mate'),
-  (SELECT id FROM phone_model WHERE model_name = 'Mate 60 Pro'),
-  (SELECT id FROM phone_spec WHERE spec_name = '512G 雅川青'),
-  '610100', -- Xi'an
-  0, -- New
-  '公司纯原封', '送手机壳',
-  NULL, NULL, NULL, NULL,
-  '遥遥领先', 6999, 5, NOW()
-);
-
 DROP TABLE IF EXISTS merchant_product_image;
 CREATE TABLE IF NOT EXISTS merchant_product_image (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -396,27 +280,7 @@ CREATE TABLE IF NOT EXISTS merchant_product_image (
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );
 
-INSERT INTO merchant_product_image (product_id, image_url) VALUES
-(
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 1 AND description = '全新未拆封，正品保证'),
-  'https://example.com/products/iphone16promax_1.jpg'
-),
-(
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 1 AND description = '全新未拆封，正品保证'),
-  'https://example.com/products/iphone16promax_2.jpg'
-),
-(
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 5 AND description = '个人自用一手，成色很好'),
-  'https://example.com/products/iphone15_1.jpg'
-),
-(
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 6 AND description = '遥遥领先'),
-  'https://example.com/products/mate60pro_1.jpg'
-),
-(
-  (SELECT id FROM merchant_phone_product WHERE merchant_id = 6 AND description = '遥遥领先'),
-  'https://example.com/products/mate60pro_2.jpg'
-);
+
 
 -- 求购信息表
 DROP TABLE IF EXISTS buy_request;
@@ -440,48 +304,6 @@ CREATE TABLE IF NOT EXISTS buy_request (
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );
 
-
-insert into buy_request (merchant_id, brand_id, series_id, model_id, spec_id, city_code, product_type, buy_count, min_price, max_price, deadline, cost_integral)
-values
-(
-  (SELECT id FROM merchant_info WHERE merchant_name = '张三通讯'),
-  (SELECT id FROM brand WHERE name = '苹果'),
-  (SELECT id FROM phone_series WHERE series_name = 'iPhone'),
-  (SELECT id FROM phone_model WHERE model_name = 'iPhone 16 Pro Max'),
-  (SELECT id FROM phone_spec WHERE spec_name = '1TB 黑色'),
-  '370100', -- Jinan
-  0, -- New
-  1, -- 1 piece
-  9000, 10000, -- price range
-  '2024-08-01 23:59:59', -- deadline
-  100 -- cost integral
-),
-(
-  (SELECT id FROM merchant_info WHERE merchant_name = '李四数码'),
-  (SELECT id FROM brand WHERE name = '苹果'),
-  (SELECT id FROM phone_series WHERE series_name = 'iPhone'),
-  (SELECT id FROM phone_model WHERE model_name = 'iPhone 15'),
-  (SELECT id FROM phone_spec WHERE spec_name = '128G 白色'),
-  '440300', -- Shenzhen
-  1, -- Second hand
-  2, -- 2 pieces
-  4000, 5000, -- price range
-  '2024-09-01 23:59:59', -- deadline
-  50 -- cost integral
-),
-(
-  (SELECT id FROM merchant_info WHERE merchant_name = '王五手机城'),
-  (SELECT id FROM brand WHERE name = '华为'),
-  (SELECT id FROM phone_series WHERE series_name = 'Mate'),
-  (SELECT id FROM phone_model WHERE model_name = 'Mate 60 Pro'),
-  (SELECT id FROM phone_spec WHERE spec_name = '512G 雅川青'),
-  '410100', -- Zhengzhou
-  0, -- New
-  5, -- 5 pieces
-  6000, 7000, -- price range
-  '2024-10-01 23:59:59', -- deadline
-  200 -- cost integral
-);
 
 -- 后台管理登录用户表
 DROP TABLE IF EXISTS admin_user;

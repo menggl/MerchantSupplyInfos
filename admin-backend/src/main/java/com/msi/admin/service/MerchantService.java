@@ -5,12 +5,12 @@ import com.msi.admin.domain.Merchant;
 import com.msi.admin.domain.MerchantMemberInfo;
 import com.msi.admin.domain.MerchantMemberIntegral;
 import com.msi.admin.domain.MerchantMemberIntegralSpend;
-import com.msi.admin.domain.MerchantMemberRecharge;
+import com.msi.admin.domain.MerchantRechargeOrder;
 import com.msi.admin.repository.CityDictRepository;
 import com.msi.admin.repository.MerchantMemberInfoRepository;
 import com.msi.admin.repository.MerchantMemberIntegralRepository;
 import com.msi.admin.repository.MerchantMemberIntegralSpendRepository;
-import com.msi.admin.repository.MerchantMemberRechargeRepository;
+import com.msi.admin.repository.MerchantRechargeOrderRepository;
 import com.msi.admin.repository.MerchantRepository;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Join;
@@ -22,6 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 public class MerchantService {
     private final MerchantRepository merchantRepository;
     private final MerchantMemberInfoRepository merchantMemberInfoRepository;
-    private final MerchantMemberRechargeRepository merchantMemberRechargeRepository;
+    private final MerchantRechargeOrderRepository merchantRechargeOrderRepository;
     private final MerchantMemberIntegralRepository merchantMemberIntegralRepository;
     private final MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository;
     private final CityDictRepository cityDictRepository;
@@ -42,14 +43,14 @@ public class MerchantService {
     public MerchantService(
         MerchantRepository merchantRepository,
         MerchantMemberInfoRepository merchantMemberInfoRepository,
-        MerchantMemberRechargeRepository merchantMemberRechargeRepository,
+        MerchantRechargeOrderRepository merchantRechargeOrderRepository,
         MerchantMemberIntegralRepository merchantMemberIntegralRepository,
         MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository,
         CityDictRepository cityDictRepository
     ) {
         this.merchantRepository = merchantRepository;
         this.merchantMemberInfoRepository = merchantMemberInfoRepository;
-        this.merchantMemberRechargeRepository = merchantMemberRechargeRepository;
+        this.merchantRechargeOrderRepository = merchantRechargeOrderRepository;
         this.merchantMemberIntegralRepository = merchantMemberIntegralRepository;
         this.merchantMemberIntegralSpendRepository = merchantMemberIntegralSpendRepository;
         this.cityDictRepository = cityDictRepository;
@@ -84,16 +85,18 @@ public class MerchantService {
         detail.put("createTime", merchant.getCreateTime());
         detail.put("updateTime", merchant.getUpdateTime());
 
-        List<MerchantMemberRecharge> rechargeRecords = merchantMemberRechargeRepository.findByMerchantIdOrderByRechargeTimeDesc(id);
+        List<MerchantRechargeOrder> rechargeRecords = merchantRechargeOrderRepository.findByMerchantIdOrderByCreateTimeDesc(id);
         detail.put("rechargeRecords", rechargeRecords.stream().map(record -> {
             Map<String, Object> item = new HashMap<>();
             item.put("id", record.getId());
-            item.put("rechargeAmount", record.getRechargeAmount());
-            item.put("originalPrice", record.getOriginalPrice());
-            item.put("discountAmount", record.getDiscountAmount());
+            item.put("rechargeAmount", record.getTotalAmount() != null ? new BigDecimal(record.getTotalAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO);
+            item.put("originalPrice", record.getTotalAmount() != null ? new BigDecimal(record.getTotalAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO);
+            item.put("discountAmount", BigDecimal.ZERO);
             item.put("rechargeType", record.getRechargeType());
-            item.put("rechargeTime", record.getRechargeTime());
-            item.put("isValid", record.getIsValid());
+            item.put("memberMonths", record.getMemberMonths());
+            item.put("integralAmount", record.getIntegralAmount());
+            item.put("rechargeTime", record.getCreateTime());
+            item.put("isValid", record.getStatus() == 1 ? 1 : 0);
             return item;
         }).collect(Collectors.toList()));
 
@@ -198,6 +201,11 @@ public class MerchantService {
             merchantRepository.save(merchant);
             return true;
         }).orElse(false);
+    }
+
+    public Page<MerchantMemberIntegralSpend> getMerchantIntegralLogs(Long merchantId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        return merchantMemberIntegralSpendRepository.findByMerchantIdOrderByChangeTimeDesc(merchantId, pageRequest);
     }
 }
 

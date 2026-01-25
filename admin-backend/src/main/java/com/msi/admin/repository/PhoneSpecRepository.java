@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PhoneSpecRepository extends JpaRepository<PhoneSpec, Long> {
-  List<PhoneSpec> findByModel(PhoneModel model);
-  Optional<PhoneSpec> findByModelAndSpecName(PhoneModel model, String specName);
+  List<PhoneSpec> findByModelId(Long modelId);
+  Optional<PhoneSpec> findByModelIdAndSpecName(Long modelId, String specName);
 
-  @Query("SELECT MAX(s.sort) FROM PhoneSpec s WHERE s.model.id = :modelId")
+  @Query("SELECT MAX(s.sort) FROM PhoneSpec s WHERE s.modelId = :modelId")
   Integer findMaxSortByModelId(@Param("modelId") Long modelId);
 
   @Query("SELECT MAX(s.id) FROM PhoneSpec s")
