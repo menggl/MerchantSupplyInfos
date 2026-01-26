@@ -30,6 +30,7 @@ public class DictController {
    * 返回sort字段，用于前端展示排序使用
    * 返回对应的层级关系，下一级数据为上一级的json数组，下一级的key值分别为seriesArr，modelArr,specArr
    */
+  @Deprecated
   @GetMapping("/dict/all")
   public List<BrandDto> allDicts() {
     return dictService.getAllDicts();
@@ -44,8 +45,25 @@ public class DictController {
   }
 
   /**
+   * 根据品牌ID查询其下面的所有系列、型号、配置信息
+   * 品牌下面的系列（phone_series）根据sort字段升序排列，deleted字段必须为0，返回id，series_name，sort三个字段
+   * 品牌下面的型号（phone_model）根据sort字段升序排列，deleted字段必须为0，返回id，model_name，sort三个字段
+   * 品牌下面的配置（phone_spec）根据sort字段升序排列，deleted字段必须为0，返回id，spec_name，sort三个字段
+   * 该接口使用一个新创建的dto来封装返回数据，包含brandId、seriesArr、modelArr、specArr四个字段
+   * seriesArr字段为品牌下面的所有系列信息，每个系列信息包含id、series_name、sort三个字段
+   * modelArr字段为品牌下面的所有型号信息，每个型号信息包含id、model_name、sort三个字段
+   * specArr字段为品牌下面的所有配置信息，每个配置信息包含id、spec_name、sort三个字段
+   * 该接口返回的json数据中，brandId字段为请求参数中的品牌ID，seriesArr字段为品牌下面的所有系列信息，modelArr字段为品牌下面的所有型号信息，specArr字段为品牌下面的所有配置信息
+   */
+  @GetMapping("/dict/brand-details/{brandId}")
+  public com.msi.dto.BrandDetailsDto brandDetails(@PathVariable Long brandId) {
+    return dictService.getBrandDetails(brandId);
+  }
+
+  /**
    * 根据品牌ID查询所有的系列信息，返回给前端，包含品牌ID，系列ID，系列名称，系列排序字段
    */
+  @Deprecated
   @GetMapping("/dict/series/{brandId}")
   public List<SeriesDto> allSeries(@PathVariable Long brandId) {
     return dictService.getAllSeries(brandId);
@@ -54,6 +72,7 @@ public class DictController {
   /**
    * 根据系列ID查询所有的型号信息，返回给前端，包含品牌ID，系列ID，型号ID，型号名称，型号排序字段
    */
+  @Deprecated
   @GetMapping("/dict/models/{seriesId}")
   public List<ModelDto> allModels(@PathVariable Long seriesId) {
     return dictService.getAllModels(seriesId);
@@ -62,6 +81,7 @@ public class DictController {
   /**
    * 根据型号ID查询所有的配置信息，返回给前端，包含品牌ID，系列ID，型号ID，配置ID，配置名称，配置排序字段
    */
+  @Deprecated
   @GetMapping("/dict/specs/{modelId}")
   public List<SpecDto> allSpecs(@PathVariable Long modelId) {
     return dictService.getAllSpecs(modelId);

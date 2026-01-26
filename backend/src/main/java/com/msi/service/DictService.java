@@ -12,11 +12,14 @@ import com.msi.repository.PhoneModelRepository;
 import com.msi.repository.PhoneRemarkDictRepository;
 import com.msi.repository.PhoneSeriesRepository;
 import com.msi.repository.PhoneSpecRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,6 +39,8 @@ public class DictService {
 	private final PhoneSpecRepository specRepository;
 	private final CityDictRepository cityRepository;
 	private final PhoneRemarkDictRepository phoneRemarkDictRepository;
+	private final StringRedisTemplate redisTemplate;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 	private final Cache<Long, String> brandNameCache;
 	private final Cache<Long, String> seriesNameCache;
 	private final Cache<Long, String> modelNameCache;
@@ -45,13 +50,14 @@ public class DictService {
 
 	public DictService(BrandRepository brandRepository, PhoneSeriesRepository seriesRepository,
 			PhoneModelRepository modelRepository, PhoneSpecRepository specRepository, CityDictRepository cityRepository,
-			PhoneRemarkDictRepository phoneRemarkDictRepository) {
+			PhoneRemarkDictRepository phoneRemarkDictRepository, StringRedisTemplate redisTemplate) {
 		this.brandRepository = brandRepository;
 		this.seriesRepository = seriesRepository;
 		this.modelRepository = modelRepository;
 		this.specRepository = specRepository;
 		this.cityRepository = cityRepository;
 		this.phoneRemarkDictRepository = phoneRemarkDictRepository;
+		this.redisTemplate = redisTemplate;
 		this.brandNameCache = CacheBuilder.newBuilder()
 				.expireAfterWrite(24, TimeUnit.HOURS)
 				.maximumSize(1000)
@@ -131,11 +137,28 @@ public class DictService {
 	}
 
 	public List<BrandDto> getAllBrands() {
-		
-		return brandRepository.findAll(Sort.by("sort").ascending()).stream()
+		String key = "dict:brands";
+		String cached = redisTemplate.opsForValue().get(key);
+		if (cached != null && !cached.isEmpty()) {
+			try {
+				return objectMapper.readValue(cached, new TypeReference<List<BrandDto>>() {});
+			} catch (Exception e) {
+				logger.error("Failed to parse cached brands", e);
+			}
+		}
+
+		List<BrandDto> list = brandRepository.findAll(Sort.by("sort").ascending()).stream()
 				.filter(b -> b.getDeleted() == null || b.getDeleted() == 0)
 				.map(brand -> new BrandDto(brand.getId(), brand.getName(), null))
 				.collect(Collectors.toList());
+
+		try {
+			String json = objectMapper.writeValueAsString(list);
+			redisTemplate.opsForValue().set(key, json, 1, TimeUnit.HOURS);
+		} catch (Exception e) {
+			logger.error("Failed to cache brands", e);
+		}
+		return list;
 	}
 
 	public List<SeriesDto> getAllSeries(Long brandId) {
@@ -173,6 +196,76 @@ public class DictService {
 				.filter(s -> s.getDeleted() == null || s.getDeleted() == 0)
 				.map(spec -> new SpecDto(brandId, seriesId, modelId, spec.getId(), spec.getSpecName()))
 				.collect(Collectors.toList());
+	}
+
+	public BrandDetailsDto getBrandDetails(Long brandId) {
+		String key = "dict:brand_details:" + brandId;
+		String cached = redisTemplate.opsForValue().get(key);
+		if (cached != null && !cached.isEmpty()) {
+			try {
+				return objectMapper.readValue(cached, BrandDetailsDto.class);
+			} catch (Exception e) {
+				logger.error("Failed to parse cached brand details", e);
+			}
+		}
+
+		BrandDetailsDto dto = new BrandDetailsDto();
+		dto.setBrandId(brandId);
+
+		// 1. Fetch all data for the brand
+		List<PhoneSeries> seriesList = seriesRepository.findByBrandIdAndDeletedOrderBySortAsc(brandId, 0);
+		List<PhoneModel> modelList = modelRepository.findByBrandIdAndDeletedOrderBySortAsc(brandId, 0);
+		List<PhoneSpec> specList = specRepository.findByBrandIdAndDeletedOrderBySortAsc(brandId, 0);
+
+		// 2. Group specs by model ID
+		Map<Long, List<PhoneSpec>> specMap = specList.stream()
+				.collect(Collectors.groupingBy(s -> s.getModel().getId()));
+
+		// 3. Group models by series ID
+		Map<Long, List<PhoneModel>> modelMap = modelList.stream()
+				.collect(Collectors.groupingBy(m -> m.getSeries().getId()));
+
+		// 4. Build hierarchy
+		List<BrandDetailsDto.SeriesItem> seriesItems = seriesList.stream()
+				.map(s -> {
+					// Get models for this series
+					List<PhoneModel> models = modelMap.getOrDefault(s.getId(), new ArrayList<>());
+					List<BrandDetailsDto.ModelItem> modelItems = models.stream()
+							.map(m -> {
+								// Get specs for this model
+								List<PhoneSpec> specs = specMap.getOrDefault(m.getId(), new ArrayList<>());
+								List<BrandDetailsDto.SpecItem> specItems = specs.stream()
+										.map(sp -> new BrandDetailsDto.SpecItem(
+												sp.getId(),
+												sp.getSpecName(),
+												sp.getSort()))
+										.collect(Collectors.toList());
+
+								return new BrandDetailsDto.ModelItem(
+										m.getId(),
+										m.getModelName(),
+										m.getSort(),
+										specItems);
+							})
+							.collect(Collectors.toList());
+
+					return new BrandDetailsDto.SeriesItem(
+							s.getId(),
+							s.getSeriesName(),
+							s.getSort(),
+							modelItems);
+				})
+				.collect(Collectors.toList());
+
+		dto.setSeriesArr(seriesItems);
+
+		try {
+			String json = objectMapper.writeValueAsString(dto);
+			redisTemplate.opsForValue().set(key, json, 1, TimeUnit.HOURS);
+		} catch (Exception e) {
+			logger.error("Failed to cache brand details", e);
+		}
+		return dto;
 	}
 
 	// 品牌CRUD方法

@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public interface PhoneSeriesRepository extends JpaRepository<PhoneSeries, Long> {
   List<PhoneSeries> findByBrandOrderBySortAsc(Brand brand);
+  List<PhoneSeries> findByBrandIdAndDeletedOrderBySortAsc(Long brandId, Integer deleted);
   Optional<PhoneSeries> findByBrandAndSeriesName(Brand brand, String seriesName);
 }
 
