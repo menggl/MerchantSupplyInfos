@@ -342,3 +342,19 @@ CREATE TABLE IF NOT EXISTS merchant_call_record (
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );
+
+-- 商户搜索记录表
+DROP TABLE IF EXISTS merchant_search_record;
+CREATE TABLE IF NOT EXISTS merchant_search_record (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  merchant_id BIGINT COMMENT '商户信息表ID',
+  product_type INT DEFAULT 0 COMMENT '0新机 1二手机',
+  brand_id BIGINT COMMENT '品牌ID',
+  series_id BIGINT COMMENT '系列ID',
+  model_id BIGINT COMMENT '型号ID',
+  spec_id BIGINT COMMENT '配置ID',
+  city_code VARCHAR(64) COMMENT '城市编码',
+  search_time DATETIME COMMENT '搜索时间',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
+);

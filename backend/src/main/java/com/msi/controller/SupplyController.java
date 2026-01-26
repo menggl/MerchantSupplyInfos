@@ -11,6 +11,7 @@ import com.msi.service.SupplyService;
 import com.msi.service.ProductService;
 import com.msi.service.MerchantService;
 import com.msi.service.DictService;
+import com.msi.service.MerchantSearchRecordService;
 import org.springframework.data.domain.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,14 +39,17 @@ public class SupplyController {
 	private final SupplyService supplyService;
 	private final MerchantService merchantService;
 	private final DictService dictService;
+	private final MerchantSearchRecordService searchRecordService;
 
 	public SupplyController(SupplyService supplyService,
 			MerchantService merchantService,
 			ProductService productService,
-			DictService dictService) {
+			DictService dictService,
+			MerchantSearchRecordService searchRecordService) {
 		this.supplyService = supplyService;
 		this.merchantService = merchantService;
 		this.dictService = dictService;
+		this.searchRecordService = searchRecordService;
 	}
 
 	private String toJson(Object value) {
@@ -95,6 +99,19 @@ public class SupplyController {
 			if (currentMerchant == null || currentMerchant.getId() == null) {
 				return ResponseEntity.status(401).body(null);
 			}
+
+			// Record search history asynchronously
+			searchRecordService.saveSearchRecord(
+					currentMerchant.getId(),
+					productType,
+					cityCode,
+					brandId,
+					seriesId,
+					modelId,
+					specId,
+					null // keyword is not a parameter in this endpoint
+			);
+
 			Page<Product> products = supplyService.searchAvailableProducts(
 					cityCode, productType, brandId, seriesId, modelId, specId, page, size);
 			Page<SupplyProductDto> result = products.map(this::convertToDto);
