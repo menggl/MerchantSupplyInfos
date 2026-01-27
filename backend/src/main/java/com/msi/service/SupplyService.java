@@ -92,15 +92,6 @@ public class SupplyService {
 		if (brandId == null) {
 			throw new IllegalArgumentException("品牌ID不能为空");
 		}
-		if (seriesId == null) {
-			throw new IllegalArgumentException("系列ID不能为空");
-		}
-		if (modelId == null) {
-			throw new IllegalArgumentException("型号ID不能为空");
-		}
-		if (specId == null) {
-			throw new IllegalArgumentException("配置ID不能为空");
-		}
 		if (page < 0) {
 			throw new IllegalArgumentException("页码不能小于0");
 		}
@@ -118,9 +109,15 @@ public class SupplyService {
 
 		spec = spec.and((root, q, cb) -> cb.equal(root.get("productType"), productType));
 		spec = spec.and((root, q, cb) -> cb.equal(root.get("brandId"), brandId));
-		spec = spec.and((root, q, cb) -> cb.equal(root.get("seriesId"), seriesId));
-		spec = spec.and((root, q, cb) -> cb.equal(root.get("modelId"), modelId));
-		spec = spec.and((root, q, cb) -> cb.equal(root.get("specId"), specId));
+		if (seriesId != null) {
+			spec = spec.and((root, q, cb) -> cb.equal(root.get("seriesId"), seriesId));
+		}
+		if (modelId != null) {
+			spec = spec.and((root, q, cb) -> cb.equal(root.get("modelId"), modelId));
+		}
+		if (specId != null) {
+			spec = spec.and((root, q, cb) -> cb.equal(root.get("specId"), specId));
+		}
 
 		return productRepository.findAll(spec, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updateTime")));
 	}

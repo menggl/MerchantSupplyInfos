@@ -79,9 +79,9 @@ public class SupplyController {
 			@RequestParam String cityCode,
 			@RequestParam Integer productType,
 			@RequestParam Long brandId,
-			@RequestParam Long seriesId,
-			@RequestParam Long modelId,
-			@RequestParam Long specId,
+			@RequestParam(required = false) Long seriesId,
+			@RequestParam(required = false) Long modelId,
+			@RequestParam(required = false) Long specId,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
 		try {
