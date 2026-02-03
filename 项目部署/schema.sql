@@ -2,50 +2,6 @@ SET NAMES utf8mb4;
 CREATE DATABASE IF NOT EXISTS msi CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE msi;
 
--- 已统一到商户商品表，移除 supply_item
-
--- 手机品牌表
-DROP TABLE IF EXISTS brand;
-CREATE TABLE IF NOT EXISTS brand (
-  id BIGINT PRIMARY KEY,
-  name VARCHAR(64) UNIQUE,
-  sort INT DEFAULT 0,
-  deleted TINYINT DEFAULT 0
-);
-
--- 手机系列表
-DROP TABLE IF EXISTS phone_series;
-CREATE TABLE IF NOT EXISTS phone_series (
-  id BIGINT PRIMARY KEY,
-  brand_id BIGINT,
-  series_name VARCHAR(64),
-  sort INT DEFAULT 0,
-  deleted TINYINT DEFAULT 0
-);
-
--- 手机型号表
-DROP TABLE IF EXISTS phone_model;
-CREATE TABLE IF NOT EXISTS phone_model (
-  id BIGINT PRIMARY KEY,
-  brand_id BIGINT,
-  series_id BIGINT,
-  model_name VARCHAR(128),
-  sort INT DEFAULT 0,
-  deleted TINYINT DEFAULT 0
-);
-
--- 手机规格表
-DROP TABLE IF EXISTS phone_spec;
-CREATE TABLE IF NOT EXISTS phone_spec (
-  id BIGINT PRIMARY KEY,
-  brand_id BIGINT,
-  series_id BIGINT,
-  model_id BIGINT,
-  spec_name VARCHAR(128),
-  sort INT DEFAULT 0,
-  deleted TINYINT DEFAULT 0
-);
-
 
 -- 商户信息表
 DROP TABLE IF EXISTS merchant_info;
@@ -118,129 +74,6 @@ CREATE TABLE IF NOT EXISTS merchant_member_integral_spend (
 
 
 
-DROP TABLE IF EXISTS city_dict;
-CREATE TABLE IF NOT EXISTS city_dict (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  city_code VARCHAR(64) UNIQUE,
-  city_name VARCHAR(128),
-  sort INT DEFAULT 0,
-  valid INT DEFAULT 1,
-  is_online INT DEFAULT 0,
-  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  modify_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-INSERT INTO city_dict (city_code, city_name, sort, valid, is_online) VALUES
-('000000', '全国', 1, 1, 1),
-('410100', '郑州市', 2, 1, 0),
-('440300', '深圳市', 3, 1, 0),
-('370100', '济南市', 4, 1, 1),
-('510100', '成都市', 5, 1, 0),
-('110000', '北京市', 6, 1, 0),
-('610100', '西安市', 7, 1, 0),
-('120000', '天津市', 8, 1, 0),
-('620100', '兰州市', 9, 1, 0),
-('420100', '武汉市', 10, 1, 0),
-('330100', '杭州市', 11, 1, 0),
-('130100', '石家庄市', 12, 1, 0),
-('430100', '长沙市', 13, 1, 0),
-('320100', '南京市', 14, 1, 0),
-('310000', '上海市', 15, 1, 0),
-('140100', '太原市', 16, 1, 0),
-('530100', '昆明市', 17, 1, 0),
-('640100', '银川市', 18, 1, 0);
-
-DROP TABLE IF EXISTS phone_remark_dict;
-CREATE TABLE IF NOT EXISTS phone_remark_dict (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  remark_name VARCHAR(128) UNIQUE,
-  sort INT DEFAULT 0,
-  valid INT DEFAULT 1,
-  type TINYINT DEFAULT 0 COMMENT '0新机备注 1新机其它备注 2二手机版本 3二手机成色 4二手机拆修和功能',
-  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  modify_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-INSERT INTO phone_remark_dict (remark_name, sort, valid, type) VALUES
-('保证省内纯原', 1, 1, 0),
-('保证全国纯原', 2, 1, 0),
-('省内拆封激活', 3, 1, 0),
-('全国拆封激活', 4, 1, 0),
-('省内拆封未激活', 5, 1, 0),
-('全国拆封未激活', 6, 1, 0),
-('全国纯原怕查', 7, 1, 0),
-('全国纯原不怕串', 8, 1, 0),
-('官网纯原封预激活', 9, 1, 0),
-('公司纯原封', 10, 1, 0),
-('公司纯原不怕串', 11, 1, 0),
-('纯原带AC+预激活', 12, 1, 0),
-('公司纯原带活动', 13, 1, 0),
-('代发', 14, 1, 0),
-('全国纯原', 15, 1, 0),
-('省内纯原', 16, 1, 0);
-
-INSERT INTO phone_remark_dict (remark_name, sort, valid, type) VALUES
-('默认', 1, 1, 1),
-('禁止出省', 2, 1, 1),
-('可出全国', 3, 1, 1),
-('禁出线上', 4, 1, 1),
-('包邮', 5, 1, 1),
-('怕串', 6, 1, 1),
-('不怕串', 7, 1, 1),
-('包装瑕疵', 8, 1, 1),
-('机器瑕疵', 9, 1, 1),
-('带AC+', 10, 1, 1),
-('权益版', 11, 1, 1),
-('联通定制', 12, 1, 1),
-('电信定制', 13, 1, 1),
-('移动定制', 14, 1, 1),
-('教育机', 15, 1, 1),
-('政企定制', 16, 1, 1),
-('官换机', 17, 1, 1),
-('演示机', 18, 1, 1),
-('含税', 19, 1, 1),
-('TD鼎桥版', 20, 1, 1),
-('现货当面激活', 21, 1, 1),
-('带碎屏险', 22, 1, 1),
-('官翻全国联保', 23, 1, 1),
-('提供激活照片', 24, 1, 1),
-('当天激活发出', 25, 1, 1),
-('特定区域销售', 26, 1, 1),
-('现货', 27, 1, 1),
-('盒子刮码', 28, 1, 1),
-('牛皮外箱无或开封', 29, 1, 1),
-('可过串', 30, 1, 1);
-
-INSERT INTO phone_remark_dict (remark_name, sort, valid, type) VALUES
-('大陆国行', 1, 1, 2),
-('海外无锁', 2, 1, 2),
-('海外有锁', 3, 1, 2),
-('其他版本', 4, 1, 2),
-('香港行货', 5, 1, 2),
-('国行官换/官修机', 6, 1, 2);
-
-INSERT INTO phone_remark_dict (remark_name, sort, valid, type) VALUES
-('全新未拆封', 1, 1, 3),
-('几乎全新', 2, 1, 3),
-('细微磕碰划痕', 3, 1, 3),
-('少量磕碰划痕', 4, 1, 3),
-('轻度磕碰划痕', 5, 1, 3),
-('严重磕碰划痕', 6, 1, 3),
-('屏幕破损或外壳破碎', 7, 1, 3),
-('屏幕深度划伤或色差', 8, 1, 3),
-('屏幕发黄/透图/色斑', 9, 1, 3);
-
-INSERT INTO phone_remark_dict (remark_name, sort, valid, type) VALUES
-('无任何维修', 1, 1, 4),
-('屏幕有维修', 2, 1, 4),
-('更换电池', 3, 1, 4),
-('外壳/摄像头有维修', 4, 1, 4),
-('功能明显异常', 5, 1, 4),
-('零件有维修', 6, 1, 4),
-('主板有维修', 7, 1, 4),
-('功能有轻度异常', 8, 1, 4);
-
-
 -- 商户上架二手手机产品表
 DROP TABLE IF EXISTS merchant_phone_product;
 CREATE TABLE IF NOT EXISTS merchant_phone_product (
@@ -252,6 +85,7 @@ CREATE TABLE IF NOT EXISTS merchant_phone_product (
   spec_id BIGINT COMMENT '配置ID',
   city_code VARCHAR(64) COMMENT '城市编码',
   product_type INT DEFAULT 0 COMMENT '0新机 1二手机',
+  stock_id BIGINT COMMENT '库存ID',-- 关联库存表的主键ID，merchant_new_phone_stock表、merchant_second_phone_stock表
   remark VARCHAR(255) COMMENT '新机备注',
   other_remark VARCHAR(255) COMMENT '新机其它备注信息',
   second_hand_version VARCHAR(128) COMMENT '二手机版本',
@@ -267,7 +101,8 @@ CREATE TABLE IF NOT EXISTS merchant_phone_product (
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   KEY idx_merchant_phone_product_merchant_id (merchant_id),
-  KEY idx_merchant_phone_product_search (city_code, product_type, brand_id, series_id, model_id, spec_id)
+  KEY idx_merchant_phone_product_search (city_code, product_type, brand_id, series_id, model_id, spec_id),
+  UNIQUE KEY uk_product_type_stock_id (product_type, stock_id)
 );
 
 DROP TABLE IF EXISTS merchant_product_image;
@@ -319,41 +154,114 @@ CREATE TABLE IF NOT EXISTS admin_user (
 INSERT INTO admin_user (username, `password`, is_valid) VALUES
 ('admin', 'c82636a0061634041a9bb577c6f3b1e6', 1); -- saizan12345  
 
--- 短信发送日志表
-DROP TABLE IF EXISTS sms_log;
-CREATE TABLE IF NOT EXISTS sms_log (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  wechat_id VARCHAR(128) COMMENT '微信ID',
-  phone VARCHAR(32) COMMENT '手机号',
-  code VARCHAR(16) COMMENT '短信验证码',
-  send_time DATETIME COMMENT '发送时间',
-  KEY idx_sms_log_wechat_id (wechat_id)
-);
 
--- 商户通话记录表
-DROP TABLE IF EXISTS merchant_call_record;
-CREATE TABLE IF NOT EXISTS merchant_call_record (
+
+
+
+-- 新增一个商户自己维护的一套品牌、系列、型号、配置
+-- 品牌、系列、型号的ID可以是已有品牌、系列、型号的ID，如果ID值为空，那么表示新增一个品牌、系列、型号
+-- 除了ID，还有一个name字段，用于存储品牌、系列、型号、配置的名称
+-- 每一个商户最多只能同时存在5条商户自己维护的品牌、系列、型号、配置数据
+DROP TABLE IF EXISTS merchant_custom_brand;
+CREATE TABLE IF NOT EXISTS merchant_custom_brand (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  call_type INT DEFAULT 0 COMMENT '0产品电话 1求购电话',
-  caller_merchant_id BIGINT COMMENT '拨打电话的商户ID',
-  callee_merchant_id BIGINT COMMENT '被拨打电话的商户ID',
-  product_id BIGINT COMMENT '因哪个产品拨打电话',
-  call_time DATETIME COMMENT '通话时间',
+  merchant_id BIGINT COMMENT '商户信息表ID',
+  brand_id BIGINT COMMENT '品牌ID',
+  brand_name VARCHAR(64) COMMENT '品牌名称',
+  series_id BIGINT COMMENT '系列ID',
+  series_name VARCHAR(64) COMMENT '系列名称',
+  model_id BIGINT COMMENT '型号ID',
+  model_name VARCHAR(64) COMMENT '型号名称',
+  spec_id BIGINT COMMENT '配置ID', -- 这个字段应该不可能有值，如果有值，说明该品牌、系列、型号、配置已经存在字典表中
+  spec_name VARCHAR(64) COMMENT '配置名称',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );
 
--- 商户搜索记录表
-DROP TABLE IF EXISTS merchant_search_record;
-CREATE TABLE IF NOT EXISTS merchant_search_record (
+-- 商户和配置表的id字段，用于关联商户自己维护的一套品牌、系列、型号、配置
+-- 有一个spec_type字段，为0表示是共有配置（phone_spec表），1表示是商户自己维护的配置（merchant_custom_dict表）
+-- 有表自增id，商户id，spec_type、phone_spec表ID，merchant_custom_dict表ID
+-- 有一个create_time字段，记录创建时间
+-- 有一个update_time字段，记录修改时间
+DROP TABLE IF EXISTS merchant_brand_map;
+CREATE TABLE IF NOT EXISTS merchant_brand_map (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   merchant_id BIGINT COMMENT '商户信息表ID',
-  product_type INT DEFAULT 0 COMMENT '0新机 1二手机',
-  search_keyword VARCHAR(30) COMMENT '模糊搜索关键词',
-  brand_id BIGINT COMMENT '品牌ID',
-  series_id BIGINT COMMENT '系列ID',
-  model_id BIGINT COMMENT '型号ID',
-  spec_id BIGINT COMMENT '配置ID',
-  city_code VARCHAR(6) COMMENT '城市编码',
-  search_time DATETIME COMMENT '搜索时间'
+  spec_type INT DEFAULT 0 COMMENT '0共有配置 1商户自己维护的配置',
+  phone_spec_id BIGINT COMMENT '共有配置ID',
+  custom_brand_id BIGINT COMMENT '商户自己维护的配置ID',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
+);
+
+-- 商户的新机库存信息，有自增id，商户ID，merchant_brand_map ID，备注ID、其它备注Id、售卖价，上下架状态
+-- 上下架状态为0表示下架，1表示上架
+-- 有一个create_time字段，记录创建时间
+-- 有一个update_time字段，记录修改时间
+DROP TABLE IF EXISTS merchant_new_phone_stock;
+CREATE TABLE IF NOT EXISTS merchant_new_phone_stock (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  merchant_id BIGINT COMMENT '商户信息表ID',
+  brand_map_id BIGINT COMMENT '商户自己维护的配置ID(merchant_brand_map)',
+  spec_type INT DEFAULT 0 COMMENT '0共有配置 1商户自己维护的配置',
+  remark_id BIGINT COMMENT '备注ID',
+  other_remark_id BIGINT COMMENT '其它备注ID',
+  price INT COMMENT '售卖价（分）',
+  stock_count INT COMMENT '库存数量',
+  stock_status INT DEFAULT 0 COMMENT '上下架状态 0下架 1上架', -- 默认值是下架
+  valid INT DEFAULT 1 COMMENT '1有效0无效', -- 默认值是有效
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
+);
+
+-- 商户的二手机库存信息，有自增id，商户ID，merchant_brand_map ID，版本ID、成色Id，拆修和功能ID，电池健康度、售卖价，上下架状态
+-- 上下架状态为0表示下架，1表示上架
+-- 有一个create_time字段，记录创建时间
+-- 有一个update_time字段，记录修改时间
+DROP TABLE IF EXISTS merchant_second_phone_stock;
+CREATE TABLE IF NOT EXISTS merchant_second_phone_stock (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  merchant_id BIGINT COMMENT '商户信息表ID',
+  brand_map_id BIGINT COMMENT '商户自己维护的配置ID(merchant_brand_map)',
+  spec_type INT DEFAULT 0 COMMENT '0共有配置 1商户自己维护的配置',
+  version_id BIGINT COMMENT '版本ID',
+  condition_id BIGINT COMMENT '成色ID',
+  repair_function_id BIGINT COMMENT '拆修和功能ID',
+  battery_health_id INT COMMENT '电池健康度ID',
+  price INT COMMENT '售卖价（分）',
+  stock_count INT COMMENT '库存数量',
+  stock_status INT DEFAULT 0 COMMENT '上下架状态 0下架 1上架', -- 默认值是下架
+  valid INT DEFAULT 1 COMMENT '1有效0无效', -- 默认值是有效
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
+);
+
+-- 新机、二手机实付款、实收款、款项备注
+-- 表的自增ID、商户ID、库存ID、实付款（分）、实收款（分）、款项备注
+DROP TABLE IF EXISTS merchant_payment_record;
+CREATE TABLE IF NOT EXISTS merchant_payment_record (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  merchant_id BIGINT COMMENT '商户信息表ID',
+  stock_id BIGINT COMMENT '库存ID',
+  actual_payment INT COMMENT '实付款（分）',
+  actual_receipt INT COMMENT '实收款（分）',
+  remark VARCHAR(256) COMMENT '款项备注',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
+);
+
+-- 新机、二手机的入库价、数量（二手机固定为1）、出库价、数量（二手机固定为1）
+-- 商户ID、stock_type（0新机 1二手机）、stock ID、入库价（分）、数量、出库价（分）、数量
+DROP TABLE IF EXISTS merchant_stock_price_count;
+CREATE TABLE IF NOT EXISTS merchant_stock_price_count (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  merchant_id BIGINT COMMENT '商户信息表ID',
+  stock_type INT DEFAULT 0 COMMENT '0新机 1二手机',
+  stock_id BIGINT COMMENT '库存ID',
+  in_price INT COMMENT '入库价（分）',
+  in_count INT COMMENT '数量',
+  out_price INT COMMENT '出库价（分）',
+  out_count INT COMMENT '数量',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );

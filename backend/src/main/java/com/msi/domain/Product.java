@@ -72,6 +72,9 @@ public class Product {
   @Column(name = "stock")
   private Integer stock;
 
+  @Column(name = "stock_id")
+  private Long stockId;
+
   @Column(name = "create_time", updatable = false)
   private LocalDateTime createTime;
 
@@ -241,6 +244,14 @@ public class Product {
 
   public void setStock(Integer stock) {
     this.stock = stock;
+  }
+
+  public Long getStockId() {
+    return stockId;
+  }
+
+  public void setStockId(Long stockId) {
+    this.stockId = stockId;
   }
 
   public LocalDateTime getListingTime() {
