@@ -85,7 +85,8 @@ public class ProductService {
 			throw new IllegalArgumentException("配置不属于该型号");
 		}
 
-		if (productRepository
+		// 仅针对新机（productType == 0）进行重复校验
+		if (product.getProductType() == 0 && productRepository
 				.findFirstByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndProductTypeAndIsValid(
 						merchant.getId(), brand.getId(), series.getId(), model.getId(), spec.getId(), product.getProductType(), 1)
 				.isPresent()) {

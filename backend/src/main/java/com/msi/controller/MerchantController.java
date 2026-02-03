@@ -51,6 +51,8 @@ public class MerchantController {
 
     /**
      * 新增商家上架新机、二手机
+     * 如果是新增的新机，需要判断数据库表中是否已经存在相同型号的产品（同商户、品牌、系列、型号、配置Id），如果已经有存在的有效数据，则不允许新增
+     * 如果是新增的二手机，不用判断是否已经存在相同型号的产品，可以直接新增入库
      */
     @PostMapping("/products")
     public ResponseEntity<Product> addProduct(@RequestAttribute("merchant") Merchant currentMerchant, @RequestBody Product product) {
