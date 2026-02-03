@@ -43,16 +43,6 @@ public class MerchantService {
     private static final Logger logger = LoggerFactory.getLogger(MerchantService.class);
     private final MerchantRepository merchantRepository;
     private final StringRedisTemplate redisTemplate;
-    @Value("${aliyun.sms.region:cn-hangzhou}")
-    private String aliyunRegion;
-    @Value("${aliyun.sms.accessKeyId:}")
-    private String accessKeyId;
-    @Value("${aliyun.sms.accessKeySecret:}")
-    private String accessKeySecret;
-    @Value("${aliyun.sms.signName:}")
-    private String signName;
-    @Value("${aliyun.sms.templateCode:}")
-    private String templateCode;
     @Value("${msi.member.default-days:180}")
     private int defaultMemberDays;
     private final MerchantMemberInfoRepository memberInfoRepository;

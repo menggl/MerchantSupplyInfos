@@ -1,10 +1,5 @@
 package com.msi.service;
 
-import com.aliyuncs.DefaultAcsClient;
-import com.aliyuncs.IAcsClient;
-import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
-import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
-import com.aliyuncs.profile.DefaultProfile;
 import com.msi.domain.SmsLog;
 import com.msi.repository.SmsLogRepository;
 import org.slf4j.Logger;
@@ -12,9 +7,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -22,17 +25,14 @@ public class SmsService {
     private static final Logger logger = LoggerFactory.getLogger(SmsService.class);
     private final StringRedisTemplate redisTemplate;
     private final SmsLogRepository smsLogRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${aliyun.sms.region:cn-hangzhou}")
-    private String aliyunRegion;
-    @Value("${aliyun.sms.accessKeyId:}")
-    private String accessKeyId;
-    @Value("${aliyun.sms.accessKeySecret:}")
-    private String accessKeySecret;
-    @Value("${aliyun.sms.signName:}")
-    private String signName;
-    @Value("${aliyun.sms.templateCode:}")
-    private String templateCode;
+    @Value("${yunpian.sms.apikey:}")
+    private String apikey;
+    
+    // 短信内容模板，例如：【美机汇】您的验证码是%s。如非本人操作，请忽略本短信
+    @Value("${yunpian.sms.text-template:【美机汇】您的验证码是%s。如非本人操作，请忽略本短信}")
+    private String textTemplate;
 
     public SmsService(StringRedisTemplate redisTemplate, SmsLogRepository smsLogRepository) {
         this.redisTemplate = redisTemplate;
@@ -122,24 +122,38 @@ public class SmsService {
         smsLog.setSendTime(LocalDateTime.now());
         smsLogRepository.save(smsLog);
 
-        // 集成阿里云短信服务，配置存在时才发送
-        if (accessKeyId != null && !accessKeyId.isEmpty() &&
-            accessKeySecret != null && !accessKeySecret.isEmpty() &&
-            signName != null && !signName.isEmpty() &&
-            templateCode != null && !templateCode.isEmpty()) {
-            DefaultProfile profile = DefaultProfile.getProfile(aliyunRegion, accessKeyId, accessKeySecret);
-            IAcsClient client = new DefaultAcsClient(profile);
-            SendSmsRequest req = new SendSmsRequest();
-            req.setPhoneNumbers(phone);
-            req.setSignName(signName);
-            req.setTemplateCode(templateCode);
-            req.setTemplateParam("{\"code\":\"" + code + "\"}");
+        // 集成云片网短信服务，配置存在时才发送
+        if (apikey != null && !apikey.isEmpty()) {
+            String url = "https://sms.yunpian.com/v2/sms/single_send.json";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.set("Accept", "application/json;charset=utf-8");
+
+            String text = String.format(textTemplate, code);
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("apikey", apikey);
+            params.add("mobile", phone);
+            params.add("text", text);
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
             try {
-                SendSmsResponse resp = client.getAcsResponse(req);
-                if (resp == null || resp.getCode() == null || !"OK".equalsIgnoreCase(resp.getCode())) {
-                    throw new IllegalArgumentException("短信发送失败: " + (resp == null ? "无响应" : resp.getMessage()));
+                ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+                Map body = response.getBody();
+                
+                if (body == null) {
+                    throw new IllegalArgumentException("短信发送失败: 无响应");
+                }
+                
+                Integer resultCode = (Integer) body.get("code");
+                if (resultCode != null && resultCode != 0) {
+                     String msg = (String) body.get("msg");
+                     throw new IllegalArgumentException("短信发送失败: " + msg);
                 }
             } catch (Exception ex) {
+                logger.error("云片短信发送异常", ex);
                 throw new IllegalArgumentException("短信发送异常: " + ex.getMessage());
             }
         }

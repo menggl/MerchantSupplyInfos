@@ -41,3 +41,7 @@ wechat:
     secret: ${WECHAT_MINIAPP_SECRET}
 image:
     host: ${IMAGE_HOST}
+yunpian:
+  sms:
+    apikey: ${YUNPIAN_APIKEY}
+    text-template: ${YUNPIAN_TEXT_TEMPLATE:【济南赛赞】感谢您注册赛赞巡机宝，您的验证码是%s（5分钟内有效，如非本人操作，请忽略）}
