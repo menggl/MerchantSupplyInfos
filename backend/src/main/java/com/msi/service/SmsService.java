@@ -2,6 +2,9 @@ package com.msi.service;
 
 import com.msi.domain.SmsLog;
 import com.msi.repository.SmsLogRepository;
+import com.anji.captcha.model.common.ResponseModel;
+import com.anji.captcha.model.vo.CaptchaVO;
+import com.anji.captcha.service.CaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +28,7 @@ public class SmsService {
     private static final Logger logger = LoggerFactory.getLogger(SmsService.class);
     private final StringRedisTemplate redisTemplate;
     private final SmsLogRepository smsLogRepository;
+    private final CaptchaService captchaService;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${yunpian.sms.apikey:}")
@@ -34,45 +38,13 @@ public class SmsService {
     @Value("${yunpian.sms.text-template:【美机汇】您的验证码是%s。如非本人操作，请忽略本短信}")
     private String textTemplate;
 
-    public SmsService(StringRedisTemplate redisTemplate, SmsLogRepository smsLogRepository) {
+    public SmsService(StringRedisTemplate redisTemplate, SmsLogRepository smsLogRepository, CaptchaService captchaService) {
         this.redisTemplate = redisTemplate;
         this.smsLogRepository = smsLogRepository;
+        this.captchaService = captchaService;
     }
 
-    public static class CaptchaResult {
-        private String imageBase64;
-
-        public CaptchaResult(String imageBase64) {
-            this.imageBase64 = imageBase64;
-        }
-
-        public String getImageBase64() { return imageBase64; }
-    }
-
-    public CaptchaResult generateCaptcha(String wechatId, String phone) {
-        if (wechatId == null || wechatId.isEmpty()) {
-            throw new IllegalArgumentException("微信ID不能为空");
-        }
-        if (phone == null || phone.isEmpty()) {
-            throw new IllegalArgumentException("手机号不能为空");
-        }
-        if (!phone.matches("^1[3-9]\\d{9}$")) {
-            throw new IllegalArgumentException("手机号格式错误");
-        }
-        // 使用 EasyCaptcha 生成验证码
-        com.wf.captcha.SpecCaptcha captcha = new com.wf.captcha.SpecCaptcha(130, 48, 4);
-        captcha.setCharType(com.wf.captcha.base.Captcha.TYPE_ONLY_NUMBER); // 纯数字更容易输入
-
-        String key = wechatId + ":" + phone;
-        String code = captcha.text().toLowerCase();
-
-        // 存入 Redis，5分钟有效
-        redisTemplate.opsForValue().set("captcha:" + key, code, 5, TimeUnit.MINUTES);
-
-        return new CaptchaResult(captcha.toBase64());
-    }
-
-    public void sendCode(String wechatId, String phone, String captchaCode) {
+    public void sendCode(String wechatId, String phone, String captchaVerification) {
         if (wechatId == null || wechatId.isEmpty()) {
             throw new IllegalArgumentException("微信ID不能为空");
         }
@@ -80,20 +52,18 @@ public class SmsService {
             throw new IllegalArgumentException("手机号不能为空");
         }
 
-        // 校验图形验证码
-        if (captchaCode == null || captchaCode.isEmpty()) {
+        // 校验滑动验证码
+        if (captchaVerification == null || captchaVerification.isEmpty()) {
             throw new IllegalArgumentException("CAPTCHA_REQUIRED");
         }
-        String captchaKey = "captcha:" + wechatId + ":" + phone;
-        String correctCode = redisTemplate.opsForValue().get(captchaKey);
-        if (correctCode == null) {
-            throw new IllegalArgumentException("CAPTCHA_EXPIRED");
+        
+        CaptchaVO captchaVO = new CaptchaVO();
+        captchaVO.setCaptchaVerification(captchaVerification);
+        ResponseModel captchaResponse = captchaService.verification(captchaVO);
+        if (!captchaResponse.isSuccess()) {
+             logger.warn("滑动验证码校验失败: wechatId={}, phone={}, msg={}", wechatId, phone, captchaResponse.getRepMsg());
+             throw new IllegalArgumentException("CAPTCHA_INVALID");
         }
-        if (!correctCode.equalsIgnoreCase(captchaCode)) {
-            throw new IllegalArgumentException("CAPTCHA_INVALID");
-        }
-        // 验证通过后删除
-        redisTemplate.delete(captchaKey);
 
         if (!phone.matches("^1[3-9]\\d{9}$")) {
             throw new IllegalArgumentException("手机号格式错误");

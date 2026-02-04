@@ -25,7 +25,9 @@ public class WebConfig implements WebMvcConfigurer {
             .excludePathPatterns(
                 "/api/wx-login",
                 "/api/dict/**",
-                "/api/images/**"
+                "/api/images/**",
+                "/api/captcha/**",
+                "/api/test-cache"
             );
   }
 }

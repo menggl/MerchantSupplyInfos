@@ -45,3 +45,10 @@ yunpian:
   sms:
     apikey: ${YUNPIAN_APIKEY}
     text-template: ${YUNPIAN_TEXT_TEMPLATE:【济南赛赞】感谢您注册赛赞巡机宝，您的验证码是%s（5分钟内有效，如非本人操作，请忽略）}
+aj:
+  captcha:
+    type: default
+    cache-type: redis
+    water-mark: 美机汇
+    slip-offset: 5
+    aes-status: true
