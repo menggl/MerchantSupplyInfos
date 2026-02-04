@@ -17,7 +17,7 @@ public class CaptchaConfig {
     public CaptchaService captchaService() {
         Properties config = new Properties();
         config.put(Const.CAPTCHA_CACHETYPE, "redis");
-        config.put(Const.CAPTCHA_WATER_MARK, "美机汇");
+        config.put(Const.CAPTCHA_WATER_MARK, "赛赞巡机宝");
         config.put(Const.CAPTCHA_SLIP_OFFSET, "5");
         config.put(Const.CAPTCHA_AES_STATUS, "true");
         config.put(Const.CAPTCHA_TYPE, "blockPuzzle");
