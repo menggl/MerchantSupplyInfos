@@ -18,4 +18,6 @@ public class ErrorCode {
     // 验证类 (Validation) - V开头
     /** 图形验证码错误（无效或过期） */
     public static final String CAPTCHA_ERROR = "V0001";
+    /** 短信发送次数超限 */
+    public static final String SMS_LIMIT_EXCEEDED = "V0002";
 }

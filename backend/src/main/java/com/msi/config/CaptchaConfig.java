@@ -2,7 +2,6 @@ package com.msi.config;
 
 import com.anji.captcha.model.common.Const;
 import com.anji.captcha.service.CaptchaService;
-import com.anji.captcha.service.impl.CaptchaServiceFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;

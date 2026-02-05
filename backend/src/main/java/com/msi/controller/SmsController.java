@@ -43,6 +43,9 @@ public class SmsController {
             if (msg != null && msg.startsWith("CAPTCHA_")) {
                 err.put("errorCode", ErrorCode.CAPTCHA_ERROR);
                 err.put("message", "图形验证码错误");
+            } else if ("SMS_LIMIT_EXCEEDED".equals(msg)) {
+                err.put("errorCode", ErrorCode.SMS_LIMIT_EXCEEDED);
+                err.put("message", "今日发送次数已达上限");
             } else {
                 err.put("errorCode", "SMS_FAILED");
                 err.put("message", msg);

@@ -75,7 +75,7 @@ public class SmsService {
         long cnt = smsLogRepository.countByWechatIdAndSendTimeBetween(wechatId, start, end);
         // todo 测试使用，先将发送次数上限改为100次
         if (cnt >= 100) {
-            throw new IllegalArgumentException("今日发送次数已达上限");
+            throw new IllegalArgumentException("SMS_LIMIT_EXCEEDED");
         }
         int code = (int)(Math.random() * 900000) + 100000; // 6位随机码
         String codeKey = buildCodeKey(wechatId, phone);
