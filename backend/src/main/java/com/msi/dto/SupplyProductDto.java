@@ -12,7 +12,16 @@ public class SupplyProductDto {
   private String secondHandCondition;
   private String remark;
   private String otherRemark;
+  private String region;
   private LocalDateTime listingTime;
+
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion(String region) {
+    this.region = region;
+  }
 
   public String getMerchantPublicId() {
     return merchantPublicId;

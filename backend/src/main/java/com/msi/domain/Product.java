@@ -33,6 +33,9 @@ public class Product {
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;
 
+  @Column(name = "region")
+  private String region;
+
   @Column(name = "city_code")
   private String cityCode;
 
@@ -161,6 +164,14 @@ public class Product {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion(String region) {
+    this.region = region;
   }
 
   public String getCityCode() {

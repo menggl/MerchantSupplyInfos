@@ -561,6 +561,7 @@ public class MerchantController {
             }
             dto.setRemark(null);
             dto.setOtherRemark(null);
+            dto.setRegion(null);
         } else {
             dto.setSecondHandCondition(null);
             dto.setSecondHandVersion(null);
@@ -569,6 +570,7 @@ public class MerchantController {
             dto.setImages(null);
             dto.setRemark(product.getRemark());
             dto.setOtherRemark(product.getOtherRemark());
+            dto.setRegion(product.getRegion());
         }
         return dto;
     }

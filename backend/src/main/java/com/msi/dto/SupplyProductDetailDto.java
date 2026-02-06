@@ -24,9 +24,18 @@ public class SupplyProductDetailDto {
   private String secondHandFunction;
   private String remark;
   private String otherRemark;
+  private String region;
   private LocalDateTime listingTime;
   private List<String> imageUrls;
   private Integer batteryStatus;
+
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion(String region) {
+    this.region = region;
+  }
 
   public String getMerchantPublicId() {
     return merchantPublicId;

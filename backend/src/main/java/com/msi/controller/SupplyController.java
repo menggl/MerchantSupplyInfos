@@ -291,12 +291,14 @@ public class SupplyController {
 			dto.setSecondHandCondition(product.getSecondHandCondition());
 			dto.setRemark(null);
 			dto.setOtherRemark(null);
+			dto.setRegion(null);
 		} else {
 			dto.setSecondHandCondition(null);
 			// 新机备注
 			dto.setRemark(product.getRemark());
 			// 新机其它备注
 			dto.setOtherRemark(product.getOtherRemark());
+			dto.setRegion(product.getRegion());
 		}
 		// 上架更新时间
 		dto.setListingTime(product.getUpdateTime());
@@ -343,6 +345,7 @@ public class SupplyController {
 			dto.setSecondHandFunction(product.getSecondHandFunction());
 			dto.setRemark(null);
 			dto.setOtherRemark(null);
+			dto.setRegion(null);
 			if (product.getImages() != null) {
 				dto.setImageUrls(product.getImages().stream()
 						.filter(img -> img.getImageUrl() != null && !img.getImageUrl().isEmpty())
@@ -356,6 +359,7 @@ public class SupplyController {
 			dto.setSecondHandFunction(null);
 			dto.setRemark(product.getRemark());
 			dto.setOtherRemark(product.getOtherRemark());
+			dto.setRegion(product.getRegion());
 			dto.setImageUrls(null);
 			dto.setBatteryStatus(null);
 		}

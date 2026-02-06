@@ -278,6 +278,10 @@ public class MerchantService {
             throw new IllegalArgumentException("产品类型不能为空");
         }
         if (productType == 0) {
+            if (product.getRegion() == null || product.getRegion().isEmpty()) {
+                logger.error("新机售卖区域不能为空");
+                throw new IllegalArgumentException("新机售卖区域不能为空");
+            }
             if (product.getRemark() == null || product.getRemark().isEmpty()) {
                 logger.error("备注不能为空");
                 throw new IllegalArgumentException("备注不能为空");
@@ -287,6 +291,9 @@ public class MerchantService {
                 throw new IllegalArgumentException("其它备注不能为空");
             }
         } else if (productType == 1) {
+            // 二手机忽略区域字段，不入库
+            product.setRegion(null);
+            
             if (product.getSecondHandVersion() == null || product.getSecondHandVersion().isEmpty()) {
                 logger.error("二手机版本不能为空");
                 throw new IllegalArgumentException("二手机版本不能为空");

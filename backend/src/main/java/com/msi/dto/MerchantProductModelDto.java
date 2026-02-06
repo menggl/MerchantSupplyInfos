@@ -21,6 +21,7 @@ public class MerchantProductModelDto {
   private String secondHandCondition;
   private String remark;
   private String otherRemark;
+  private String region;
   private String secondHandVersion;
   private String secondHandFunction;
   private Integer batteryStatus;
@@ -168,6 +169,14 @@ public class MerchantProductModelDto {
 
   public void setOtherRemark(String otherRemark) {
     this.otherRemark = otherRemark;
+  }
+
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion(String region) {
+    this.region = region;
   }
 
   public String getSecondHandVersion() {
