@@ -85,7 +85,9 @@ public class SupplyService {
 			Long modelId,
 			Long specId,
 			int page,
-			int size) {
+			int size,
+			String sortField,
+			String sortOrder) {
 		if (productType == null || (productType != 0 && productType != 1)) {
 			throw new IllegalArgumentException("产品类型不合法");
 		}
@@ -98,28 +100,42 @@ public class SupplyService {
 		if (size <= 0) {
 			throw new IllegalArgumentException("每页数量必须大于0");
 		}
-
-		Specification<Product> spec = Specification.where(null);
-		spec = spec.and((root, q, cb) -> cb.equal(root.get("isValid"), 1));
-		spec = spec.and((root, q, cb) -> cb.equal(root.get("state"), 1));
-
-		if (cityCode != null && !cityCode.isEmpty() && !"000000".equals(cityCode) && !"全国".equals(cityCode)) {
-			spec = spec.and((root, q, cb) -> cb.equal(root.get("cityCode"), cityCode));
+		
+		Sort sort = Sort.by(Sort.Direction.DESC, "updateTime"); // Default
+		if ("update_time".equals(sortField)) {
+			sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, "updateTime");
+		} else if ("price".equals(sortField)) {
+			sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, "price");
 		}
 
-		spec = spec.and((root, q, cb) -> cb.equal(root.get("productType"), productType));
-		spec = spec.and((root, q, cb) -> cb.equal(root.get("brandId"), brandId));
-		if (seriesId != null) {
-			spec = spec.and((root, q, cb) -> cb.equal(root.get("seriesId"), seriesId));
-		}
-		if (modelId != null) {
-			spec = spec.and((root, q, cb) -> cb.equal(root.get("modelId"), modelId));
-		}
-		if (specId != null) {
-			spec = spec.and((root, q, cb) -> cb.equal(root.get("specId"), specId));
-		}
+		Specification<Product> spec = (root, query, cb) -> {
+			List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+			
+			// Base filters
+			predicates.add(cb.equal(root.get("isValid"), 1)); // Only valid products
+			predicates.add(cb.equal(root.get("state"), 1)); // Only listed products
+			
+			if (cityCode != null && !cityCode.isEmpty() && !"000000".equals(cityCode) && !"全国".equals(cityCode)) {
+				predicates.add(cb.equal(root.get("cityCode"), cityCode));
+			}
+			
+			predicates.add(cb.equal(root.get("productType"), productType));
+			predicates.add(cb.equal(root.get("brandId"), brandId));
+			
+			if (seriesId != null) {
+				predicates.add(cb.equal(root.get("seriesId"), seriesId));
+			}
+			if (modelId != null) {
+				predicates.add(cb.equal(root.get("modelId"), modelId));
+			}
+			if (specId != null) {
+				predicates.add(cb.equal(root.get("specId"), specId));
+			}
+			
+			return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+		};
 
-		return productRepository.findAll(spec, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updateTime")));
+		return productRepository.findAll(spec, PageRequest.of(page, size, sort));
 	}
 
 	public Product getAvailableProductById(Long productId) {

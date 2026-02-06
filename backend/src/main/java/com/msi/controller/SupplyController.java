@@ -83,7 +83,9 @@ public class SupplyController {
 			@RequestParam(required = false) Long modelId,
 			@RequestParam(required = false) Long specId,
 			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int size) {
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(required = false) String sortField,
+			@RequestParam(required = false) String sortOrder) {
 		try {
 			Map<String, Object> reqMap = new java.util.HashMap<>();
 			reqMap.put("merchantId", currentMerchant != null ? currentMerchant.getId() : null);
@@ -95,6 +97,8 @@ public class SupplyController {
 			reqMap.put("specId", specId);
 			reqMap.put("page", page);
 			reqMap.put("size", size);
+			reqMap.put("sortField", sortField);
+			reqMap.put("sortOrder", sortOrder);
 			logger.info("searchAvailableProducts request: {}", toJson(reqMap));
 			if (currentMerchant == null || currentMerchant.getId() == null) {
 				return ResponseEntity.status(401).body(null);
@@ -112,8 +116,21 @@ public class SupplyController {
 					null // keyword is not a parameter in this endpoint
 			);
 
+			// Validate sort parameters
+			if (sortField != null && !sortField.equals("update_time") && !sortField.equals("price")) {
+				sortField = "update_time";
+			}
+			if (sortOrder != null && !sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
+				sortOrder = "desc";
+			}
+			// Default sort
+			if (sortField == null) {
+				sortField = "update_time";
+				sortOrder = "desc";
+			}
+
 			Page<Product> products = supplyService.searchAvailableProducts(
-					cityCode, productType, brandId, seriesId, modelId, specId, page, size);
+					cityCode, productType, brandId, seriesId, modelId, specId, page, size, sortField, sortOrder);
 			Page<SupplyProductDto> result = products.map(this::convertToDto);
 			logger.info("searchAvailableProducts response: {}", toJson(result));
 			return ResponseEntity.ok(result);
