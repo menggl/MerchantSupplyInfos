@@ -26,8 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
                 "/api/wx-login",
                 "/api/dict/**",
                 "/api/images/**",
-                "/api/captcha/**",
-                "/api/test-cache"
+                "/api/captcha/**"
             );
   }
 }

@@ -4,8 +4,6 @@ public class ErrorCode {
     // 权限类 (Permission) - A开头
     /** Token缺失或无效 */
     public static final String UNAUTHORIZED = "A0001";
-    /** Token校验失败（格式错误/过期） */
-    public static final String INVALID_TOKEN = "A0002";
 
     // 提醒类 (Reminder) - R开头
     /** 商户信息未完善（未绑定手机号） */

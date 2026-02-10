@@ -4,6 +4,7 @@ import com.msi.constants.ErrorCode;
 import com.msi.controller.MerchantController;
 import com.msi.controller.SmsController;
 import com.msi.controller.SupplyController;
+import com.msi.controller.TestPermissionController;
 import com.msi.service.MerchantService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,7 +32,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
-
+        // 如果没有携带token，说明用户未登录，需要跳转到登录界面
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             logger.warn("Authentication failed: missing or invalid Authorization header, method={}, uri={}",
@@ -42,6 +43,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 如果有token，但是token对应的商户不存在或已过期，也需要跳转到登录界面
         String token = authorization.substring(7);
         com.msi.domain.Merchant merchant = merchantService.getMerchantByToken(token);
         if (merchant == null || merchant.getId() == null || merchant.getIsValid() == 0) {
@@ -51,9 +53,12 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                     merchant != null ? merchant.getIsValid() : null);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"errorCode\": \"" + ErrorCode.INVALID_TOKEN + "\", \"error\": \"Token无效或已过期\"}");
+            response.getWriter().write("{\"errorCode\": \"" + ErrorCode.UNAUTHORIZED + "\", \"error\": \"Token无效或已过期\"}");
             return false;
         }
+
+        
+
         if (handler instanceof HandlerMethod) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             Class<?> beanType = handlerMethod.getBeanType();
@@ -61,7 +66,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             // 检查商户会员是否过期并且检查商户是否补充过信息（商户手机号不能为空），
             // 否则不允许调用MerchantController、SupplyController中的方法
             // MerchantController和SupplyController中的所有接口都必须是会员并且会员没到期才允许调用
-            if (beanType == MerchantController.class || beanType == SupplyController.class) {
+            if (beanType == MerchantController.class || beanType == SupplyController.class || beanType == TestPermissionController.class) {
                 // 1. 检查商户是否已补充信息（手机号）
                 if (merchant.getMerchantPhone() == null || merchant.getMerchantPhone().isEmpty()) {
                     logger.warn("Authentication failed: merchant profile incomplete (missing phone), method={}, uri={}, merchantId={}",
