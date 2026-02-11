@@ -28,11 +28,32 @@ public class MerchantRechargeOrder {
   @Column(name = "total_amount", nullable = false)
   private Integer totalAmount;
 
-  @Column(name = "status", nullable = false)
-  private Integer status;
+  @Column(name = "pay_status", nullable = false)
+  private Integer payStatus;
 
   @Column(name = "wechat_transaction_id")
   private String wechatTransactionId;
+
+  @Column(name = "app_id")
+  private String appId;
+
+  @Column(name = "prepay_id")
+  private String prepayId;
+
+  @Column(name = "nonce_str")
+  private String nonceStr;
+
+  @Column(name = "time_stamp")
+  private String timeStamp;
+
+  @Column(name = "package_val")
+  private String packageVal;
+
+  @Column(name = "sign_type")
+  private String signType;
+
+  @Column(name = "pay_sign")
+  private String paySign;
 
   @Column(name = "create_time")
   private LocalDateTime createTime;
@@ -48,8 +69,8 @@ public class MerchantRechargeOrder {
     if (updateTime == null) {
       updateTime = LocalDateTime.now();
     }
-    if (status == null) {
-      status = 0;
+    if (payStatus == null) {
+      payStatus = 0;
     }
   }
 
@@ -97,7 +118,7 @@ public class MerchantRechargeOrder {
   public void setIntegralAmount(Integer integralAmount) {
     this.integralAmount = integralAmount;
   }
-
+  
   public Integer getMemberMonths() {
     return memberMonths;
   }
@@ -114,12 +135,12 @@ public class MerchantRechargeOrder {
     this.totalAmount = totalAmount;
   }
 
-  public Integer getStatus() {
-    return status;
+  public Integer getPayStatus() {
+    return payStatus;
   }
 
-  public void setStatus(Integer status) {
-    this.status = status;
+  public void setPayStatus(Integer payStatus) {
+    this.payStatus = payStatus;
   }
 
   public String getWechatTransactionId() {
@@ -128,6 +149,62 @@ public class MerchantRechargeOrder {
 
   public void setWechatTransactionId(String wechatTransactionId) {
     this.wechatTransactionId = wechatTransactionId;
+  }
+
+  public String getAppId() {
+    return appId;
+  }
+
+  public void setAppId(String appId) {
+    this.appId = appId;
+  }
+
+  public String getPrepayId() {
+    return prepayId;
+  }
+
+  public void setPrepayId(String prepayId) {
+    this.prepayId = prepayId;
+  }
+
+  public String getNonceStr() {
+    return nonceStr;
+  }
+
+  public void setNonceStr(String nonceStr) {
+    this.nonceStr = nonceStr;
+  }
+
+  public String getTimeStamp() {
+    return timeStamp;
+  }
+
+  public void setTimeStamp(String timeStamp) {
+    this.timeStamp = timeStamp;
+  }
+
+  public String getPackageVal() {
+    return packageVal;
+  }
+
+  public void setPackageVal(String packageVal) {
+    this.packageVal = packageVal;
+  }
+
+  public String getSignType() {
+    return signType;
+  }
+
+  public void setSignType(String signType) {
+    this.signType = signType;
+  }
+
+  public String getPaySign() {
+    return paySign;
+  }
+
+  public void setPaySign(String paySign) {
+    this.paySign = paySign;
   }
 
   public LocalDateTime getCreateTime() {
@@ -146,4 +223,3 @@ public class MerchantRechargeOrder {
     this.updateTime = updateTime;
   }
 }
-

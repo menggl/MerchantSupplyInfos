@@ -2,7 +2,6 @@ package com.msi.interceptor;
 
 import com.msi.constants.ErrorCode;
 import com.msi.controller.MerchantController;
-import com.msi.controller.SmsController;
 import com.msi.controller.SupplyController;
 import com.msi.controller.TestPermissionController;
 import com.msi.service.MerchantService;

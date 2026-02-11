@@ -39,6 +39,14 @@ wechat:
   miniapp:
     appid: ${WECHAT_MINIAPP_APPID}
     secret: ${WECHAT_MINIAPP_SECRET}
+  pay:
+    mchid: ${WECHAT_PAY_MCHID}
+    api-v3-key: ${WECHAT_PAY_API_V3_KEY}
+    merchant-serial-number: ${WECHAT_PAY_MERCHANT_SERIAL_NUMBER}
+    private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH}
+    notify-url: ${WECHAT_PAY_NOTIFY_URL}
+    public-key-id: ${WECHAT_PAY_PUBLIC_KEY_ID}
+    public-key-path: ${WECHAT_PAY_PUBLIC_KEY_PATH}
 image:
     host: ${IMAGE_HOST}
 yunpian:
