@@ -273,7 +273,6 @@ public class SupplyController {
 		if (product.getMerchantId() != null) {
 			try {
 				merchant = merchantService.getMerchantInfo(product.getMerchantId());
-				logger.info("merchant: {}", toJson(merchant));
 			} catch (IllegalArgumentException ignored) {
 			}
 		}

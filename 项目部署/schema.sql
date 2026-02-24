@@ -63,12 +63,16 @@ CREATE TABLE IF NOT EXISTS merchant_info (
   merchant_address VARCHAR(255),
   latitude DECIMAL(10, 6) COMMENT '纬度',
   longitude DECIMAL(10, 6) COMMENT '经度',
-  business_license_url VARCHAR(512) COMMENT '营业执照图片URL',
+  business_license_url VARCHAR(150) COMMENT '营业执照图片URL',
+  store_photo_url VARCHAR(150) COMMENT '商家门店照片URL',
+  id_card_photo_url VARCHAR(150) COMMENT '商家身份证照片URL',
   contact_name VARCHAR(64) COMMENT '联系人姓名',
   is_valid INT DEFAULT 1 COMMENT '1有效0无效',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+
 
 
 -- 会员信息表
@@ -114,6 +118,15 @@ CREATE TABLE IF NOT EXISTS merchant_member_integral_spend (
   change_reason VARCHAR(255) COMMENT '变更原因，签到送积分，花钱充值积分，花费积分求购',
   order_id BIGINT COMMENT '如果是求购，保存求购订单ID',
   change_time DATETIME COMMENT '变更时间'
+);
+
+
+DROP TABLE IF EXISTS user_feedback;
+CREATE TABLE IF NOT EXISTS user_feedback (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  merchant_id BIGINT NOT NULL COMMENT '商户ID',
+  feedback_content VARCHAR(300) NOT NULL COMMENT '商户反馈内容',
+  feedback_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '商户反馈时间'
 );
 
 
@@ -259,6 +272,7 @@ CREATE TABLE IF NOT EXISTS merchant_phone_product (
   second_hand_function VARCHAR(128) COMMENT '二手机拆修和功能',
   battery_status INT COMMENT '电池状态',
   description TEXT COMMENT '产品描述信息',
+  region VARCHAR(50) COMMENT '新机售卖区域',
   price INT COMMENT '产品价格',
   stock INT COMMENT '产品库存',
   listing_time DATETIME COMMENT '上架时间',

@@ -2,7 +2,7 @@ package com.msi.config;
 
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
-import com.wechat.pay.java.core.RSAConfig;
+import com.wechat.pay.java.core.RSAPublicKeyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,21 +43,20 @@ public class WeChatPayConfig {
                 return null;
             }
 
-            // 模式1：公钥模式 (推荐) - 暂时注释，SDK版本问题需排查
-            /*
+            // 模式1：公钥模式 (推荐)
             if (wechatPayPublicKeyId != null && !wechatPayPublicKeyId.isEmpty() && !wechatPayPublicKeyId.contains("$") &&
                 wechatPayPublicKeyPath != null && !wechatPayPublicKeyPath.isEmpty() && !wechatPayPublicKeyPath.contains("$")) {
                 
                 logger.info("使用微信支付公钥模式初始化 SDK");
-                return new RSAConfig.Builder()
+                return new RSAPublicKeyConfig.Builder()
                         .merchantId(mchId)
                         .privateKeyFromPath(privateKeyPath)
                         .merchantSerialNumber(merchantSerialNumber)
-                        // .wechatPayPublicKeyFromPath(wechatPayPublicKeyPath) // 暂不支持公钥模式配置，回退到证书模式
-                        // .wechatPayPublicKeyId(wechatPayPublicKeyId)
+                        .publicKeyFromPath(wechatPayPublicKeyPath)
+                        .publicKeyId(wechatPayPublicKeyId)
+                        .apiV3Key(apiV3Key)
                         .build();
             }
-            */
 
             // 模式2：平台证书模式 (需要 apiV3Key 下载证书)
             if (apiV3Key != null && !apiV3Key.isEmpty() && !apiV3Key.contains("$")) {

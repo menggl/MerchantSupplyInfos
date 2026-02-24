@@ -34,6 +34,12 @@ public class Merchant {
     @Column(name = "business_license_url")
     private String businessLicenseUrl;
 
+	@Column(name = "store_photo_url")
+	private String storePhotoUrl;
+
+	@Column(name = "id_card_photo_url")
+	private String idCardPhotoUrl;
+
     @Column(name = "city_code")
     private String cityCode;
 
@@ -164,6 +170,22 @@ public class Merchant {
     public void setBusinessLicenseUrl(String businessLicenseUrl) {
         this.businessLicenseUrl = businessLicenseUrl;
     }
+
+	public String getStorePhotoUrl() {
+		return storePhotoUrl;
+	}
+
+	public void setStorePhotoUrl(String storePhotoUrl) {
+		this.storePhotoUrl = storePhotoUrl;
+	}
+
+	public String getIdCardPhotoUrl() {
+		return idCardPhotoUrl;
+	}
+
+	public void setIdCardPhotoUrl(String idCardPhotoUrl) {
+		this.idCardPhotoUrl = idCardPhotoUrl;
+	}
 
     public String getCityCode() {
         return cityCode;

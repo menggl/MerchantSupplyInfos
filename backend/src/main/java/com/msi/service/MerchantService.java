@@ -612,6 +612,8 @@ public class MerchantService {
         String phone = merchant.getMerchantPhone();
         String address = merchant.getMerchantAddress();
         String businessLicenseUrl = merchant.getBusinessLicenseUrl();
+        String storePhotoUrl = merchant.getStorePhotoUrl();
+        String idCardPhotoUrl = merchant.getIdCardPhotoUrl();
         if (name == null || name.isEmpty()) {
             logger.error("商户名称不能为空");
             throw new IllegalArgumentException("商户名称不能为空");
@@ -632,9 +634,14 @@ public class MerchantService {
             logger.error("地址不能为空");
             throw new IllegalArgumentException("地址不能为空");
         }
-        // 商户营业执照图片url，也不是必填项，但是如果传入过来，也得保存好
         if (businessLicenseUrl != null && !businessLicenseUrl.isEmpty()) {
             existing.setBusinessLicenseUrl(businessLicenseUrl);
+        }
+        if (storePhotoUrl != null && !storePhotoUrl.isEmpty()) {
+            existing.setStorePhotoUrl(storePhotoUrl);
+        }
+        if (idCardPhotoUrl != null && !idCardPhotoUrl.isEmpty()) {
+            existing.setIdCardPhotoUrl(idCardPhotoUrl);
         }
         /**
          * 手机号变更，每次都要验证
