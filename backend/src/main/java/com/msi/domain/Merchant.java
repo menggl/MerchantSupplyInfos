@@ -2,6 +2,7 @@ package com.msi.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "merchant_info")
@@ -29,6 +30,7 @@ public class Merchant {
     private String merchantPhone;
 
     @Column(name = "passwd")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String passwd;
 
     @Column(name = "merchant_address")

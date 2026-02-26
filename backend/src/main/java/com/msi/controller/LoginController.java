@@ -57,6 +57,22 @@ public class LoginController {
         }
     }
 
+    @PostMapping("/phone-login")
+    public ResponseEntity<Merchant> phoneLogin(@RequestBody PhoneLoginRequest request) {
+        try {
+            logger.info("phoneLogin request: {}", toJson(request));
+            Merchant result = merchantService.loginByPhone(request.getPhone(), request.getPassword());
+            logger.info("phoneLogin response: {}", toJson(result));
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            logger.error("手机号登录参数错误: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            logger.error("手机号登录失败: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     /**
      * 商户信息修改，包括商户名称、联系人姓名、联系人手机号、地址等信息
      */
@@ -84,5 +100,15 @@ public class LoginController {
 
         public String getCode() { return code; }
         public void setCode(String code) { this.code = code; }
+    }
+
+    public static class PhoneLoginRequest {
+        private String phone;
+        private String password;
+
+        public String getPhone() { return phone; }
+        public void setPhone(String phone) { this.phone = phone; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
     }
 }

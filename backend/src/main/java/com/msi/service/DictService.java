@@ -12,14 +12,11 @@ import com.msi.repository.PhoneModelRepository;
 import com.msi.repository.PhoneRemarkDictRepository;
 import com.msi.repository.PhoneSeriesRepository;
 import com.msi.repository.PhoneSpecRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -39,8 +36,6 @@ public class DictService {
 	private final PhoneSpecRepository specRepository;
 	private final CityDictRepository cityRepository;
 	private final PhoneRemarkDictRepository phoneRemarkDictRepository;
-	private final StringRedisTemplate redisTemplate;
-	private final ObjectMapper objectMapper = new ObjectMapper();
 	private final Cache<Long, String> brandNameCache;
 	private final Cache<Long, String> seriesNameCache;
 	private final Cache<Long, String> modelNameCache;
@@ -50,14 +45,13 @@ public class DictService {
 
 	public DictService(BrandRepository brandRepository, PhoneSeriesRepository seriesRepository,
 			PhoneModelRepository modelRepository, PhoneSpecRepository specRepository, CityDictRepository cityRepository,
-			PhoneRemarkDictRepository phoneRemarkDictRepository, StringRedisTemplate redisTemplate) {
+			PhoneRemarkDictRepository phoneRemarkDictRepository) {
 		this.brandRepository = brandRepository;
 		this.seriesRepository = seriesRepository;
 		this.modelRepository = modelRepository;
 		this.specRepository = specRepository;
 		this.cityRepository = cityRepository;
 		this.phoneRemarkDictRepository = phoneRemarkDictRepository;
-		this.redisTemplate = redisTemplate;
 		this.brandNameCache = CacheBuilder.newBuilder()
 				.expireAfterWrite(24, TimeUnit.HOURS)
 				.maximumSize(1000)

@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import org.springframework.util.DigestUtils;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class MerchantService {
@@ -92,39 +94,60 @@ public class MerchantService {
             throw new RuntimeException("微信接口返回缺少 openid");
         }
         
-        // 生成 Token
-        String token = java.util.UUID.randomUUID().toString().replace("-", "");
-        
         // 查询数据库表有没有Merchant
         Optional<Merchant> merchantOpt = merchantRepository.findByWechatId(openid);
         Merchant merchant;
         if (merchantOpt.isEmpty()) {
-            // 如果不存在，则插入一条数据到数据库表中（将token也保存进去）
+            // 如果不存在，则插入一条数据到数据库表中
             merchant = new Merchant();
             merchant.setWechatId(openid);
-            merchant.setToken(token);
-            merchant.setWechatName(null);
-            merchant.setMerchantName(null);
-            merchant.setMerchantPhone(null);
-            merchant.setMerchantAddress(null);
-            merchant.setMerchantLatitude(null);
-            merchant.setMerchantLongitude(null);
-            merchant.setContactName(null);
+            // 默认初始化一些字段
             merchant.setRegistrationDate(java.time.LocalDateTime.now());
-            merchant.setCancellationDate(null);
             merchant.setIsValid(1);
             merchant.setPublicId(java.util.UUID.randomUUID().toString().replace("-", ""));
+            // 首次保存以获取ID
             merchant = merchantRepository.save(merchant);
         } else {
-            // 有则更新token值
             merchant = merchantOpt.get();
-            // 检查商户是否已被禁用
-            if (merchant.getIsValid() == 0) {
-                throw new IllegalArgumentException("商户已被禁用");
-            }
-            merchant.setToken(token);
-            merchant = merchantRepository.save(merchant);
         }
+        
+        return processLoginSuccess(merchant);
+    }
+
+    public Merchant loginByPhone(String phone, String password) {
+        if (phone == null || phone.isEmpty()) {
+            throw new IllegalArgumentException("手机号不能为空");
+        }
+        if (password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("密码不能为空");
+        }
+        
+        // 查询商户
+        Optional<Merchant> merchantOpt = merchantRepository.findByMerchantPhone(phone);
+        if (merchantOpt.isEmpty()) {
+            throw new IllegalArgumentException("商户不存在");
+        }
+        Merchant merchant = merchantOpt.get();
+        
+        // 验证密码
+        String md5Passwd = DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
+        if (!md5Passwd.equalsIgnoreCase(merchant.getPasswd())) {
+            throw new IllegalArgumentException("密码错误");
+        }
+        
+        return processLoginSuccess(merchant);
+    }
+
+    private Merchant processLoginSuccess(Merchant merchant) {
+        // 检查商户是否已被禁用
+        if (merchant.getIsValid() != null && merchant.getIsValid() == 0) {
+            throw new IllegalArgumentException("商户已被禁用");
+        }
+        
+        // 生成 Token
+        String token = java.util.UUID.randomUUID().toString().replace("-", "");
+        merchant.setToken(token);
+        merchant = merchantRepository.save(merchant);
 
         MerchantMemberInfo info = null;
         java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(merchant.getId());
@@ -643,6 +666,14 @@ public class MerchantService {
         if (idCardPhotoUrl != null && !idCardPhotoUrl.isEmpty()) {
             existing.setIdCardPhotoUrl(idCardPhotoUrl);
         }
+        
+        // 更新密码逻辑
+        String passwd = merchant.getPasswd();
+        if (passwd != null && !passwd.isEmpty()) {
+            // 对用户上传的密码进行MD5加密
+            String md5Passwd = DigestUtils.md5DigestAsHex(passwd.getBytes(StandardCharsets.UTF_8));
+            existing.setPasswd(md5Passwd);
+        }
         /**
          * 手机号变更，每次都要验证
          * 验证完要删除验证码
@@ -734,9 +765,9 @@ public class MerchantService {
         try {
             ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
             String json = mapper.writeValueAsString(merchant);
-            // 更新 token -> merchant（完整商户信息JSON）
-            redisTemplate.opsForValue().set("token:" + merchant.getToken(), json);
-            redisTemplate.opsForValue().set("merchant:info:" + merchant.getId(), json);
+            // 更新 token -> merchant（完整商户信息JSON），设置1天过期
+            redisTemplate.opsForValue().set("token:" + merchant.getToken(), json, 1, TimeUnit.DAYS);
+            redisTemplate.opsForValue().set("merchant:info:" + merchant.getId(), json, 1, TimeUnit.DAYS);
         } catch (Exception e) {
             e.printStackTrace();
         }
