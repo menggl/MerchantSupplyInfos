@@ -679,6 +679,13 @@ public class MerchantService {
          * 验证完要删除验证码
          */
         if (!phone.equals(existing.getMerchantPhone())) {
+            // 检查手机号是否已被其他商户使用
+            Optional<Merchant> otherMerchant = merchantRepository.findByMerchantPhone(phone);
+            if (otherMerchant.isPresent()) {
+                logger.error("该手机号已被其他商户使用");
+                throw new IllegalArgumentException("该手机号已被其他商户使用");
+            }
+            
             String code = smsService.getCode(existing.getWechatId(), phone);
             if (code == null || !code.equals(merchant.getCode())) {
                 logger.error("验证码不正确");

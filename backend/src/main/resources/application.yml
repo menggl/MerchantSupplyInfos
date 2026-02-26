@@ -14,6 +14,8 @@ spring:
       mode: never
   data:
     redis:
+      repositories:
+        enabled: false
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       database: ${REDIS_DATABASE}

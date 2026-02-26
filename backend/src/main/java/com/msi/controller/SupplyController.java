@@ -306,6 +306,13 @@ public class SupplyController {
 		}
 		// 价格
 		dto.setPrice(product.getPrice());
+
+		// 填充品牌、系列、机型、规格名称
+		dto.setBrandName(dictService.getBrandNameById(product.getBrandId()));
+		dto.setSeriesName(dictService.getSeriesNameById(product.getSeriesId()));
+		dto.setModelName(dictService.getModelNameById(product.getModelId()));
+		dto.setSpecName(dictService.getSpecNameById(product.getSpecId()));
+
 		Integer type = product.getProductType();
 		if (type != null && type == 1) {
 			// 二手机成色

@@ -13,7 +13,43 @@ public class SupplyProductDto {
   private String remark;
   private String otherRemark;
   private String region;
+  private String brandName;
+  private String seriesName;
+  private String modelName;
+  private String specName;
   private LocalDateTime listingTime;
+
+  public String getBrandName() {
+    return brandName;
+  }
+
+  public void setBrandName(String brandName) {
+    this.brandName = brandName;
+  }
+
+  public String getSeriesName() {
+    return seriesName;
+  }
+
+  public void setSeriesName(String seriesName) {
+    this.seriesName = seriesName;
+  }
+
+  public String getModelName() {
+    return modelName;
+  }
+
+  public void setModelName(String modelName) {
+    this.modelName = modelName;
+  }
+
+  public String getSpecName() {
+    return specName;
+  }
+
+  public void setSpecName(String specName) {
+    this.specName = specName;
+  }
 
   public String getRegion() {
     return region;

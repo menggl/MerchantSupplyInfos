@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS merchant_info (
   token VARCHAR(128) UNIQUE COMMENT '登录凭证',
   wechat_name VARCHAR(128),
   merchant_name VARCHAR(128),
-  merchant_phone VARCHAR(32),
+  merchant_phone VARCHAR(32) UNIQUE,
   passwd VARCHAR(32) COMMENT '登录密码(MD5)',
   registration_date DATETIME COMMENT '商户注册日期',
   cancellation_date DATETIME COMMENT '商户注销日期',

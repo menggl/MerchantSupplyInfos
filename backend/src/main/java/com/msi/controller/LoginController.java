@@ -77,21 +77,21 @@ public class LoginController {
      * 商户信息修改，包括商户名称、联系人姓名、联系人手机号、地址等信息
      */
     @PutMapping("/merchants/update")
-    public ResponseEntity<Merchant> updateMerchant(@RequestAttribute("merchant") Merchant currentMerchant, @RequestBody Merchant merchant) {
+    public ResponseEntity<?> updateMerchant(@RequestAttribute("merchant") Merchant currentMerchant, @RequestBody Merchant merchant) {
         try {
             logger.info("updateMerchant request: {}", toJson(merchant));
             if (currentMerchant == null || currentMerchant.getId() == null) {
-                return ResponseEntity.status(401).body((Merchant) null);
+                return ResponseEntity.status(401).body("用户未登录");
             }
             Merchant updated = merchantService.updateMerchant(currentMerchant.getId(), merchant);
             logger.info("updateMerchant response: {}", toJson(updated));
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             if ("商户不存在".equals(e.getMessage())) {
-                return ResponseEntity.status(404).body((Merchant) null);
+                return ResponseEntity.status(404).body("商户不存在");
             }
             logger.error("更新商户失败: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body((Merchant) null);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
