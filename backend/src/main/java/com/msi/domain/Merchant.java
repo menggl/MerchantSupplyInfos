@@ -28,6 +28,9 @@ public class Merchant {
     @Column(name = "merchant_phone")
     private String merchantPhone;
 
+    @Column(name = "passwd")
+    private String passwd;
+
     @Column(name = "merchant_address")
     private String merchantAddress;
 
@@ -153,6 +156,14 @@ public class Merchant {
 
     public void setMerchantPhone(String merchantPhone) {
         this.merchantPhone = merchantPhone;
+    }
+
+    public String getPasswd() {
+        return passwd;
+    }
+
+    public void setPasswd(String passwd) {
+        this.passwd = passwd;
     }
 
     public String getMerchantAddress() {

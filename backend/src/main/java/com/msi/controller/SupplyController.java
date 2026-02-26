@@ -82,11 +82,26 @@ public class SupplyController {
 			@RequestParam(required = false) Long seriesId,
 			@RequestParam(required = false) Long modelId,
 			@RequestParam(required = false) Long specId,
+			@RequestParam(required = false) Integer minPrice,
+			@RequestParam(required = false) Integer maxPrice,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
 			@RequestParam(required = false) String sortField,
 			@RequestParam(required = false) String sortOrder) {
 		try {
+			// 如果品牌ID为-1，则校验价格范围
+			if (Long.valueOf(-1).equals(brandId)) {
+				if (minPrice == null || maxPrice == null) {
+					throw new IllegalArgumentException("当选择不限品牌时，最小价格和最大价格不能为空");
+				}
+				if (minPrice <= 0 || maxPrice <= 0) {
+					throw new IllegalArgumentException("价格必须大于0");
+				}
+				if (minPrice >= maxPrice) {
+					throw new IllegalArgumentException("最小价格必须小于最大价格");
+				}
+			}
+
 			Map<String, Object> reqMap = new java.util.HashMap<>();
 			reqMap.put("merchantId", currentMerchant != null ? currentMerchant.getId() : null);
 			reqMap.put("cityCode", cityCode);
@@ -95,6 +110,8 @@ public class SupplyController {
 			reqMap.put("seriesId", seriesId);
 			reqMap.put("modelId", modelId);
 			reqMap.put("specId", specId);
+			reqMap.put("minPrice", minPrice);
+			reqMap.put("maxPrice", maxPrice);
 			reqMap.put("page", page);
 			reqMap.put("size", size);
 			reqMap.put("sortField", sortField);
@@ -117,20 +134,25 @@ public class SupplyController {
 			);
 
 			// Validate sort parameters
-			if (sortField != null && !sortField.equals("update_time") && !sortField.equals("price")) {
-				sortField = "update_time";
+			if (sortField != null && !sortField.equals("updateTime") && !sortField.equals("update_time") && !sortField.equals("price")) {
+				sortField = "updateTime";
 			}
+			// Map update_time to updateTime for JPA
+			if ("update_time".equals(sortField)) {
+				sortField = "updateTime";
+			}
+			
 			if (sortOrder != null && !sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
 				sortOrder = "desc";
 			}
 			// Default sort
 			if (sortField == null) {
-				sortField = "update_time";
+				sortField = "updateTime";
 				sortOrder = "desc";
 			}
 
 			Page<Product> products = supplyService.searchAvailableProducts(
-					cityCode, productType, brandId, seriesId, modelId, specId, page, size, sortField, sortOrder);
+					cityCode, productType, brandId, seriesId, modelId, specId, minPrice, maxPrice, page, size, sortField, sortOrder);
 			Page<SupplyProductDto> result = products.map(this::convertToDto);
 			logger.info("searchAvailableProducts response: {}", toJson(result));
 			return ResponseEntity.ok(result);

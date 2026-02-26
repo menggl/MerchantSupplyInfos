@@ -60,24 +60,39 @@ https://pay.weixin.qq.com/doc/v3/partner/4012085801
 appID：wx0901e1be9b067e6d
 
 
+/Users/menggl/workspace/MerchantSupplyInfos/项目部署/schema.sql
+在这个sql文件里面增加一个用户反馈表，要求有商户ID，商户反馈内容（300个字），商户反馈时间（默认当前时间）
 
-商户侧对微信支付回调IP有防火墙策略限制的，需要对以下IP段开通白名单:
+/Users/menggl/workspace/MerchantSupplyInfos/backend/src/main/java/com/msi/controller
+在这个目录下面增加一个Controller类，类名叫做UserFeedbackController，这个类的作用是处理用户反馈的请求，严格校验用户反馈的内容（不能有sql注入内容，安全性要考虑清楚）
 
-上海电信出口网段：101.226.103.0/25
+该用户反馈接口必须登录并且只有注册商户才能调用，拦截器中拦截一下
 
-上海联通出口网段：140.207.54.0/25
+如果用户提交的内容涉及sql注入，也给用户返回反馈成功（但是不会保存到数据库，打印专属的日志），防止注入攻击
 
-上海CAP出口网段：121.51.58.128/25
 
-深圳电信出口网段：183.3.234.0/25
+我想在backend项目中添加一个定时任务，每天晚上12点之后做前一天的数据统计，然后发送统计结果到企业微信群（另一个群）里面，统计信息包含下面几个数据
+1.每天新增商户的数量（merchant_info表中create_time为当天的商户数量），总共的商户数量，每天更新商户信息的数量（merchant_info表中update_time为当天，并且merchant_phone不为空的商户数量），总共的有效注册的商户数量（merchant_info表中merchant_phone字段不为空的商户数量）
+2.新机：每天上架产品的数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，并且create_time为当天的数量，条数）
+每天更新的上架产品的数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，并且update_time为当天的数量，条数）
+总共的上架产品数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，条数）
+未上架的有效产品数量（merchant_phone_product表中product_type为0，is_valid为1，state为2，条数）
+更新的求购新机数量（buy_request表中product_type为0，is_valid为1，state为1，update_time字段为当天的数量，条数）
+3.二手机：每天上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且create_time为当天的数量，条数）
+每天更新的上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且update_time为当天的数量，条数）
+总共的上架产品数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，条数）
+未上架的有效产品数量（merchant_phone_product表中product_type为1，is_valid为1，state为2，条数）
+更新的求购二手机数量（buy_request表中product_type为1，is_valid为1，state为1，update_time字段为当天的数量，条数）
+4.上架产品沟通电话数量（merchant_call_record表call_type为0，create_time为当天，条数）
+求购产品沟通电话数量（merchant_call_record表call_type为1，create_time为当天，条数）
+上架产品沟通的商户总数（merchant_call_record表call_type为0，create_time为当天，caller_merchant_id去重后的数量）
+求购产品沟通的商户数量（merchant_call_record表call_type为1，create_time为当天，caller_merchant_id去重后的数量）
+5.商家签到数量（merchant_member_integral_spend表change_reason为“签到送积分”，change_time为当天，条数）
+商家充值次数（merchant_member_integral_spend表change_reason为“花钱充值积分”，change_time为当天，条数）
+商家充值总数（merchant_member_integral_spend表change_reason为“花钱充值积分”，change_time为当天，充值金额总数change_amount累加和）
+上面说的当天，是定时任务的前一天，定时任务执行时间在晚上12点半
 
-深圳联通出口网段：58.251.80.0/25
+backend项目中帮我添加一个Controller接口，调用后直接执行上面的统计任务（不会再定时执行了，为了测试用），该接口不需要登录直接可以调用，但不许传入一个固定的uuid值进行校验（校验不通过也不会执行统计任务）
+https://www.saizanjibao.com/api/statistics/trigger?token=821fe142f4f94f10b3de32f074c5d1c7
 
-深圳CAP出口网段：121.51.30.128/25
 
-香港出口网段：203.205.219.128/25
-
-广州腾讯云出口IP：81.71.199.64，81.71.198.25，81.71.199.59
-
-退款结果通知、分账动账通知IP（新增）：
-175.24.214.208，175.24.211.24，175.24.213.135，109.244.180.23，114.132.203.119，43.139.43.69

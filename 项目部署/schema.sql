@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS merchant_info (
   wechat_name VARCHAR(128),
   merchant_name VARCHAR(128),
   merchant_phone VARCHAR(32),
+  passwd VARCHAR(32) COMMENT '登录密码(MD5)',
   registration_date DATETIME COMMENT '商户注册日期',
   cancellation_date DATETIME COMMENT '商户注销日期',
   city_code VARCHAR(64) COMMENT '城市编码',
@@ -281,7 +282,11 @@ CREATE TABLE IF NOT EXISTS merchant_phone_product (
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   KEY idx_merchant_phone_product_merchant_id (merchant_id),
-  KEY idx_merchant_phone_product_search (city_code, product_type, brand_id, series_id, model_id, spec_id)
+  -- 优化后的复合索引：product_type（必选）、brand_id（常用）、city_code（可选）放在后面
+  -- 这样即使 city_code 为空，product_type 和 brand_id 依然可以使用索引
+  KEY idx_merchant_phone_product_search (product_type, brand_id, city_code, series_id, model_id, spec_id),
+  -- 针对价格范围查询的辅助索引 (当brand_id=-1或需要价格排序/筛选时使用)
+  KEY idx_merchant_phone_product_price (product_type, price, city_code)
 );
 
 DROP TABLE IF EXISTS merchant_product_image;

@@ -84,6 +84,8 @@ public class SupplyService {
 			Long seriesId,
 			Long modelId,
 			Long specId,
+			Integer minPrice,
+			Integer maxPrice,
 			int page,
 			int size,
 			String sortField,
@@ -98,43 +100,53 @@ public class SupplyService {
 			throw new IllegalArgumentException("页码不能小于0");
 		}
 		if (size <= 0) {
-			throw new IllegalArgumentException("每页数量必须大于0");
+			throw new IllegalArgumentException("每页条数必须大于0");
+		}
+
+		Specification<Product> spec = Specification.where(null);
+		
+		// 基础筛选条件：is_valid=1, state=1
+		spec = spec.and((root, query, cb) -> cb.equal(root.get("isValid"), 1));
+		spec = spec.and((root, query, cb) -> cb.equal(root.get("state"), 1));
+		
+		// 产品类型
+		spec = spec.and((root, query, cb) -> cb.equal(root.get("productType"), productType));
+		
+		// 城市筛选
+		if (cityCode != null && !cityCode.isEmpty() && !"000000".equals(cityCode) && !"全国".equals(cityCode)) {
+			spec = spec.and((root, query, cb) -> cb.equal(root.get("cityCode"), cityCode));
 		}
 		
-		Sort sort = Sort.by(Sort.Direction.DESC, "updateTime"); // Default
-		if ("update_time".equals(sortField)) {
-			sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, "updateTime");
-		} else if ("price".equals(sortField)) {
-			sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, "price");
+		// 品牌筛选 (如果是-1，则不加品牌筛选)
+		if (!Long.valueOf(-1).equals(brandId)) {
+			// 指定品牌筛选
+			spec = spec.and((root, query, cb) -> cb.equal(root.get("brandId"), brandId));
+			
+			// 系列筛选
+			if (seriesId != null) {
+				spec = spec.and((root, query, cb) -> cb.equal(root.get("seriesId"), seriesId));
+			}
+			// 机型筛选
+			if (modelId != null) {
+				spec = spec.and((root, query, cb) -> cb.equal(root.get("modelId"), modelId));
+			}
+			// 规格筛选
+			if (specId != null) {
+				spec = spec.and((root, query, cb) -> cb.equal(root.get("specId"), specId));
+			}
 		}
 
-		Specification<Product> spec = (root, query, cb) -> {
-			List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
-			
-			// Base filters
-			predicates.add(cb.equal(root.get("isValid"), 1)); // Only valid products
-			predicates.add(cb.equal(root.get("state"), 1)); // Only listed products
-			
-			if (cityCode != null && !cityCode.isEmpty() && !"000000".equals(cityCode) && !"全国".equals(cityCode)) {
-				predicates.add(cb.equal(root.get("cityCode"), cityCode));
-			}
-			
-			predicates.add(cb.equal(root.get("productType"), productType));
-			predicates.add(cb.equal(root.get("brandId"), brandId));
-			
-			if (seriesId != null) {
-				predicates.add(cb.equal(root.get("seriesId"), seriesId));
-			}
-			if (modelId != null) {
-				predicates.add(cb.equal(root.get("modelId"), modelId));
-			}
-			if (specId != null) {
-				predicates.add(cb.equal(root.get("specId"), specId));
-			}
-			
-			return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
-		};
-
+		// 价格范围筛选 (任何情况下都生效)
+		if (minPrice != null) {
+			spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("price"), minPrice));
+		}
+		if (maxPrice != null) {
+			spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("price"), maxPrice));
+		}
+		
+		// 排序
+		Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), sortField);
+		
 		return productRepository.findAll(spec, PageRequest.of(page, size, sort));
 	}
 

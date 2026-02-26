@@ -60,3 +60,10 @@ aj:
     water-mark: 美机汇
     slip-offset: 5
     aes-status: true
+wecom:
+  webhook:
+    url: ${WECOM_WEBHOOK_URL:}
+  stats:
+    webhook:
+      url: ${WECOM_STATS_WEBHOOK_URL:}
+    token: ${WECOM_STATS_TOKEN:}

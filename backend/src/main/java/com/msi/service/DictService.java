@@ -136,30 +136,12 @@ public class DictService {
 		return result;
 	}
 
-	public List<BrandDto> getAllBrands() {
-		String key = "dict:brands";
-		String cached = redisTemplate.opsForValue().get(key);
-		if (cached != null && !cached.isEmpty()) {
-			try {
-				return objectMapper.readValue(cached, new TypeReference<List<BrandDto>>() {});
-			} catch (Exception e) {
-				logger.error("Failed to parse cached brands", e);
-			}
-		}
-
-		List<BrandDto> list = brandRepository.findAll(Sort.by("sort").ascending()).stream()
-				.filter(b -> b.getDeleted() == null || b.getDeleted() == 0)
-				.map(brand -> new BrandDto(brand.getId(), brand.getName(), null))
-				.collect(Collectors.toList());
-
-		try {
-			String json = objectMapper.writeValueAsString(list);
-			redisTemplate.opsForValue().set(key, json, 1, TimeUnit.HOURS);
-		} catch (Exception e) {
-			logger.error("Failed to cache brands", e);
-		}
-		return list;
-	}
+    public List<BrandDto> getAllBrands() {
+        return brandRepository.findAll(Sort.by("sort").ascending()).stream()
+                .filter(b -> b.getDeleted() == null || b.getDeleted() == 0)
+                .map(brand -> new BrandDto(brand.getId(), brand.getName(), null))
+                .collect(Collectors.toList());
+    }
 
 	public List<SeriesDto> getAllSeries(Long brandId) {
 		Optional<Brand> brand = brandRepository.findById(brandId);
@@ -198,19 +180,9 @@ public class DictService {
 				.collect(Collectors.toList());
 	}
 
-	public BrandDetailsDto getBrandDetails(Long brandId) {
-		String key = "dict:brand_details:" + brandId;
-		String cached = redisTemplate.opsForValue().get(key);
-		if (cached != null && !cached.isEmpty()) {
-			try {
-				return objectMapper.readValue(cached, BrandDetailsDto.class);
-			} catch (Exception e) {
-				logger.error("Failed to parse cached brand details", e);
-			}
-		}
-
-		BrandDetailsDto dto = new BrandDetailsDto();
-		dto.setBrandId(brandId);
+    public BrandDetailsDto getBrandDetails(Long brandId) {
+        BrandDetailsDto dto = new BrandDetailsDto();
+        dto.setBrandId(brandId);
 
 		// 1. Fetch all data for the brand
 		List<PhoneSeries> seriesList = seriesRepository.findByBrandIdAndDeletedOrderBySortAsc(brandId, 0);
@@ -259,12 +231,6 @@ public class DictService {
 
 		dto.setSeriesArr(seriesItems);
 
-		try {
-			String json = objectMapper.writeValueAsString(dto);
-			redisTemplate.opsForValue().set(key, json, 1, TimeUnit.HOURS);
-		} catch (Exception e) {
-			logger.error("Failed to cache brand details", e);
-		}
 		return dto;
 	}
 

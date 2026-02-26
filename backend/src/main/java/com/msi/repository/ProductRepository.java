@@ -21,4 +21,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
       Long merchantId, Long brandId, Long seriesId, Long modelId, Long specId, Integer productType, Integer isValid);
 
   java.util.Optional<Product> findByIdAndIsValid(Long id, Integer isValid);
+
+  long countByProductTypeAndIsValidAndStateAndCreateTimeBetween(Integer type, Integer isValid, Integer state, java.time.LocalDateTime start, java.time.LocalDateTime end);
+  long countByProductTypeAndIsValidAndStateAndUpdateTimeBetween(Integer type, Integer isValid, Integer state, java.time.LocalDateTime start, java.time.LocalDateTime end);
+  long countByProductTypeAndIsValidAndState(Integer type, Integer isValid, Integer state);
 }

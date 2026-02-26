@@ -27,7 +27,8 @@ public class WebConfig implements WebMvcConfigurer {
                 "/api/dict/**",
                 "/api/images/**",
                 "/api/captcha/**",
-                "/api/pay/wechat/notify"
+                "/api/pay/wechat/notify",
+                "/api/statistics/trigger"
             );
   }
 }
