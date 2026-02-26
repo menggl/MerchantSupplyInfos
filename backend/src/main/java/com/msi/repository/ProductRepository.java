@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product>, ProductRepositoryCustom {
   Page<Product> findByMerchantIdAndIsValid(Long merchantId, Integer isValid, Pageable pageable);
 
   Page<Product> findByMerchantIdAndBrandIdAndSeriesIdAndModelIdAndSpecIdAndIsValid(

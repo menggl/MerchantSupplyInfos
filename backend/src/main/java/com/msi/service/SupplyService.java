@@ -103,6 +103,14 @@ public class SupplyService {
 			throw new IllegalArgumentException("每页条数必须大于0");
 		}
 
+		// 如果是默认排序（按时间倒序），使用商户分组轮询策略
+		if ((sortField == null || "update_time".equals(sortField) || "updateTime".equals(sortField)) &&
+				(sortOrder == null || "desc".equalsIgnoreCase(sortOrder))) {
+			return productRepository.findAvailableProductsWithRoundRobin(
+					cityCode, productType, brandId, seriesId, modelId, specId, minPrice, maxPrice,
+					PageRequest.of(page, size));
+		}
+
 		Specification<Product> spec = Specification.where(null);
 		
 		// 基础筛选条件：is_valid=1, state=1
