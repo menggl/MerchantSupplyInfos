@@ -7,13 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import java.util.Collections;
 
 public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
@@ -130,6 +131,9 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                 sortedProducts.add(productMap.get(id));
             }
         }
+        
+        // 随机打乱结果集顺序
+        Collections.shuffle(sortedProducts);
 
         return new PageImpl<>(sortedProducts, pageable, total);
     }
