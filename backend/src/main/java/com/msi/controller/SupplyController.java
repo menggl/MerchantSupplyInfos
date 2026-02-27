@@ -87,7 +87,8 @@ public class SupplyController {
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
 			@RequestParam(required = false) String sortField,
-			@RequestParam(required = false) String sortOrder) {
+			@RequestParam(required = false) String sortOrder,
+			@RequestParam(required = false) String randomSeed) {
 		try {
 			// 如果品牌ID为-1，则校验价格范围
 			if (Long.valueOf(-1).equals(brandId)) {
@@ -151,8 +152,19 @@ public class SupplyController {
 				sortOrder = "desc";
 			}
 
+			// 处理前端传过来的 sortOrder 为空的情况
+			if (sortOrder == null) {
+				sortOrder = "desc";
+			}
+
+			// 如果前端没有传 randomSeed，则使用当前登录商户的ID作为默认Seed
+			// 这样可以保证旧版本前端的翻页稳定性，同时也让不同用户看到不同的排序结果（公平性）
+			if ((randomSeed == null || randomSeed.isEmpty()) && currentMerchant != null) {
+				randomSeed = String.valueOf(currentMerchant.getId());
+			}
+
 			Page<Product> products = supplyService.searchAvailableProducts(
-					cityCode, productType, brandId, seriesId, modelId, specId, minPrice, maxPrice, page, size, sortField, sortOrder);
+					cityCode, productType, brandId, seriesId, modelId, specId, minPrice, maxPrice, page, size, sortField, sortOrder, randomSeed);
 			Page<SupplyProductDto> result = products.map(this::convertToDto);
 			logger.info("searchAvailableProducts response: {}", toJson(result));
 			return ResponseEntity.ok(result);

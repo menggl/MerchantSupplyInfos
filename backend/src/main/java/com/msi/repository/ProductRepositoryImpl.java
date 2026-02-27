@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import java.util.Collections;
-
 public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
     @Autowired
@@ -31,6 +29,8 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             Long specId,
             Integer minPrice,
             Integer maxPrice,
+            String randomSeed,
+            String sortOrder,
             Pageable pageable) {
 
         StringBuilder whereClause = new StringBuilder(" WHERE is_valid = 1 AND state = 1 AND product_type = :productType");
@@ -83,14 +83,27 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
 
+        // Determine sort direction
+        String direction = (sortOrder != null && "asc".equalsIgnoreCase(sortOrder)) ? "ASC" : "DESC";
+
         // Fetch IDs with Round Robin logic
+        // Use randomSeed to shuffle merchant order consistently
+        // We use MD5(CONCAT(merchant_id, :seed)) to randomize merchant order
+        String orderByClause = "ORDER BY rn ASC, update_time " + direction;
+        if (randomSeed != null && !randomSeed.isEmpty()) {
+             // If seed is provided, we sort by Rank ASC, then by Hash(MerchantID + Seed) ASC, then by UpdateTime
+             // This ensures that for the same Rank (e.g., all merchants' 1st product), the order is randomized but consistent for the seed
+             orderByClause = "ORDER BY rn ASC, MD5(CONCAT(merchant_id, :randomSeed)) ASC, update_time " + direction;
+             params.put("randomSeed", randomSeed);
+        }
+
         // We select only ID from the subquery to avoid mapping issues
         String idSql = "SELECT t.id FROM (" +
-                "  SELECT id, ROW_NUMBER() OVER (PARTITION BY merchant_id ORDER BY update_time DESC) as rn, update_time " +
+                "  SELECT id, merchant_id, ROW_NUMBER() OVER (PARTITION BY merchant_id ORDER BY update_time " + direction + ") as rn, update_time " +
                 "  FROM merchant_phone_product " +
                 whereClause.toString() +
                 ") t " +
-                "ORDER BY rn ASC, update_time DESC";
+                orderByClause;
 
         Query idQuery = entityManager.createNativeQuery(idSql);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
@@ -131,10 +144,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                 sortedProducts.add(productMap.get(id));
             }
         }
-        
-        // 随机打乱结果集顺序
-        Collections.shuffle(sortedProducts);
-
+  
         return new PageImpl<>(sortedProducts, pageable, total);
     }
 }

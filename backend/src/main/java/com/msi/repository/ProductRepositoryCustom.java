@@ -14,5 +14,7 @@ public interface ProductRepositoryCustom {
             Long specId,
             Integer minPrice,
             Integer maxPrice,
+            String randomSeed,
+            String sortOrder,
             Pageable pageable);
 }

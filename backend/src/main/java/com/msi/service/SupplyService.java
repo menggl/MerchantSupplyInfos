@@ -89,7 +89,8 @@ public class SupplyService {
 			int page,
 			int size,
 			String sortField,
-			String sortOrder) {
+			String sortOrder,
+			String randomSeed) {
 		if (productType == null || (productType != 0 && productType != 1)) {
 			throw new IllegalArgumentException("产品类型不合法");
 		}
@@ -104,10 +105,10 @@ public class SupplyService {
 		}
 
 		// 如果是默认排序（按时间倒序），使用商户分组轮询策略
-		if ((sortField == null || "update_time".equals(sortField) || "updateTime".equals(sortField)) &&
-				(sortOrder == null || "desc".equalsIgnoreCase(sortOrder))) {
+		if ((sortField == null || "update_time".equals(sortField) || "updateTime".equals(sortField))) {
 			return productRepository.findAvailableProductsWithRoundRobin(
-					cityCode, productType, brandId, seriesId, modelId, specId, minPrice, maxPrice,
+					cityCode, productType, brandId, seriesId, modelId, specId, minPrice, maxPrice, randomSeed,
+					sortOrder,
 					PageRequest.of(page, size));
 		}
 
