@@ -72,14 +72,35 @@ appID：wx0901e1be9b067e6d
 
 
 我想在backend项目中添加一个定时任务，每天晚上12点之后做前一天的数据统计，然后发送统计结果到企业微信群（另一个群）里面，统计信息包含下面几个数据
-1.每天新增商户的数量（merchant_info表中create_time为当天的商户数量），总共的商户数量，每天更新商户信息的数量（merchant_info表中update_time为当天，并且merchant_phone不为空的商户数量），总共的有效注册的商户数量（merchant_info表中merchant_phone字段不为空的商户数量）
+1.每天新增商户的数量（merchant_info表中create_time为当天的商户数量），总共的商户数量，每天真实注册商户的数量（merchant_info表中create_time为当天，并且merchant_phone不为空的商户数量），总共的有效注册的商户数量（merchant_info表中merchant_phone字段不为空的商户数量）
 2.新机：每天上架产品的数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，并且create_time为当天的数量，条数）
+
+新用户（merchant_phone_product表中create_time为当天，并且merchant_id在merchant_info表中merchant_phone字段不为空的商户数量）上架产品的数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，并且create_time为当天的数量，条数）
+
+老用户（merchant_phone_product表中create_time不是当天，并且merchant_id在merchant_info表中merchant_phone字段不为空的商户数量）上架产品的数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，并且create_time为当天的数量，条数）
+
 每天更新的上架产品的数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，并且update_time为当天的数量，条数）
+
+新用户当天更新上架产品的数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，并且update_time为当天的数量，条数）
+
+老用户当天更新上架产品的数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，并且update_time为当天的数量，条数）
+
 总共的上架产品数量（merchant_phone_product表中product_type为0，is_valid为1，state为1，条数）
 未上架的有效产品数量（merchant_phone_product表中product_type为0，is_valid为1，state为2，条数）
 更新的求购新机数量（buy_request表中product_type为0，is_valid为1，state为1，update_time字段为当天的数量，条数）
 3.二手机：每天上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且create_time为当天的数量，条数）
 每天更新的上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且update_time为当天的数量，条数）
+
+新用户（merchant_phone_product表中create_time为当天，并且merchant_id在merchant_info表中merchant_phone字段不为空的商户数量）上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且create_time为当天的数量，条数）
+
+老用户（merchant_phone_product表中create_time不是当天，并且merchant_id在merchant_info表中merchant_phone字段不为空的商户数量）上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且create_time为当天的数量，条数）
+
+每天更新的上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且update_time为当天的数量，条数）
+
+新用户当天更新上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且update_time为当天的数量，条数）
+
+老用户当天更新上架产品的数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，并且update_time为当天的数量，条数）
+
 总共的上架产品数量（merchant_phone_product表中product_type为1，is_valid为1，state为1，条数）
 未上架的有效产品数量（merchant_phone_product表中product_type为1，is_valid为1，state为2，条数）
 更新的求购二手机数量（buy_request表中product_type为1，is_valid为1，state为1，update_time字段为当天的数量，条数）
@@ -92,7 +113,23 @@ appID：wx0901e1be9b067e6d
 商家充值总数（merchant_member_integral_spend表change_reason为“花钱充值积分”，change_time为当天，充值金额总数change_amount累加和）
 上面说的当天，是定时任务的前一天，定时任务执行时间在晚上12点半
 
+
+
+
 backend项目中帮我添加一个Controller接口，调用后直接执行上面的统计任务（不会再定时执行了，为了测试用），该接口不需要登录直接可以调用，但不许传入一个固定的uuid值进行校验（校验不通过也不会执行统计任务）
 https://www.saizanjibao.com/api/statistics/trigger?token=821fe142f4f94f10b3de32f074c5d1c7
 
 
+
+我想在admin项目的前端项目（admin）中的左边大菜单列表中添加一个标题“行情资讯”，放到字典管理的菜单的下面，其它设置菜单的上面
+行情资讯界面中，新增、编辑资讯中的内容使用富文本方式编辑，最好有直接的手机展示效果，保留展示效果，编辑的时候什么样子，在手机里面展示的时候就是什么样子
+
+编辑行情资讯中的内容编辑框中，能设置成新闻特定的默认格式或者样式吗？或者替换一个比较好用的新闻编辑组件
+
+点击“行情资讯”，进入行情资讯界面，界面中展示行情资讯表中的内容
+
+backend项目中，增加三个接口，
+一个是获取所有的行情资讯标题（前三条，根据排序字段sort获取sort最小的三条数据），
+第二个是获取行情资讯列表，包含主标题、摘要、排序、时间，包含分页功能
+第三个接口是根据id获取具体的行情资讯内容，包含主标题、内容、时间
+这三个接口不必走拦截器（不需要用户登录）既可以查看调用

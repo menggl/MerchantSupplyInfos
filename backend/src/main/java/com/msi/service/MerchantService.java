@@ -679,6 +679,11 @@ public class MerchantService {
          * 验证完要删除验证码
          */
         if (!phone.equals(existing.getMerchantPhone())) {
+            // 如果原来的手机号为空，说明是首次绑定手机号（正式注册），更新创建时间
+            if (existing.getMerchantPhone() == null || existing.getMerchantPhone().isEmpty()) {
+                existing.setCreateTime(LocalDateTime.now());
+            }
+
             // 检查手机号是否已被其他商户使用
             Optional<Merchant> otherMerchant = merchantRepository.findByMerchantPhone(phone);
             if (otherMerchant.isPresent()) {
@@ -735,6 +740,33 @@ public class MerchantService {
         if (updatedMemberInfo != null) {
             updateLoginCache(saved, updatedMemberInfo);
         }
+        return saved;
+    }
+
+    public Merchant updateMerchantAvatar(Long merchantId, String avatarPhotoUrl) {
+        if (merchantId == null) {
+            logger.error("商户ID不能为空");
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (avatarPhotoUrl == null || avatarPhotoUrl.isEmpty()) {
+            logger.error("头像URL不能为空");
+            throw new IllegalArgumentException("头像URL不能为空");
+        }
+        if (avatarPhotoUrl.length() > 150) {
+            logger.error("头像URL长度不能超过150字符");
+            throw new IllegalArgumentException("头像URL长度不能超过150字符");
+        }
+        Optional<Merchant> opt = merchantRepository.findById(merchantId);
+        if (opt.isEmpty()) {
+            logger.error("商户不存在");
+            throw new IllegalArgumentException("商户不存在");
+        }
+        Merchant existing = opt.get();
+        existing.setAvatarPhotoUrl(avatarPhotoUrl);
+        Merchant saved = save(existing);
+        Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(saved.getId());
+        MerchantMemberInfo info = infoOpt.orElse(null);
+        updateLoginCache(saved, info);
         return saved;
     }
 

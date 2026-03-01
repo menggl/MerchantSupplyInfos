@@ -44,6 +44,9 @@ public class Merchant {
 
 	@Column(name = "id_card_photo_url")
 	private String idCardPhotoUrl;
+	
+	@Column(name = "avatar_photo_url")
+	private String avatarPhotoUrl;
 
     @Column(name = "city_code")
     private String cityCode;
@@ -78,7 +81,7 @@ public class Merchant {
     @Column(name = "is_valid")
     private Integer isValid; // 1: Valid, 0: Invalid
 
-    @Column(name = "create_time", updatable = false)
+    @Column(name = "create_time")
     private LocalDateTime createTime;
 
     @Column(name = "update_time")
@@ -198,6 +201,14 @@ public class Merchant {
 
 	public void setIdCardPhotoUrl(String idCardPhotoUrl) {
 		this.idCardPhotoUrl = idCardPhotoUrl;
+	}
+	
+	public String getAvatarPhotoUrl() {
+		return avatarPhotoUrl;
+	}
+	
+	public void setAvatarPhotoUrl(String avatarPhotoUrl) {
+		this.avatarPhotoUrl = avatarPhotoUrl;
 	}
 
     public String getCityCode() {

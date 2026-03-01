@@ -16,5 +16,6 @@ public interface MerchantRepository extends JpaRepository<Merchant, Long> {
 
     long countByCreateTimeBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
     long countByUpdateTimeBetweenAndMerchantPhoneIsNotNull(java.time.LocalDateTime start, java.time.LocalDateTime end);
+    long countByCreateTimeBetweenAndMerchantPhoneIsNotNull(java.time.LocalDateTime start, java.time.LocalDateTime end);
     long countByMerchantPhoneIsNotNull();
 }

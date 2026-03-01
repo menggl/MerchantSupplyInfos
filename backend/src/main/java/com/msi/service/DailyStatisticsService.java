@@ -64,25 +64,35 @@ public class DailyStatisticsService {
             // 1. 商户统计
             long newMerchants = merchantRepository.countByCreateTimeBetween(startOfDay, endOfDay);
             long totalMerchants = merchantRepository.count();
-            long updatedMerchants = merchantRepository.countByUpdateTimeBetweenAndMerchantPhoneIsNotNull(startOfDay, endOfDay);
+            long realRegisteredMerchants = merchantRepository.countByCreateTimeBetweenAndMerchantPhoneIsNotNull(startOfDay, endOfDay);
             long totalValidMerchants = merchantRepository.countByMerchantPhoneIsNotNull();
 
             sb.append("1. 商户数据\n");
             sb.append("- 新增商户：").append(newMerchants).append("\n");
             sb.append("- 总商户数：").append(totalMerchants).append("\n");
-            sb.append("- 更新商户(手机号不为空)：").append(updatedMerchants).append("\n");
+            sb.append("- 真实注册商户：").append(realRegisteredMerchants).append("\n");
             sb.append("- 有效商户(手机号不为空)：").append(totalValidMerchants).append("\n\n");
 
             // 2. 新机数据 (productType=0)
             long newPhonesAdded = productRepository.countByProductTypeAndIsValidAndStateAndCreateTimeBetween(0, 1, 1, startOfDay, endOfDay);
             long newPhonesUpdated = productRepository.countByProductTypeAndIsValidAndStateAndUpdateTimeBetween(0, 1, 1, startOfDay, endOfDay);
+            
+            long newPhonesAddedByNewUsers = productRepository.countNewUserProducts(0, startOfDay, endOfDay);
+            long newPhonesAddedByOldUsers = productRepository.countOldUserProducts(0, startOfDay, endOfDay);
+            long newPhonesUpdatedByNewUsers = productRepository.countNewUserProductUpdates(0, startOfDay, endOfDay);
+            long newPhonesUpdatedByOldUsers = productRepository.countOldUserProductUpdates(0, startOfDay, endOfDay);
+
             long totalNewPhones = productRepository.countByProductTypeAndIsValidAndState(0, 1, 1);
             long offlineValidNewPhones = productRepository.countByProductTypeAndIsValidAndState(0, 1, 2);
             long updatedBuyReqNew = buyRequestRepository.countByProductTypeAndIsValidAndStateAndUpdateTimeBetween(0, 1, 1, startOfDay, endOfDay);
 
             sb.append("2. 新机数据\n");
             sb.append("- 新增上架：").append(newPhonesAdded).append("\n");
+            sb.append("  * 新用户新增：").append(newPhonesAddedByNewUsers).append("\n");
+            sb.append("  * 老用户新增：").append(newPhonesAddedByOldUsers).append("\n");
             sb.append("- 更新上架：").append(newPhonesUpdated).append("\n");
+            sb.append("  * 新用户更新：").append(newPhonesUpdatedByNewUsers).append("\n");
+            sb.append("  * 老用户更新：").append(newPhonesUpdatedByOldUsers).append("\n");
             sb.append("- 总上架数：").append(totalNewPhones).append("\n");
             sb.append("- 未上架有效数：").append(offlineValidNewPhones).append("\n");
             sb.append("- 更新求购数：").append(updatedBuyReqNew).append("\n\n");
@@ -90,13 +100,23 @@ public class DailyStatisticsService {
             // 3. 二手机数据 (productType=1)
             long secondHandAdded = productRepository.countByProductTypeAndIsValidAndStateAndCreateTimeBetween(1, 1, 1, startOfDay, endOfDay);
             long secondHandUpdated = productRepository.countByProductTypeAndIsValidAndStateAndUpdateTimeBetween(1, 1, 1, startOfDay, endOfDay);
+
+            long secondHandAddedByNewUsers = productRepository.countNewUserProducts(1, startOfDay, endOfDay);
+            long secondHandAddedByOldUsers = productRepository.countOldUserProducts(1, startOfDay, endOfDay);
+            long secondHandUpdatedByNewUsers = productRepository.countNewUserProductUpdates(1, startOfDay, endOfDay);
+            long secondHandUpdatedByOldUsers = productRepository.countOldUserProductUpdates(1, startOfDay, endOfDay);
+
             long totalSecondHand = productRepository.countByProductTypeAndIsValidAndState(1, 1, 1);
             long offlineValidSecondHand = productRepository.countByProductTypeAndIsValidAndState(1, 1, 2);
             long updatedBuyReqSecondHand = buyRequestRepository.countByProductTypeAndIsValidAndStateAndUpdateTimeBetween(1, 1, 1, startOfDay, endOfDay);
 
             sb.append("3. 二手机数据\n");
             sb.append("- 新增上架：").append(secondHandAdded).append("\n");
+            sb.append("  * 新用户新增：").append(secondHandAddedByNewUsers).append("\n");
+            sb.append("  * 老用户新增：").append(secondHandAddedByOldUsers).append("\n");
             sb.append("- 更新上架：").append(secondHandUpdated).append("\n");
+            sb.append("  * 新用户更新：").append(secondHandUpdatedByNewUsers).append("\n");
+            sb.append("  * 老用户更新：").append(secondHandUpdatedByOldUsers).append("\n");
             sb.append("- 总上架数：").append(totalSecondHand).append("\n");
             sb.append("- 未上架有效数：").append(offlineValidSecondHand).append("\n");
             sb.append("- 更新求购数：").append(updatedBuyReqSecondHand).append("\n\n");

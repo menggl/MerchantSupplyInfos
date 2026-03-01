@@ -94,12 +94,47 @@ public class LoginController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    /**
+     * 更新商户头像信息，在商户登录状态下
+     */
+    @PutMapping("/merchants/avatar")
+    public ResponseEntity<?> updateMerchantAvatar(@RequestAttribute("merchant") Merchant currentMerchant,
+                                                  @RequestBody AvatarUpdateRequest request) {
+        try {
+            logger.info("updateMerchantAvatar request: {}", toJson(request));
+            if (currentMerchant == null || currentMerchant.getId() == null) {
+                return ResponseEntity.status(401).body("用户未登录");
+            }
+            if (request == null || request.getAvatarPhotoUrl() == null || request.getAvatarPhotoUrl().isEmpty()) {
+                return ResponseEntity.badRequest().body("头像URL不能为空");
+            }
+            if (request.getAvatarPhotoUrl().length() > 150) {
+                return ResponseEntity.badRequest().body("头像URL长度不能超过150字符");
+            }
+            merchantService.updateMerchantAvatar(currentMerchant.getId(), request.getAvatarPhotoUrl());
+            logger.info("updateMerchantAvatar response: {}", "ok");
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            if ("商户不存在".equals(e.getMessage())) {
+                return ResponseEntity.status(404).body("商户不存在");
+            }
+            logger.error("更新商户头像失败: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
     public static class WxLoginRequest {
         private String code;
 
         public String getCode() { return code; }
         public void setCode(String code) { this.code = code; }
+    }
+
+    public static class AvatarUpdateRequest {
+        private String avatarPhotoUrl;
+
+        public String getAvatarPhotoUrl() { return avatarPhotoUrl; }
+        public void setAvatarPhotoUrl(String avatarPhotoUrl) { this.avatarPhotoUrl = avatarPhotoUrl; }
     }
 
     public static class PhoneLoginRequest {

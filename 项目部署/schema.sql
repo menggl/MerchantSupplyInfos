@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS merchant_info (
   business_license_url VARCHAR(150) COMMENT '营业执照图片URL',
   store_photo_url VARCHAR(150) COMMENT '商家门店照片URL',
   id_card_photo_url VARCHAR(150) COMMENT '商家身份证照片URL',
+  avatar_photo_url VARCHAR(150) COMMENT '商家头像图片URL',
   contact_name VARCHAR(64) COMMENT '联系人姓名',
   is_valid INT DEFAULT 1 COMMENT '1有效0无效',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -368,11 +369,24 @@ CREATE TABLE IF NOT EXISTS merchant_search_record (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   merchant_id BIGINT COMMENT '商户信息表ID',
   product_type INT DEFAULT 0 COMMENT '0新机 1二手机',
-  search_keyword VARCHAR(30) COMMENT '模糊搜索关键词',
+  search_keyword VARCHAR(100) COMMENT '模糊搜索关键词',
   brand_id BIGINT COMMENT '品牌ID',
   series_id BIGINT COMMENT '系列ID',
   model_id BIGINT COMMENT '型号ID',
   spec_id BIGINT COMMENT '配置ID',
-  city_code VARCHAR(6) COMMENT '城市编码',
+  city_code VARCHAR(10) COMMENT '城市编码',
   search_time DATETIME COMMENT '搜索时间'
+);
+
+-- 行情资讯表
+DROP TABLE IF EXISTS market_info;
+CREATE TABLE IF NOT EXISTS market_info (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL COMMENT '行情资讯标题',
+  summary VARCHAR(512) COMMENT '行情资讯精简内容',
+  content TEXT COMMENT '行情资讯内容',
+  is_online TINYINT DEFAULT 1 COMMENT '是否上架 0:否 1:是',
+  is_deleted TINYINT DEFAULT 0 COMMENT '是否删除 0:否 1:是',
+  publish_time DATETIME COMMENT '上架时间',
+  sort INT DEFAULT 0 COMMENT '展示顺序'
 );

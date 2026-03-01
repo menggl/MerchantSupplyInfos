@@ -8,6 +8,7 @@ import SupplyManager from '../components/SupplyManager.vue'
 import BuyRequestManager from '../components/BuyRequestManager.vue'
 import Login from '../components/Login.vue'
 import Home from '../components/Home.vue'
+import MarketInfo from '../components/MarketInfo.vue'
 
 // Define a placeholder component for other routes to avoid errors until they are implemented
 const PlaceholderComponent = { template: '<div>Page under construction</div>' }
@@ -23,6 +24,7 @@ const routes = [
   { path: '/phoneRemark', component: PhoneRemarkManager },
   { path: '/supply', component: SupplyManager },
   { path: '/buy', component: BuyRequestManager },
+  { path: '/marketInfo', component: MarketInfo },
   // Add placeholders for other menu items to prevent routing errors
   { path: '/others', component: PlaceholderComponent }
 ]

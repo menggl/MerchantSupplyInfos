@@ -48,6 +48,10 @@
             <span>手机备注</span>
           </el-menu-item>
         </el-sub-menu>
+        <el-menu-item index="marketInfo">
+          <el-icon><DataLine /></el-icon>
+          <span>行情资讯</span>
+        </el-menu-item>
         <el-menu-item index="others">
           <el-icon><Tools /></el-icon>
           <span>其他设置</span>
@@ -83,7 +87,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Setting, ArrowDown, Goods, Tools, Collection, Location } from '@element-plus/icons-vue'
+import { Setting, ArrowDown, Goods, Tools, Collection, Location, DataLine } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const router = useRouter()
@@ -107,6 +111,8 @@ watch(route, (newRoute) => {
     activeMenu.value = 'city'
   } else if (newRoute.path.startsWith('/phoneRemark')) {
     activeMenu.value = 'phoneRemark'
+  } else if (newRoute.path.startsWith('/marketInfo')) {
+    activeMenu.value = 'marketInfo'
   } else if (newRoute.path.startsWith('/others')) {
     activeMenu.value = 'others'
   }
@@ -128,6 +134,8 @@ const handleSelect = (key) => {
     router.push('/city')
   } else if (key === 'phoneRemark') {
     router.push('/phoneRemark')
+  } else if (key === 'marketInfo') {
+    router.push('/marketInfo')
   } else if (key === 'others') {
     router.push('/others')
   }
