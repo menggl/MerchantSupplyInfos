@@ -18,6 +18,15 @@ public class SupplyProductDto {
   private String modelName;
   private String specName;
   private LocalDateTime listingTime;
+  private Integer isOwner;
+
+  public Integer getIsOwner() {
+    return isOwner;
+  }
+
+  public void setIsOwner(Integer isOwner) {
+    this.isOwner = isOwner;
+  }
 
   public String getBrandName() {
     return brandName;

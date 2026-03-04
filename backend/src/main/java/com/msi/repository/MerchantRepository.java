@@ -14,8 +14,8 @@ public interface MerchantRepository extends JpaRepository<Merchant, Long> {
     java.util.Optional<Merchant> findByToken(String token);
     java.util.Optional<Merchant> findByPublicId(String publicId);
 
-    long countByCreateTimeBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
-    long countByUpdateTimeBetweenAndMerchantPhoneIsNotNull(java.time.LocalDateTime start, java.time.LocalDateTime end);
-    long countByCreateTimeBetweenAndMerchantPhoneIsNotNull(java.time.LocalDateTime start, java.time.LocalDateTime end);
-    long countByMerchantPhoneIsNotNull();
+    long countByIsValidAndCreateTimeBetween(Integer isValid, java.time.LocalDateTime start, java.time.LocalDateTime end);
+    long countByIsValid(Integer isValid);
+    long countByIsValidAndMerchantPhoneIsNotNullAndCreateTimeBetween(Integer isValid, java.time.LocalDateTime start, java.time.LocalDateTime end);
+    long countByIsValidAndMerchantPhoneIsNotNull(Integer isValid);
 }

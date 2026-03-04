@@ -133,13 +133,16 @@ public class ProductService {
 		return saved;
 	}
 
-	public Page<Product> findProductsByMerchant(Long merchantId, int page, int size) {
-		if (merchantId == null) {
-			throw new IllegalArgumentException("商户ID不能为空");
-		}
-		Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updateTime"));
-		return productRepository.findByMerchantIdAndIsValid(merchantId, 1, pageable);
-	}
+    public Page<Product> findProductsByMerchant(Long merchantId, Integer productType, int page, int size) {
+        if (merchantId == null) {
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "brandId", "seriesId", "modelId", "specId"));
+        if (productType != null) {
+            return productRepository.findByMerchantIdAndProductTypeAndIsValid(merchantId, productType, 1, pageable);
+        }
+        return productRepository.findByMerchantIdAndIsValid(merchantId, 1, pageable);
+    }
 
 	public Page<Product> findProductsByMerchantAndModel(Long merchantId,
 			Long brandId,
@@ -444,7 +447,50 @@ public class ProductService {
 		return productRepository.save(existing);
 	}
 
-	public BuyRequest publishBuyRequest(BuyRequest buyRequest) {
+	public Product updateProductPrice(Long productId, Long merchantId, Integer price) {
+		if (productId == null) {
+			throw new IllegalArgumentException("商品ID不能为空");
+		}
+		if (price == null) {
+			throw new IllegalArgumentException("价格不能为空");
+		}
+		if (price <= 0) {
+			throw new IllegalArgumentException("价格必须大于0");
+		}
+
+		Product existing = productRepository.findByIdAndIsValid(productId, 1)
+				.orElseThrow(() -> new IllegalArgumentException("商品不存在"));
+
+		if (merchantId != null) {
+			if (existing.getMerchantId() == null || !existing.getMerchantId().equals(merchantId)) {
+				throw new IllegalArgumentException("无权操作该商品");
+			}
+		}
+
+		existing.setPrice(price);
+		// 修改完成后产品的状态依然不变，所以不需要调用 setState
+		return productRepository.save(existing);
+	}
+
+    public void refreshProduct(Long productId, Long merchantId) {
+        if (productId == null) {
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        
+        Product existing = productRepository.findByIdAndIsValid(productId, 1)
+                .orElseThrow(() -> new IllegalArgumentException("商品不存在"));
+
+        if (merchantId != null) {
+            if (existing.getMerchantId() == null || !existing.getMerchantId().equals(merchantId)) {
+                throw new IllegalArgumentException("无权操作该商品");
+            }
+        }
+        
+        existing.setUpdateTime(java.time.LocalDateTime.now());
+        productRepository.save(existing);
+    }
+
+    public BuyRequest publishBuyRequest(BuyRequest buyRequest) {
 		if (buyRequest == null) {
 			throw new IllegalArgumentException("求购信息不能为空");
 		}

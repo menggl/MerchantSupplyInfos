@@ -294,6 +294,34 @@ public class MerchantService {
         return productService.updateProduct(productId, merchantId, product);
     }
 
+    public void updateProductPrice(Long merchantId, Long productId, Integer price) {
+        if (merchantId == null) {
+            logger.error("商户ID不能为空");
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (productId == null) {
+            logger.error("商品ID不能为空");
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        if (price == null) {
+            logger.error("价格不能为空");
+            throw new IllegalArgumentException("价格不能为空");
+        }
+        productService.updateProductPrice(productId, merchantId, price);
+    }
+
+    public void refreshProduct(Long merchantId, Long productId) {
+        if (merchantId == null) {
+            logger.error("商户ID不能为空");
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (productId == null) {
+            logger.error("商品ID不能为空");
+            throw new IllegalArgumentException("商品ID不能为空");
+        }
+        productService.refreshProduct(productId, merchantId);
+    }
+
     private void validateProductForBusiness(Product product) {
         Integer productType = product.getProductType();
         if (productType == null) {
@@ -352,8 +380,8 @@ public class MerchantService {
         }
     }
 
-    public Page<Product> getMerchantProducts(Long merchantId, int page, int size) {
-        return productService.findProductsByMerchant(merchantId, page, size);
+    public Page<Product> getMerchantProducts(Long merchantId, Integer productType, int page, int size) {
+        return productService.findProductsByMerchant(merchantId, productType, page, size);
     }
 
     public Page<Product> getMerchantProductsByModel(Long merchantId,

@@ -132,6 +132,51 @@ public class MerchantController {
         }
     }
     /**
+     * 增加商品改价功能，只提供商品的ID和对应价格，修改完成后产品的状态依然不变（原来是上架就是上架，原来是下架就是下架）
+     */
+    @PutMapping("/products/{productId}/price")
+    public ResponseEntity<Void> updateProductPrice(@RequestAttribute("merchant") Merchant currentMerchant, @PathVariable Long productId, @RequestParam Integer price) {
+        try {
+            logger.info("updateProductPrice request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "productId", productId,
+                    "price", price
+            )));
+            if (currentMerchant == null || currentMerchant.getId() == null) {
+                return ResponseEntity.status(401).body(null);
+            }
+            merchantService.updateProductPrice(currentMerchant.getId(), productId, price);
+            logger.info("updateProductPrice response: {}", toJson("ok"));
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.error("更新商品价格失败: merchantId={}, productId={}, {}", currentMerchant != null ? currentMerchant.getId() : null, productId, e.getMessage(), e);
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+    /**
+     * 增加一个刷新接口，调用该接口会刷新商品某个商品上架的时间
+     */
+    @PutMapping("/products/{productId}/refresh")
+    public ResponseEntity<Void> refreshProduct(@RequestAttribute("merchant") Merchant currentMerchant, @PathVariable Long productId) {
+        try {
+            logger.info("refreshProduct request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "productId", productId
+            )));
+            if (currentMerchant == null || currentMerchant.getId() == null) {
+                return ResponseEntity.status(401).body(null);
+            }
+            merchantService.refreshProduct(currentMerchant.getId(), productId);
+            logger.info("refreshProduct response: {}", toJson("ok"));
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.error("刷新商品时间失败: merchantId={}, productId={}, {}", currentMerchant != null ? currentMerchant.getId() : null, productId, e.getMessage(), e);
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    
+    /**
      * 查询商家某个机型（品牌、系列、型号、配置）的上架信息，用于判断是否是重复上架了同型号的产品
      * 返回字段列表如下：
      * productId, brandId, seriesId, modelId, specId, brandName, seriesName, modelName, specName
@@ -180,18 +225,20 @@ public class MerchantController {
     @GetMapping("/products")
     public ResponseEntity<Page<MerchantProductDto>> getProductsByMerchant(
             @RequestAttribute("merchant") Merchant currentMerchant,
+            @RequestParam(required = false) Integer productType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
             logger.info("getProductsByMerchant request: {}", toJson(Map.of(
                     "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "productType", productType != null ? productType : "null",
                     "page", page,
                     "size", size
             )));
             if (currentMerchant == null || currentMerchant.getId() == null) {
                 return ResponseEntity.status(401).body(null);
             }
-            Page<Product> products = merchantService.getMerchantProducts(currentMerchant.getId(), page, size);
+            Page<Product> products = merchantService.getMerchantProducts(currentMerchant.getId(), productType, page, size);
             Page<MerchantProductDto> result = products.map(this::convertToMerchantProductDto);
             logger.info("getProductsByMerchant response: {}", toJson(result));
             return ResponseEntity.ok(result);

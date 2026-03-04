@@ -390,3 +390,78 @@ CREATE TABLE IF NOT EXISTS market_info (
   publish_time DATETIME COMMENT '上架时间',
   sort INT DEFAULT 0 COMMENT '展示顺序'
 );
+
+-- 统计报表，主键是天（yyyy-MM-dd格式），
+-- 每日有效用户（手机号不为空）打开小程序的用户数
+-- 每日新增商户数量（merchant_info表，is_valid=1，create_time为当天）
+-- 每日商户总数（merchant_info表，is_valid=1）
+-- 新增有效商户数量（merchant_info表，is_valid=1，merchant_phone不为空，create_time为当天）
+-- 截止当日有效商户总数（merchant_info表，is_valid=1，merchant_phone不为空）
+---------------------
+-- 新机当日新增上架总数（merchant_phone_product表，product_type=0，is_valid=1，state=1，create_time为当日）
+-- 新机新用户当日新增上架总数（merchant_phone_product表，product_type=0，is_valid=1，state=1，create_time为当日，merchant_id对应商户为当日注册（create_time为当天））
+-- 新机老用户当日新增上架总数（merchant_phone_product表，product_type=0，is_valid=1，state=1，create_time为当日，merchant_id对应商户不是当日注册（create_time不是当天））
+-- 新机当日更新上架总数（merchant_phone_product表，product_type=0，is_valid=1，state=1，create_time不是日，update_time为当日）
+-- 新机新用户当日更新上架总数（merchant_phone_product表，product_type=0，is_valid=1，state=1，create_time不是日，update_time为当日，，merchant_id对应商户为当日注册（create_time为当天））
+-- 新机老用户当日更新上架总数（merchant_phone_product表，product_type=0，is_valid=1，state=1，create_time不是日，update_time为当日，，merchant_id对应商户不是当日注册（create_time不是当天））
+-- 新机截止当日总上架数（merchant_phone_product表，product_type=0，is_valid=1，state=1）
+-- 新机截止当日未上架数（merchant_phone_product表，product_type=0，is_valid=1，state=2）
+-- 新机截止当日求购总数（buy_request表，product_type=0，is_valid=1，state=1）
+-------------------------
+-- 二手机当日新增上架总数（merchant_phone_product表，product_type=1，is_valid=1，state=1，create_time为当日）
+-- 二手机新用户当日新增上架总数（merchant_phone_product表，product_type=1，is_valid=1，state=1，create_time为当日，merchant_id对应商户为当日注册（create_time为当天））
+-- 二手机老用户当日新增上架总数（merchant_phone_product表，product_type=1，is_valid=1，state=1，create_time为当日，merchant_id对应商户不是当日注册（create_time不是当天））
+-- 二手机当日更新上架总数（merchant_phone_product表，product_type=1，is_valid=1，state=1，create_time不是日，update_time为当日）
+-- 二手机新用户当日更新上架总数（merchant_phone_product表，product_type=1，is_valid=1，state=1，create_time不是日，update_time为当日，，merchant_id对应商户为当日注册（create_time为当天））
+-- 二手机老用户当日更新上架总数（merchant_phone_product表，product_type=1，is_valid=1，state=1，create_time不是日，update_time为当日，，merchant_id对应商户不是当日注册（create_time不是当天））
+-- 二手机截止当日总上架数（merchant_phone_product表，product_type=1，is_valid=1，state=1）
+-- 二手机截止当日未上架数（merchant_phone_product表，product_type=1，is_valid=1，state=2）
+-- 二手机截止当日求购总数（buy_request表，product_type=1，is_valid=1，state=1）
+--------------------------
+-- 当日商家上架产品沟通次数（merchant_call_record表，call_type=0，create_time为当日）
+-- 当日商家求购产品沟通次数（merchant_call_record表，call_type=1，create_time为当日）
+-- 当日商家上架产品沟通商户数（merchant_call_record表，call_type=0，create_time为当日，caller_merchant_id去重数量）
+-- 当日商家求购产品沟通商户数（merchant_call_record表，call_type=1，create_time为当日，caller_merchant_id去重数量）
+---------------------------
+-- 当日签到数量（merchant_member_integral_spend表，change_time为当天，change_reason为签到送积分）
+-- 当日充值次数（merchant_recharge_order表，pay_status=1，create_time为当天）
+-- 截止当天总共充值金额（merchant_recharge_order表，pay_status=1，total_amount求和）
+
+CREATE TABLE `daily_statistics` (
+  `statistics_date` VARCHAR(20) NOT NULL COMMENT '统计日期',
+  `daily_active_users` int DEFAULT 0 COMMENT '每日有效用户打开小程序的用户数',
+  `new_merchant_count` int DEFAULT 0 COMMENT '每日新增商户数量',
+  `total_merchant_count` int DEFAULT 0 COMMENT '每日商户总数',
+  `new_valid_merchant_count` int DEFAULT 0 COMMENT '新增有效商户数量',
+  `total_valid_merchant_count` int DEFAULT 0 COMMENT '截止当日有效商户总数',
+  `new_product_new_count` int DEFAULT 0 COMMENT '新机当日新增上架总数',
+  `new_product_new_user_count` int DEFAULT 0 COMMENT '新机新用户当日新增上架总数',
+  `new_product_old_user_count` int DEFAULT 0 COMMENT '新机老用户当日新增上架总数',
+  `new_product_update_count` int DEFAULT 0 COMMENT '新机当日更新上架总数',
+  `new_product_new_user_update_count` int DEFAULT 0 COMMENT '新机新用户当日更新上架总数',
+  `new_product_old_user_update_count` int DEFAULT 0 COMMENT '新机老用户当日更新上架总数',
+  `new_product_total_count` int DEFAULT 0 COMMENT '新机截止当日总上架数',
+  `new_product_total_off_count` int DEFAULT 0 COMMENT '新机截止当日未上架数',
+  `new_product_buy_count` int DEFAULT 0 COMMENT '新机截止当日求购总数',
+  `second_hand_product_new_count` int DEFAULT 0 COMMENT '二手机当日新增上架总数',
+  `second_hand_product_new_user_count` int DEFAULT 0 COMMENT '二手机新用户当日新增上架总数',
+  `second_hand_product_old_user_count` int DEFAULT 0 COMMENT '二手机老用户当日新增上架总数',
+  `second_hand_product_update_count` int DEFAULT 0 COMMENT '二手机当日更新上架总数',
+  `second_hand_product_new_user_update_count` int DEFAULT 0 COMMENT '二手机新用户当日更新上架总数',
+  `second_hand_product_old_user_update_count` int DEFAULT 0 COMMENT '二手机老用户当日更新上架总数',
+  `second_hand_product_total_count` int DEFAULT 0 COMMENT '二手机截止当日总上架数',
+  `second_hand_product_total_off_count` int DEFAULT 0 COMMENT '二手机截止当日未上架数',
+  `second_hand_product_buy_count` int DEFAULT 0 COMMENT '二手机截止当日求购总数',
+  `call_count_product` int DEFAULT 0 COMMENT '当日商家上架产品沟通次数',
+  `call_count_buy` int DEFAULT 0 COMMENT '当日商家求购产品沟通次数',
+  `call_merchant_count_product` int DEFAULT 0 COMMENT '当日商家上架产品沟通商户数',
+  `call_merchant_count_buy` int DEFAULT 0 COMMENT '当日商家求购产品沟通商户数',
+  `daily_sign_in_count` int DEFAULT 0 COMMENT '当日签到数量',
+  `daily_recharge_count` int DEFAULT 0 COMMENT '当日充值次数',
+  `total_recharge_amount` bigint DEFAULT 0 COMMENT '截止当天总共充值金额',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`statistics_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日统计报表';
+
+
+

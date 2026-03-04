@@ -165,7 +165,7 @@ public class SupplyController {
 
 			Page<Product> products = supplyService.searchAvailableProducts(
 					cityCode, productType, brandId, seriesId, modelId, specId, minPrice, maxPrice, page, size, sortField, sortOrder, randomSeed);
-			Page<SupplyProductDto> result = products.map(this::convertToDto);
+			Page<SupplyProductDto> result = products.map(product -> convertToDto(product, currentMerchant));
 			logger.info("searchAvailableProducts response: {}", toJson(result));
 			return ResponseEntity.ok(result);
 		} catch (IllegalArgumentException e) {
@@ -299,9 +299,16 @@ public class SupplyController {
 	}
 
 
-	private SupplyProductDto convertToDto(Product product) {
+	private SupplyProductDto convertToDto(Product product, Merchant currentMerchant) {
 		SupplyProductDto dto = new SupplyProductDto();
 		dto.setProductId(product.getId());
+
+		// 判断是否是当前商户发布的产品
+		if (currentMerchant != null && currentMerchant.getId() != null && product.getMerchantId() != null && currentMerchant.getId().equals(product.getMerchantId())) {
+			dto.setIsOwner(1);
+		} else {
+			dto.setIsOwner(0);
+		}
 
 		Merchant merchant = null;
 		if (product.getMerchantId() != null) {

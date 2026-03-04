@@ -19,4 +19,5 @@ public interface BuyRequestRepository extends JpaRepository<BuyRequest, Long>, J
   Page<BuyRequest> findByCityCodeAndIsValidAndState(String cityCode, Integer isValid, Integer state, Pageable pageable);
 
   long countByProductTypeAndIsValidAndStateAndUpdateTimeBetween(Integer type, Integer isValid, Integer state, java.time.LocalDateTime start, java.time.LocalDateTime end);
+  long countByProductTypeAndIsValidAndState(Integer type, Integer isValid, Integer state);
 }
