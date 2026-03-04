@@ -322,6 +322,18 @@ public class MerchantService {
         productService.refreshProduct(productId, merchantId);
     }
 
+    public void batchRefreshProducts(Long merchantId, Integer productType) {
+        if (merchantId == null) {
+            logger.error("商户ID不能为空");
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (productType == null) {
+            logger.error("产品类型不能为空");
+            throw new IllegalArgumentException("产品类型不能为空");
+        }
+        productService.batchRefreshProducts(merchantId, productType);
+    }
+
     private void validateProductForBusiness(Product product) {
         Integer productType = product.getProductType();
         if (productType == null) {

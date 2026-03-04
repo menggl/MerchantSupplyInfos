@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 
 @Service
 public class ProductService {
@@ -40,6 +42,23 @@ public class ProductService {
 		this.buyRequestRepository = buyRequestRepository;
 		this.productImageRepository = productImageRepository;
 	}
+
+    @Transactional
+    public void batchRefreshProducts(Long merchantId, Integer productType) {
+        if (merchantId == null) {
+            throw new IllegalArgumentException("商户ID不能为空");
+        }
+        if (productType == null) {
+            throw new IllegalArgumentException("产品类型不能为空");
+        }
+        
+        LocalDateTime now = LocalDateTime.now();
+        if (productType == -1) {
+            productRepository.updateAllProductTime(merchantId, now);
+        } else {
+            productRepository.updateProductTime(merchantId, productType, now);
+        }
+    }
 
 	public Product publishProduct(Product product) {
 		if (product.getMerchantId() == null) {
@@ -341,6 +360,7 @@ public class ProductService {
 			throw new IllegalArgumentException("商户信息缺失");
 		}
 		product.setState(state);
+		product.setUpdateTime(LocalDateTime.now());
 		productRepository.save(product);
 	}
 
@@ -444,6 +464,7 @@ public class ProductService {
 		}
 
 		existing.setState(0);
+		existing.setUpdateTime(LocalDateTime.now());
 		return productRepository.save(existing);
 	}
 
@@ -469,6 +490,7 @@ public class ProductService {
 
 		existing.setPrice(price);
 		// 修改完成后产品的状态依然不变，所以不需要调用 setState
+		existing.setUpdateTime(LocalDateTime.now());
 		return productRepository.save(existing);
 	}
 

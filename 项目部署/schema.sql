@@ -426,7 +426,7 @@ CREATE TABLE IF NOT EXISTS market_info (
 -- 当日签到数量（merchant_member_integral_spend表，change_time为当天，change_reason为签到送积分）
 -- 当日充值次数（merchant_recharge_order表，pay_status=1，create_time为当天）
 -- 截止当天总共充值金额（merchant_recharge_order表，pay_status=1，total_amount求和）
-
+DROP TABLE IF EXISTS daily_statistics;
 CREATE TABLE `daily_statistics` (
   `statistics_date` VARCHAR(20) NOT NULL COMMENT '统计日期',
   `daily_active_users` int DEFAULT 0 COMMENT '每日有效用户打开小程序的用户数',

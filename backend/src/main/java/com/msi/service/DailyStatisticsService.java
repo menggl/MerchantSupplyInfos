@@ -41,6 +41,9 @@ public class DailyStatisticsService {
     @Value("${wecom.stats.webhook.url:}")
     private String wecomStatsWebhookUrl;
 
+    @Value("${wecom.stats.group2.webhook.url:}")
+    private String wecomStatsGroup2WebhookUrl;
+
     public DailyStatisticsService(MerchantRepository merchantRepository,
                                   ProductRepository productRepository,
                                   BuyRequestRepository buyRequestRepository,
@@ -188,11 +191,6 @@ public class DailyStatisticsService {
             logger.info("Daily statistics saved for {}", yesterday);
 
             // Send WeCom Message
-            if (wecomStatsWebhookUrl == null || wecomStatsWebhookUrl.isEmpty()) {
-                logger.warn("WeCom stats webhook URL is not configured, skipping WeCom notification.");
-                return;
-            }
-
             StringBuilder sb = new StringBuilder();
             sb.append("【每日数据统计】\n");
             sb.append("统计日期：").append(yesterday).append("\n\n");
@@ -236,14 +234,19 @@ public class DailyStatisticsService {
             sb.append("- 充值次数：").append(stats.getDailyRechargeCount()).append("\n");
             sb.append("- 充值总额：").append(dailyRechargeAmount).append("\n"); // Using daily amount for report consistency
 
-            sendWecomMessage(sb.toString());
+            if (wecomStatsWebhookUrl != null && !wecomStatsWebhookUrl.isEmpty()) {
+                sendWecomMessage(wecomStatsWebhookUrl, sb.toString());
+            }
+            if (wecomStatsGroup2WebhookUrl != null && !wecomStatsGroup2WebhookUrl.isEmpty()) {
+                sendWecomMessage(wecomStatsGroup2WebhookUrl, sb.toString());
+            }
 
         } catch (Exception e) {
             logger.error("Failed to generate or send daily statistics", e);
         }
     }
 
-    private void sendWecomMessage(String content) {
+    private void sendWecomMessage(String url, String content) {
         try {
             Map<String, Object> text = new HashMap<>();
             text.put("content", content);
@@ -257,10 +260,10 @@ public class DailyStatisticsService {
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-            restTemplate.postForEntity(wecomStatsWebhookUrl, request, String.class);
-            logger.info("Sent daily statistics to WeCom");
+            restTemplate.postForEntity(url, request, String.class);
+            logger.info("Sent daily statistics to WeCom: {}", url);
         } catch (Exception e) {
-            logger.error("Failed to send WeCom message", e);
+            logger.error("Failed to send WeCom message to " + url, e);
         }
     }
 }

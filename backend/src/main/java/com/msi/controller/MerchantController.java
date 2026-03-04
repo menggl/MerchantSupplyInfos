@@ -174,6 +174,29 @@ public class MerchantController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+    /**
+     * 新增批量刷新接口，传入新机、二手机的类型（-1为全部），更新该商户已经上架状态的商品的更新时间，注意未上架状态的商品不要修改更新时间
+     */
+    @PutMapping("/products/batch-refresh")
+    public ResponseEntity<Void> batchRefreshProducts(
+            @RequestAttribute("merchant") Merchant currentMerchant,
+            @RequestParam Integer productType) {
+        try {
+            logger.info("batchRefreshProducts request: {}", toJson(Map.of(
+                    "merchantId", currentMerchant != null ? currentMerchant.getId() : null,
+                    "productType", productType
+            )));
+            if (currentMerchant == null || currentMerchant.getId() == null) {
+                return ResponseEntity.status(401).body(null);
+            }
+            merchantService.batchRefreshProducts(currentMerchant.getId(), productType);
+            logger.info("batchRefreshProducts response: {}", toJson("ok"));
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.error("批量刷新商品时间失败: merchantId={}, productType={}, {}", currentMerchant != null ? currentMerchant.getId() : null, productType, e.getMessage(), e);
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 
     
     /**
