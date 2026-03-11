@@ -73,5 +73,21 @@ public class AdminMerchantController {
         response.put("success", success);
         return ResponseEntity.ok(response);
     }
-}
 
+    @PutMapping("/{id}/invitation-code")
+    public ResponseEntity<Map<String, Object>> updateInvitationCode(@PathVariable Long id) {
+        String newCode = merchantService.rotateInvitationCode(id);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", newCode != null);
+        response.put("invitationCode", newCode);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}/invitation-code")
+    public ResponseEntity<Map<String, Object>> deleteInvitationCode(@PathVariable Long id) {
+        boolean success = merchantService.deleteInvitationCode(id);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", success);
+        return ResponseEntity.ok(response);
+    }
+}

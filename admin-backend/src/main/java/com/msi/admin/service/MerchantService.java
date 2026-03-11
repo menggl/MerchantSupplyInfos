@@ -21,6 +21,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import java.util.stream.Collectors;
 
@@ -39,6 +42,8 @@ public class MerchantService {
     private final MerchantMemberIntegralRepository merchantMemberIntegralRepository;
     private final MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository;
     private final CityDictRepository cityDictRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public MerchantService(
         MerchantRepository merchantRepository,
@@ -84,6 +89,21 @@ public class MerchantService {
         detail.put("cancellationDate", memberInfo != null ? memberInfo.getCancellationDate() : null);
         detail.put("createTime", merchant.getCreateTime());
         detail.put("updateTime", merchant.getUpdateTime());
+        detail.put("invitationCode", merchant.getInvitationCode());
+        long invitationCount = 0L;
+        if (merchant.getInvitationCode() != null && !merchant.getInvitationCode().isEmpty()) {
+            Object v = entityManager.createNativeQuery("SELECT COUNT(*) FROM merchant_invitation_code WHERE invitation_code = ? AND is_valid = 1")
+                    .setParameter(1, merchant.getInvitationCode())
+                    .getSingleResult();
+            if (v instanceof Number) {
+                invitationCount = ((Number) v).longValue();
+            } else if (v != null) {
+                try {
+                    invitationCount = Long.parseLong(v.toString());
+                } catch (Exception ignore) {}
+            }
+        }
+        detail.put("invitationCount", invitationCount);
 
         List<MerchantRechargeOrder> rechargeRecords = merchantRechargeOrderRepository.findByMerchantIdOrderByCreateTimeDesc(id);
         detail.put("rechargeRecords", rechargeRecords.stream().map(record -> {
@@ -195,6 +215,58 @@ public class MerchantService {
     }
 
     @Transactional
+    public boolean updateInvitationCode(Long id, String invitationCode) {
+        return merchantRepository.findById(id).map(merchant -> {
+            merchant.setInvitationCode(invitationCode);
+            merchantRepository.save(merchant);
+            return true;
+        }).orElse(false);
+    }
+
+    @Transactional
+    public boolean deleteInvitationCode(Long id) {
+        return merchantRepository.findById(id).map(merchant -> {
+            merchant.setInvitationCode(null);
+            merchantRepository.save(merchant);
+            return true;
+        }).orElse(false);
+    }
+
+    @Transactional
+    public String rotateInvitationCode(Long id) {
+        Merchant merchant = merchantRepository.findById(id).orElse(null);
+        if (merchant == null) {
+            return null;
+        }
+        String oldCode = merchant.getInvitationCode();
+        String newCode = generateUniqueCode();
+        if (oldCode != null && !oldCode.isEmpty()) {
+            entityManager.createNativeQuery("UPDATE merchant_invitation_code SET invitation_code = ? WHERE invitation_code = ?")
+                    .setParameter(1, newCode)
+                    .setParameter(2, oldCode)
+                    .executeUpdate();
+        }
+        merchant.setInvitationCode(newCode);
+        merchantRepository.save(merchant);
+        return newCode;
+    }
+
+    private String generateUniqueCode() {
+        final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random rnd = new Random();
+        for (;;) {
+            StringBuilder sb = new StringBuilder(6);
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(rnd.nextInt(chars.length())));
+            }
+            String code = sb.toString();
+            if (!merchantRepository.existsByInvitationCode(code)) {
+                return code;
+            }
+        }
+    }
+
+    @Transactional
     public boolean updateMerchantStatus(Long id, Integer isValid) {
         return merchantRepository.findById(id).map(merchant -> {
             merchant.setIsValid(isValid);
@@ -208,4 +280,3 @@ public class MerchantService {
         return merchantMemberIntegralSpendRepository.findByMerchantIdOrderByChangeTimeDesc(merchantId, pageRequest);
     }
 }
-

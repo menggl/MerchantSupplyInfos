@@ -69,13 +69,23 @@ CREATE TABLE IF NOT EXISTS merchant_info (
   id_card_photo_url VARCHAR(150) COMMENT '商家身份证照片URL',
   avatar_photo_url VARCHAR(150) COMMENT '商家头像图片URL',
   contact_name VARCHAR(64) COMMENT '联系人姓名',
+  invitation_code VARCHAR(32) UNIQUE COMMENT '商家邀请码',
   is_valid INT DEFAULT 1 COMMENT '1有效0无效',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-
-
+--商家邀请码与被邀请商家id的关联表
+DROP TABLE IF EXISTS merchant_invitation_code;
+CREATE TABLE IF NOT EXISTS merchant_invitation_code (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  merchant_id BIGINT UNIQUE COMMENT '商户信息表ID',
+  invitation_code VARCHAR(32) COMMENT '商家邀请码',
+  is_valid INT DEFAULT 1 COMMENT '1有效0无效',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_merchant_invitation_code (invitation_code)
+);
 
 -- 会员信息表
 DROP TABLE IF EXISTS merchant_member_info;
@@ -96,7 +106,6 @@ CREATE TABLE IF NOT EXISTS merchant_member_info (
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 );
-
 
 -- 会员积分表
 DROP TABLE IF EXISTS merchant_member_integral;
@@ -290,6 +299,8 @@ CREATE TABLE IF NOT EXISTS merchant_phone_product (
   KEY idx_merchant_phone_product_price (product_type, price, city_code)
 );
 
+
+
 DROP TABLE IF EXISTS merchant_product_image;
 CREATE TABLE IF NOT EXISTS merchant_product_image (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -321,7 +332,8 @@ CREATE TABLE IF NOT EXISTS buy_request (
   is_valid INT DEFAULT 1 COMMENT '1有效0无效',
   `state` INT DEFAULT 1 COMMENT '1求购中 2已解决',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+  KEY idx_buy_request_status_update_time (is_valid, state, update_time)
 );
 
 
@@ -459,6 +471,9 @@ CREATE TABLE `daily_statistics` (
   `daily_sign_in_count` int DEFAULT 0 COMMENT '当日签到数量',
   `daily_recharge_count` int DEFAULT 0 COMMENT '当日充值次数',
   `total_recharge_amount` bigint DEFAULT 0 COMMENT '截止当天总共充值金额',
+  `daily_recharge_amount` bigint DEFAULT 0 COMMENT '当日充值金额',
+  `daily_new_member_count` int DEFAULT 0 COMMENT '当日新增会员数',
+  `total_member_count` int DEFAULT 0 COMMENT '截止当天总会员数',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`statistics_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日统计报表';

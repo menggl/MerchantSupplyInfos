@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.msi.domain.Merchant;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -23,9 +25,12 @@ public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     private static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private final MerchantService merchantService;
+    private final com.msi.repository.MerchantInvitationCodeRepository invitationCodeRepository;
 
-    public LoginController(MerchantService merchantService) {
+    public LoginController(MerchantService merchantService,
+                           com.msi.repository.MerchantInvitationCodeRepository invitationCodeRepository) {
         this.merchantService = merchantService;
+        this.invitationCodeRepository = invitationCodeRepository;
     }
 
     private String toJson(Object value) {
@@ -72,6 +77,32 @@ public class LoginController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    /**
+     * 获取商家的基本资料信息，包含邀请码，以及已经邀请了多少个商家数量
+     */
+    @GetMapping("/merchants/profile")
+    public ResponseEntity<?> getMerchantProfile(@RequestAttribute("merchant") Merchant currentMerchant) {
+        try {
+            if (currentMerchant == null || currentMerchant.getId() == null) {
+                return ResponseEntity.status(401).body("用户未登录");
+            }
+            Merchant info = merchantService.getMerchantInfo(currentMerchant.getId());
+            if (info != null && info.getInvitationCode() != null && !info.getInvitationCode().isEmpty()) {
+                long c = invitationCodeRepository.countByInvitationCodeAndIsValid(info.getInvitationCode(), 1);
+                info.setInvitationCount((int) c);
+            }
+            return ResponseEntity.ok(info);
+        } catch (IllegalArgumentException e) {
+            if ("商户不存在".equals(e.getMessage())) {
+                return ResponseEntity.status(404).body("商户不存在");
+            }
+            logger.error("获取商户资料失败: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("获取商户资料失败: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
     /**
      * 商户信息修改，包括商户名称、联系人姓名、联系人手机号、地址等信息
@@ -84,6 +115,7 @@ public class LoginController {
                 return ResponseEntity.status(401).body("用户未登录");
             }
             Merchant updated = merchantService.updateMerchant(currentMerchant.getId(), merchant);
+
             logger.info("updateMerchant response: {}", toJson(updated));
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {

@@ -525,6 +525,22 @@ public class MerchantController {
         }
     }
 
+    /**
+     * 查询未读取的求购信息数量
+     * 传递一个时间戳，查询这个时间戳之后的所有未读取的求购信息（buy_request表，updateTime大于该时间戳的数据，只包含上架状态的求购信息数量，不包含下架和删除的求购信息数量）
+     * 不需要用户登录
+     */
+    @GetMapping("/buy-requests/unread-count")
+    public ResponseEntity<Long> getUnreadBuyRequestCount(@RequestParam Long timestamp) {
+        try {
+            long count = merchantService.getUnreadBuyRequestCount(timestamp);
+            return ResponseEntity.ok(count);
+        } catch (IllegalArgumentException e) {
+            logger.error("查询未读求购数量失败: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
     private MerchantBuyRequestModelDto convertToMerchantBuyRequestModelDto(BuyRequest buyRequest) {
         MerchantBuyRequestModelDto dto = new MerchantBuyRequestModelDto();
         dto.setBuyRequestId(buyRequest.getId());

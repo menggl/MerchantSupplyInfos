@@ -28,7 +28,7 @@ public class MerchantRechargeOrder {
   @Column(name = "total_amount", nullable = false)
   private Integer totalAmount;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "pay_status", nullable = false)
   private Integer status;
 
   @Column(name = "wechat_transaction_id")

@@ -31,6 +31,9 @@ CREATE TABLE `daily_statistics` (
   `daily_sign_in_count` int DEFAULT 0 COMMENT '当日签到数量',
   `daily_recharge_count` int DEFAULT 0 COMMENT '当日充值次数',
   `total_recharge_amount` bigint DEFAULT 0 COMMENT '截止当天总共充值金额',
+  `daily_recharge_amount` bigint DEFAULT 0 COMMENT '当日充值金额',
+  `daily_new_member_count` int DEFAULT 0 COMMENT '当日新增会员数',
+  `total_member_count` int DEFAULT 0 COMMENT '截止当天总会员数',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`statistics_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日统计报表';

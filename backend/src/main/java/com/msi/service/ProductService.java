@@ -231,6 +231,10 @@ public class ProductService {
 		return buyRequestRepository.findByMerchantIdAndIsValid(merchantId, 1, pageable);
 	}
 
+    public long countUnreadBuyRequests(LocalDateTime timestamp) {
+        return buyRequestRepository.countByUpdateTimeAfterAndIsValidAndState(timestamp, 1, 1);
+    }
+
 	public BuyRequest findBuyRequestByMerchantAndModel(Long merchantId,
 			Long brandId,
 			Long seriesId,

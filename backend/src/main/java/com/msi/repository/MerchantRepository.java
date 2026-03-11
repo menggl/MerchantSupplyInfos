@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 public interface MerchantRepository extends JpaRepository<Merchant, Long> {
     boolean existsByWechatId(String wechatId);
     boolean existsByMerchantPhone(String merchantPhone);
+    boolean existsByInvitationCode(String invitationCode);
     java.util.Optional<Merchant> findByWechatId(String wechatId);
     java.util.Optional<Merchant> findByWechatIdAndIsValid(String wechatId, Integer isValid);
     java.util.Optional<Merchant> findByMerchantPhone(String merchantPhone);

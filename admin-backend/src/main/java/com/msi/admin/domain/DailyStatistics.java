@@ -1,7 +1,6 @@
-package com.msi.domain;
+package com.msi.admin.domain;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -136,13 +135,13 @@ public class DailyStatistics {
     @Column(name = "daily_recharge_count")
     private Integer dailyRechargeCount;
 
-    // 当日充值金额
-    @Column(name = "daily_recharge_amount")
-    private Long dailyRechargeAmount;
-
     // 截止当天总共充值金额
     @Column(name = "total_recharge_amount")
     private Long totalRechargeAmount;
+
+    // 当日充值金额
+    @Column(name = "daily_recharge_amount")
+    private Long dailyRechargeAmount;
 
     // 当日新增会员数
     @Column(name = "daily_new_member_count")
@@ -158,30 +157,6 @@ public class DailyStatistics {
     @PrePersist
     protected void onCreate() {
         createTime = LocalDateTime.now();
-    }
-
-    public Long getDailyRechargeAmount() {
-        return dailyRechargeAmount;
-    }
-
-    public void setDailyRechargeAmount(Long dailyRechargeAmount) {
-        this.dailyRechargeAmount = dailyRechargeAmount;
-    }
-
-    public Integer getDailyNewMemberCount() {
-        return dailyNewMemberCount;
-    }
-
-    public void setDailyNewMemberCount(Integer dailyNewMemberCount) {
-        this.dailyNewMemberCount = dailyNewMemberCount;
-    }
-
-    public Integer getTotalMemberCount() {
-        return totalMemberCount;
-    }
-
-    public void setTotalMemberCount(Integer totalMemberCount) {
-        this.totalMemberCount = totalMemberCount;
     }
 
     // Getters and Setters
@@ -440,5 +415,29 @@ public class DailyStatistics {
 
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
+    }
+
+    public Long getDailyRechargeAmount() {
+        return dailyRechargeAmount;
+    }
+
+    public void setDailyRechargeAmount(Long dailyRechargeAmount) {
+        this.dailyRechargeAmount = dailyRechargeAmount;
+    }
+
+    public Integer getDailyNewMemberCount() {
+        return dailyNewMemberCount;
+    }
+
+    public void setDailyNewMemberCount(Integer dailyNewMemberCount) {
+        this.dailyNewMemberCount = dailyNewMemberCount;
+    }
+
+    public Integer getTotalMemberCount() {
+        return totalMemberCount;
+    }
+
+    public void setTotalMemberCount(Integer totalMemberCount) {
+        this.totalMemberCount = totalMemberCount;
     }
 }

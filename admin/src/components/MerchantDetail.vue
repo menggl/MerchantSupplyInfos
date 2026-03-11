@@ -37,6 +37,18 @@
               {{ formatTime(merchant.memberExpireDate) || '-' }}
             </el-descriptions-item>
             <el-descriptions-item label="当前积分">{{ merchant.integral }}</el-descriptions-item>
+            <el-descriptions-item label="邀请码" :span="2">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="min-width: 120px;">
+                  {{ merchant.invitationCode || '-' }}
+                  <template v-if="merchant.invitationCode">
+                    （已邀请：{{ merchant.invitationCount || 0 }}）
+                  </template>
+                </span>
+                <el-button size="small" type="primary" @click="handleUpdateInvitationCode">更新</el-button>
+                <el-button size="small" type="danger" @click="handleDeleteInvitationCode" :disabled="!merchant.invitationCode">删除</el-button>
+              </div>
+            </el-descriptions-item>
           </el-descriptions>
 
           <el-divider />
@@ -163,7 +175,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { ArrowLeft, Picture } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -223,6 +235,38 @@ const fetchDetail = async () => {
   }
 }
 
+const handleUpdateInvitationCode = async () => {
+  if (!merchant.value) return
+  try {
+    const id = route.params.id
+    const resp = await axios.put(`/admin/merchants/${id}/invitation-code`)
+    const newCode = resp?.data?.invitationCode
+    ElMessage.success(`邀请码已更新：${newCode || ''}`)
+    await fetchDetail()
+  } catch (e) {
+    console.error(e)
+    ElMessage.error('更新邀请码失败')
+  }
+}
+
+const handleDeleteInvitationCode = async () => {
+  if (!merchant.value || !merchant.value.invitationCode) return
+  try {
+    await ElMessageBox.confirm('确认删除该商家邀请码？', '删除确认', {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    const id = route.params.id
+    await axios.delete(`/admin/merchants/${id}/invitation-code`)
+    ElMessage.success('邀请码已删除')
+    await fetchDetail()
+  } catch (e) {
+    if (e === 'cancel') return
+    console.error(e)
+    ElMessage.error('删除邀请码失败')
+  }
+}
 onMounted(() => {
   fetchDetail()
 })

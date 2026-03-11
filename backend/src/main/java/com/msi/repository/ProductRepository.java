@@ -48,10 +48,10 @@ public interface ProductRepository extends JpaSpecificationExecutor<Product>, Jp
   long countOldUserProductUpdates(@Param("productType") Integer productType, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
   @Modifying
-  @Query("UPDATE Product p SET p.updateTime = :updateTime WHERE p.merchantId = :merchantId AND p.productType = :productType AND p.state = 1 AND p.isValid = 1")
+  @Query("UPDATE Product p SET p.updateTime = :updateTime WHERE p.merchantId = :merchantId AND p.productType = :productType AND p.isValid = 1")
   void updateProductTime(@Param("merchantId") Long merchantId, @Param("productType") Integer productType, @Param("updateTime") LocalDateTime updateTime);
 
   @Modifying
-  @Query("UPDATE Product p SET p.updateTime = :updateTime WHERE p.merchantId = :merchantId AND p.state = 1 AND p.isValid = 1")
+  @Query("UPDATE Product p SET p.updateTime = :updateTime WHERE p.merchantId = :merchantId AND p.isValid = 1")
   void updateAllProductTime(@Param("merchantId") Long merchantId, @Param("updateTime") LocalDateTime updateTime);
 }

@@ -23,6 +23,8 @@ import java.util.concurrent.ExecutionException;
 import com.msi.repository.MerchantMemberInfoRepository;
 import com.msi.repository.MerchantMemberIntegralRepository;
 import com.msi.repository.MerchantMemberIntegralSpendRepository;
+import com.msi.repository.MerchantInvitationCodeRepository;
+import com.msi.domain.MerchantInvitationCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
@@ -56,6 +58,7 @@ public class MerchantService {
     private final ProductService productService;
     private final MerchantMemberIntegralRepository merchantMemberIntegralRepository;
     private final MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository;
+    private final MerchantInvitationCodeRepository merchantInvitationCodeRepository;
 
     public MerchantService(MerchantRepository merchantRepository,
                            StringRedisTemplate redisTemplate,
@@ -65,6 +68,7 @@ public class MerchantService {
                            ProductService productService,
                            MerchantMemberIntegralRepository merchantMemberIntegralRepository,
                            MerchantMemberIntegralSpendRepository merchantMemberIntegralSpendRepository,
+                           MerchantInvitationCodeRepository merchantInvitationCodeRepository,
                            CityDictRepository cityDictRepository) {
         this.merchantRepository = merchantRepository;
         this.redisTemplate = redisTemplate;
@@ -74,6 +78,7 @@ public class MerchantService {
         this.productService = productService;
         this.merchantMemberIntegralRepository = merchantMemberIntegralRepository;
         this.merchantMemberIntegralSpendRepository = merchantMemberIntegralSpendRepository;
+        this.merchantInvitationCodeRepository = merchantInvitationCodeRepository;
         this.cityDictRepository = cityDictRepository;
         this.cityCodeCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(24, TimeUnit.HOURS)
@@ -166,6 +171,17 @@ public class MerchantService {
         } else {
             info = infoOpt.get();
         }
+
+        // 检查并创建商户积分记录
+        MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchant.getId()).orElse(null);
+        if (integral == null) {
+            integral = new MerchantMemberIntegral();
+            integral.setMerchantId(merchant.getId());
+            integral.setIntegral(500);
+            integral.setIsValid(1);
+            merchantMemberIntegralRepository.save(integral);
+        }
+
         // 更新缓存
         updateLoginCache(merchant, info);
         return merchant;
@@ -444,7 +460,7 @@ public class MerchantService {
             throw new DailySignInLimitExceededException("今日已签到，不能重复签到");
         }
         MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchantId).orElse(null);
-        int before = 0;
+        int before = 500;
         if (integral != null && integral.getIntegral() != null) {
             before = integral.getIntegral();
         }
@@ -453,6 +469,7 @@ public class MerchantService {
         if (integral == null) {
             integral = new MerchantMemberIntegral();
             integral.setMerchantId(merchantId);
+            integral.setIntegral(500); // 新增记录默认给500积分
         }
         integral.setIntegral(after);
         merchantMemberIntegralRepository.save(integral);
@@ -483,13 +500,13 @@ public class MerchantService {
         if (integral == null) {
             integral = new MerchantMemberIntegral();
             integral.setMerchantId(merchantId);
-            integral.setIntegral(0);
+            integral.setIntegral(500); // 默认500积分
             integral.setIsValid(1);
             integral.setCreateTime(LocalDateTime.now());
             integral.setUpdateTime(LocalDateTime.now());
             merchantMemberIntegralRepository.save(integral);
         }
-        int value = 0;
+        int value = 500;
         if (integral.getIntegral() != null) {
             value = integral.getIntegral();
         }
@@ -510,6 +527,14 @@ public class MerchantService {
                                                    Long specId,
                                                    Integer productType) {
         return productService.findBuyRequestByMerchantAndModel(merchantId, brandId, seriesId, modelId, specId, productType);
+    }
+
+    public long getUnreadBuyRequestCount(Long timestamp) {
+        if (timestamp == null) {
+            throw new IllegalArgumentException("时间戳不能为空");
+        }
+        LocalDateTime time = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(timestamp), java.time.ZoneId.systemDefault());
+        return productService.countUnreadBuyRequests(time);
     }
 
     @Transactional
@@ -722,6 +747,19 @@ public class MerchantService {
             // 如果原来的手机号为空，说明是首次绑定手机号（正式注册），更新创建时间
             if (existing.getMerchantPhone() == null || existing.getMerchantPhone().isEmpty()) {
                 existing.setCreateTime(LocalDateTime.now());
+                // 首次注册赠送50积分
+                giftInitialIntegral(existing.getId());
+
+                // 首次注册绑定邀请码：仅当提交的邀请码在 merchant_info 表中存在时才记录
+                if (merchant.getInvitationCode() != null && !merchant.getInvitationCode().isEmpty()
+                        && merchantRepository.existsByInvitationCode(merchant.getInvitationCode())) {
+                    MerchantInvitationCode invitationCode = new MerchantInvitationCode();
+                    invitationCode.setMerchantId(existing.getId());
+                    invitationCode.setInvitationCode(merchant.getInvitationCode());
+                    invitationCode.setIsValid(1);
+                    invitationCode.setCreateTime(LocalDateTime.now());
+                    merchantInvitationCodeRepository.save(invitationCode);
+                }
             }
 
             // 检查手机号是否已被其他商户使用
@@ -882,6 +920,32 @@ public class MerchantService {
         java.util.Optional<MerchantMemberInfo> infoOpt = memberInfoRepository.findByMerchantId(m.getId());
         updateLoginCache(m, infoOpt.orElse(null));
         return m;
+    }
+
+    private void giftInitialIntegral(Long merchantId) {
+        MerchantMemberIntegral integral = merchantMemberIntegralRepository.findByMerchantId(merchantId).orElse(null);
+        if (integral == null) {
+            integral = new MerchantMemberIntegral();
+            integral.setMerchantId(merchantId);
+            integral.setIntegral(50);
+            integral.setIsValid(1);
+        } else {
+            // Should not happen for first time, but safe to add
+            if (integral.getIntegral() == null) {
+                integral.setIntegral(0);
+            }
+            integral.setIntegral(integral.getIntegral() + 50);
+        }
+        merchantMemberIntegralRepository.save(integral);
+
+        MerchantMemberIntegralSpend spend = new MerchantMemberIntegralSpend();
+        spend.setMerchantId(merchantId);
+        spend.setIntegralBeforeSpend(integral.getIntegral() - 50);
+        spend.setIntegralAfterSpend(integral.getIntegral());
+        spend.setChangeAmount(50);
+        spend.setChangeReason(IntegralChangeReason.FIRST_REGISTRATION.getDescription());
+        spend.setChangeTime(LocalDateTime.now());
+        merchantMemberIntegralSpendRepository.save(spend);
     }
 
 }

@@ -135,6 +135,20 @@ backend项目中，增加三个接口，
 这三个接口不必走拦截器（不需要用户登录）既可以查看调用
 
 
-
-
 我想在后端添加一个接口，该接口需要用户登录后才能调用，而且必须完成商户信息填写（登录状态下可以查看到商户的手机号不为空），调用该接口后，会在redis中缓存该商户的ID，该缓存的key为当天日期格式为（yyyy-MM-dd，例子：2026-03-04），value为商户ID的一个set去重集合，每次调用该接口后，都会更新数据库表daily_statistics表中的daily_active_users字段值，该字段值保存缓存set的值的数量，注意判断daily_statistics表中是否有当天日期（statistics_date）的数据，如果没有，则添加一条数据
+
+
+
+
+
+我的上架界面，点击卡片后下方出现的四个按钮的文字大小能调大一些吗？
+
+admin后台管理的首页中的数据统计，改为全部从daily_statistics表中获取数据
+admin后台管理的首页不是都从daily_statistics表中获取数据吗？为什么还会报下面的错误
+java.sql.SQLSyntaxErrorException: Unknown column 'ds1_0.daily_new_member_count' in 'field list'
+        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:112) ~[mysql-connector-j-9.1.0.jar!/:9.1.0]
+        at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:114) ~[mysql-connector-j-9.1.0.jar!/:9.1.0]
+        at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:988) ~[mysql-connector-j-9.1.0.jar!/:9.1.0]
+        at com.mysql.cj.jdbc.ClientPreparedStatement.executeQuery(ClientPreparedStatement.java:1056) ~[mysql-connector-j-9.1.0.jar!/:9.1.0]
+        at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeQuery(ProxyPreparedStatement.java:52) ~[HikariCP-5.1.0.jar!/:na]
+        at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeQuery(Hikar

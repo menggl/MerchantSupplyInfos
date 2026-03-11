@@ -12,5 +12,6 @@ public interface MerchantRepository extends JpaRepository<Merchant, Long>, JpaSp
     List<Merchant> findAllByOrderByIdDesc();
     
     List<Merchant> findByMerchantNameContaining(String merchantName);
+    
+    boolean existsByInvitationCode(String invitationCode);
 }
-

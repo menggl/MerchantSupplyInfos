@@ -59,6 +59,9 @@ public class Merchant {
 
     @Column(name = "contact_name")
     private String contactName;
+
+    @Column(name = "invitation_code")
+    private String invitationCode;
  
     @Transient
     private Integer isMember; // 1: Yes, 0: No
@@ -71,6 +74,9 @@ public class Merchant {
 
     @Transient
     private Integer integral;
+
+    @Transient
+    private Integer invitationCount;
 
     @Column(name = "registration_date")
     private LocalDateTime registrationDate;
@@ -242,6 +248,22 @@ public class Merchant {
      public void setContactName(String contactName) {
          this.contactName = contactName;
      }
+
+    public String getInvitationCode() {
+        return invitationCode;
+    }
+
+    public void setInvitationCode(String invitationCode) {
+        this.invitationCode = invitationCode;
+    }
+ 
+    public Integer getInvitationCount() {
+        return invitationCount;
+    }
+
+    public void setInvitationCount(Integer invitationCount) {
+        this.invitationCount = invitationCount;
+    }
  
      public Integer getIsMember() {
          return isMember;

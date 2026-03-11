@@ -1,41 +1,24 @@
 package com.msi.admin.service;
 
-import com.msi.admin.domain.Merchant;
-import com.msi.admin.domain.MerchantMemberInfo;
-import com.msi.admin.domain.MerchantRechargeOrder;
-import com.msi.admin.domain.MerchantPhoneProduct;
-import com.msi.admin.repository.MerchantMemberInfoRepository;
-import com.msi.admin.repository.MerchantRechargeOrderRepository;
-import com.msi.admin.repository.MerchantPhoneProductRepository;
-import com.msi.admin.repository.MerchantRepository;
+import com.msi.admin.domain.DailyStatistics;
+import com.msi.admin.repository.DailyStatisticsRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
 
-    private final MerchantRepository merchantRepository;
-    private final MerchantPhoneProductRepository merchantPhoneProductRepository;
-    private final MerchantMemberInfoRepository merchantMemberInfoRepository;
-    private final MerchantRechargeOrderRepository merchantRechargeOrderRepository;
+    private final DailyStatisticsRepository dailyStatisticsRepository;
 
-    public DashboardService(MerchantRepository merchantRepository,
-                            MerchantPhoneProductRepository merchantPhoneProductRepository,
-                            MerchantMemberInfoRepository merchantMemberInfoRepository,
-                            MerchantRechargeOrderRepository merchantRechargeOrderRepository) {
-        this.merchantRepository = merchantRepository;
-        this.merchantPhoneProductRepository = merchantPhoneProductRepository;
-        this.merchantMemberInfoRepository = merchantMemberInfoRepository;
-        this.merchantRechargeOrderRepository = merchantRechargeOrderRepository;
+    public DashboardService(DailyStatisticsRepository dailyStatisticsRepository) {
+        this.dailyStatisticsRepository = dailyStatisticsRepository;
     }
 
     public Map<String, Object> getDashboardStats() {
@@ -43,84 +26,74 @@ public class DashboardService {
 
         LocalDate today = LocalDate.now();
         LocalDate thirtyDaysAgo = today.minusDays(29);
-        LocalDateTime fromDateTime = thirtyDaysAgo.atStartOfDay();
+        String startDateStr = thirtyDaysAgo.toString();
+        String endDateStr = today.toString();
 
+        List<DailyStatistics> statsList = dailyStatisticsRepository.findByStatisticsDateBetweenOrderByStatisticsDateAsc(startDateStr, endDateStr);
+        
+        // Base counts from before the period
+        DailyStatistics baseStats = dailyStatisticsRepository.findTopByStatisticsDateLessThanOrderByStatisticsDateDesc(startDateStr).orElse(null);
+        
+        long merchantBase = baseStats != null && baseStats.getTotalValidMerchantCount() != null ? baseStats.getTotalValidMerchantCount() : 0L;
+        long productBase = baseStats != null ? (baseStats.getNewProductTotalCount() != null ? baseStats.getNewProductTotalCount() : 0) + (baseStats.getSecondHandProductTotalCount() != null ? baseStats.getSecondHandProductTotalCount() : 0) : 0L;
+        long memberBase = baseStats != null && baseStats.getTotalMemberCount() != null ? baseStats.getTotalMemberCount() : 0L;
+        BigDecimal rechargeBase = baseStats != null && baseStats.getTotalRechargeAmount() != null ? new BigDecimal(baseStats.getTotalRechargeAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO;
+        
+        Map<LocalDate, Long> merchantDaily = new HashMap<>();
+        Map<LocalDate, Long> merchantTotal = new HashMap<>();
+        
+        Map<LocalDate, Long> productDaily = new HashMap<>();
+        Map<LocalDate, Long> productTotal = new HashMap<>();
+        
+        Map<LocalDate, Long> memberDaily = new HashMap<>();
+        Map<LocalDate, Long> memberTotal = new HashMap<>();
+        
+        Map<LocalDate, BigDecimal> rechargeDaily = new HashMap<>();
+        Map<LocalDate, BigDecimal> rechargeTotal = new HashMap<>();
+        
+        for (DailyStatistics stat : statsList) {
+            LocalDate date = LocalDate.parse(stat.getStatisticsDate());
+            
+            // Merchant
+            merchantDaily.put(date, stat.getNewValidMerchantCount() != null ? stat.getNewValidMerchantCount().longValue() : 0L);
+            merchantTotal.put(date, stat.getTotalValidMerchantCount() != null ? stat.getTotalValidMerchantCount().longValue() : null);
+            
+            // Product
+            long dailyProd = (stat.getNewProductNewCount() != null ? stat.getNewProductNewCount() : 0) + (stat.getSecondHandProductNewCount() != null ? stat.getSecondHandProductNewCount() : 0);
+            productDaily.put(date, dailyProd);
+            long totalProd = (stat.getNewProductTotalCount() != null ? stat.getNewProductTotalCount() : 0) + (stat.getSecondHandProductTotalCount() != null ? stat.getSecondHandProductTotalCount() : 0);
+            productTotal.put(date, totalProd);
+            
+            // Member
+            memberDaily.put(date, stat.getDailyNewMemberCount() != null ? stat.getDailyNewMemberCount().longValue() : 0L);
+            memberTotal.put(date, stat.getTotalMemberCount() != null ? stat.getTotalMemberCount().longValue() : null);
+            
+            // Recharge
+            rechargeDaily.put(date, stat.getDailyRechargeAmount() != null ? new BigDecimal(stat.getDailyRechargeAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO);
+            rechargeTotal.put(date, stat.getTotalRechargeAmount() != null ? new BigDecimal(stat.getTotalRechargeAmount()).divide(new BigDecimal(100)) : null);
+        }
+        
         List<LocalDate> dateRange = new ArrayList<>();
         for (LocalDate d = thirtyDaysAgo; !d.isAfter(today); d = d.plusDays(1)) {
             dateRange.add(d);
         }
-
-        List<Merchant> merchants = merchantRepository.findAll();
-        List<MerchantPhoneProduct> products = merchantPhoneProductRepository.findAll();
-        List<MerchantMemberInfo> memberInfos = merchantMemberInfoRepository.findAll();
-        List<MerchantRechargeOrder> recharges = merchantRechargeOrderRepository.findAll();
-
-        List<Merchant> validMerchants = merchants.stream()
-                .filter(m -> m.getIsValid() == null || m.getIsValid() == 1)
-                .toList();
-        List<MerchantPhoneProduct> validProducts = products.stream()
-                .filter(p -> p.getIsValid() == null || p.getIsValid() == 1)
-                .toList();
-        List<MerchantMemberInfo> validMemberInfos = memberInfos.stream()
-                .filter(info -> info.getIsValid() == null || info.getIsValid() == 1)
-                .toList();
-        List<MerchantRechargeOrder> validRecharges = recharges.stream()
-                .filter(r -> r.getStatus() != null && r.getStatus() == 1)
-                .toList();
-
-        Map<LocalDate, Long> merchantDailyCount = validMerchants.stream()
-                .filter(m -> m.getCreateTime() != null && !m.getCreateTime().isBefore(fromDateTime))
-                .collect(Collectors.groupingBy(m -> m.getCreateTime().toLocalDate(), Collectors.counting()));
-        long merchantTotalCount = validMerchants.size();
-        long merchantBaseCount = validMerchants.stream()
-                .filter(m -> m.getCreateTime() == null || m.getCreateTime().isBefore(fromDateTime))
-                .count();
-
-        Map<LocalDate, Long> productDailyCount = validProducts.stream()
-                .filter(p -> productEventTime(p) != null && !productEventTime(p).isBefore(fromDateTime))
-                .collect(Collectors.groupingBy(p -> productEventTime(p).toLocalDate(), Collectors.counting()));
-        long productTotalCount = validProducts.size();
-        long productBaseCount = validProducts.stream()
-                .filter(p -> productEventTime(p) == null || productEventTime(p).isBefore(fromDateTime))
-                .count();
-
-        Map<LocalDate, Long> memberDailyCount = validMemberInfos.stream()
-                .filter(info -> memberEventTime(info) != null && !memberEventTime(info).isBefore(fromDateTime))
-                .collect(Collectors.groupingBy(info -> memberEventTime(info).toLocalDate(), Collectors.counting()));
-        long memberTotalCount = validMemberInfos.size();
-        long memberBaseCount = validMemberInfos.stream()
-                .filter(info -> memberEventTime(info) == null || memberEventTime(info).isBefore(fromDateTime))
-                .count();
-
-        Map<LocalDate, BigDecimal> rechargeDailyAmount = validRecharges.stream()
-                .filter(r -> r.getCreateTime() != null && !r.getCreateTime().isBefore(fromDateTime))
-                .collect(Collectors.groupingBy(r -> r.getCreateTime().toLocalDate(),
-                        Collectors.mapping(r -> r.getTotalAmount() != null ? new BigDecimal(r.getTotalAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO,
-                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
-        BigDecimal rechargeTotalAmount = validRecharges.stream()
-                .map(r -> r.getTotalAmount() != null ? new BigDecimal(r.getTotalAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal rechargeBaseAmount = validRecharges.stream()
-                .filter(r -> r.getCreateTime() == null || r.getCreateTime().isBefore(fromDateTime))
-                .map(r -> r.getTotalAmount() != null ? new BigDecimal(r.getTotalAmount()).divide(new BigDecimal(100)) : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        Map<String, Object> merchantStats = buildCountSeries(dateRange, merchantDailyCount, merchantTotalCount, merchantBaseCount);
-        Map<String, Object> productStats = buildCountSeries(dateRange, productDailyCount, productTotalCount, productBaseCount);
-        Map<String, Object> memberStats = buildCountSeries(dateRange, memberDailyCount, memberTotalCount, memberBaseCount);
-        Map<String, Object> rechargeStats = buildAmountSeries(dateRange, rechargeDailyAmount, rechargeTotalAmount, rechargeBaseAmount);
-
+        
+        Map<String, Object> merchantStats = buildCountSeries(dateRange, merchantDaily, merchantTotal, merchantBase);
+        Map<String, Object> productStats = buildCountSeries(dateRange, productDaily, productTotal, productBase);
+        Map<String, Object> memberStats = buildCountSeries(dateRange, memberDaily, memberTotal, memberBase);
+        Map<String, Object> rechargeStats = buildAmountSeries(dateRange, rechargeDaily, rechargeTotal, rechargeBase);
+        
         result.put("merchant", merchantStats);
         result.put("product", productStats);
         result.put("member", memberStats);
         result.put("recharge", rechargeStats);
-
+        
         return result;
     }
 
     private static Map<String, Object> buildCountSeries(List<LocalDate> dates,
                                                         Map<LocalDate, Long> dailyCount,
-                                                        long totalCount,
+                                                        Map<LocalDate, Long> totalCount,
                                                         long baseCount) {
         Map<String, Object> data = new LinkedHashMap<>();
         List<String> xAxis = new ArrayList<>();
@@ -132,20 +105,25 @@ public class DashboardService {
             xAxis.add(d.toString());
             long dayCount = dailyCount.getOrDefault(d, 0L);
             daily.add(dayCount);
-            currentTotal += dayCount;
+            
+            if (totalCount.containsKey(d) && totalCount.get(d) != null) {
+                currentTotal = totalCount.get(d);
+            } else {
+                currentTotal += dayCount;
+            }
             cumulative.add(currentTotal);
         }
 
         data.put("dates", xAxis);
         data.put("daily", daily);
-        data.put("total", totalCount);
+        data.put("total", currentTotal);
         data.put("cumulative", cumulative);
         return data;
     }
 
     private static Map<String, Object> buildAmountSeries(List<LocalDate> dates,
                                                          Map<LocalDate, BigDecimal> dailyAmount,
-                                                         BigDecimal totalAmount,
+                                                         Map<LocalDate, BigDecimal> totalAmount,
                                                          BigDecimal baseAmount) {
         Map<String, Object> data = new LinkedHashMap<>();
         List<String> xAxis = new ArrayList<>();
@@ -157,28 +135,19 @@ public class DashboardService {
             xAxis.add(d.toString());
             BigDecimal dayAmount = dailyAmount.getOrDefault(d, BigDecimal.ZERO);
             daily.add(dayAmount);
-            currentTotal = currentTotal.add(dayAmount);
+            
+            if (totalAmount.containsKey(d) && totalAmount.get(d) != null) {
+                currentTotal = totalAmount.get(d);
+            } else {
+                currentTotal = currentTotal.add(dayAmount);
+            }
             cumulative.add(currentTotal);
         }
 
         data.put("dates", xAxis);
         data.put("daily", daily);
-        data.put("total", totalAmount);
+        data.put("total", currentTotal);
         data.put("cumulative", cumulative);
         return data;
-    }
-
-    private static LocalDateTime productEventTime(MerchantPhoneProduct product) {
-        if (product.getListingTime() != null) {
-            return product.getListingTime();
-        }
-        return product.getCreateTime();
-    }
-
-    private static LocalDateTime memberEventTime(MerchantMemberInfo info) {
-        if (info.getStartDate() != null) {
-            return info.getStartDate();
-        }
-        return info.getCreateTime();
     }
 }

@@ -35,6 +35,7 @@ public class DailyStatisticsService {
     private final MerchantMemberIntegralSpendRepository integralSpendRepository;
     private final DailyStatisticsRepository dailyStatisticsRepository;
     private final MerchantRechargeOrderRepository rechargeOrderRepository;
+    private final MerchantMemberInfoRepository merchantMemberInfoRepository;
     private final RestTemplate restTemplate;
     private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
 
@@ -51,6 +52,7 @@ public class DailyStatisticsService {
                                   MerchantMemberIntegralSpendRepository integralSpendRepository,
                                   DailyStatisticsRepository dailyStatisticsRepository,
                                   MerchantRechargeOrderRepository rechargeOrderRepository,
+                                  MerchantMemberInfoRepository merchantMemberInfoRepository,
                                   org.springframework.data.redis.core.StringRedisTemplate redisTemplate) {
         this.merchantRepository = merchantRepository;
         this.productRepository = productRepository;
@@ -59,6 +61,7 @@ public class DailyStatisticsService {
         this.integralSpendRepository = integralSpendRepository;
         this.dailyStatisticsRepository = dailyStatisticsRepository;
         this.rechargeOrderRepository = rechargeOrderRepository;
+        this.merchantMemberInfoRepository = merchantMemberInfoRepository;
         this.restTemplate = new RestTemplate();
         this.redisTemplate = redisTemplate;
     }
@@ -182,9 +185,15 @@ public class DailyStatisticsService {
             // Daily recharge amount for report (keep existing logic or use repository)
             long dailyRechargeAmount = integralSpendRepository.sumChangeAmountByChangeReasonAndChangeTimeBetween("花钱充值积分", startOfDay, endOfDay);
 
+            long newMemberCount = merchantMemberInfoRepository.countByStartDateBetween(startOfDay, endOfDay);
+            long totalMemberCount = merchantMemberInfoRepository.countByIsValidAndEndDateAfter(1, endOfDay);
+
             stats.setDailySignInCount((int) signinCount);
             stats.setDailyRechargeCount((int) rechargeCount);
             stats.setTotalRechargeAmount(totalRechargeAmount);
+            stats.setDailyRechargeAmount(dailyRechargeAmount);
+            stats.setDailyNewMemberCount((int) newMemberCount);
+            stats.setTotalMemberCount((int) totalMemberCount);
 
             // Save to DB
             dailyStatisticsRepository.save(stats);
@@ -196,6 +205,7 @@ public class DailyStatisticsService {
             sb.append("统计日期：").append(yesterday).append("\n\n");
 
             sb.append("1. 商户数据\n");
+            sb.append("- 日活用户(注册商户)：").append(stats.getDailyActiveUsers()).append("\n");
             sb.append("- 新增商户：").append(stats.getNewMerchantCount()).append("\n");
             sb.append("- 总商户数：").append(stats.getTotalMerchantCount()).append("\n");
             sb.append("- 真实注册商户：").append(stats.getNewValidMerchantCount()).append("\n");
